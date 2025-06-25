@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+{% include 'plantaopro/partials/_head.html' %}
+<body>
+    {% include 'plantaopro/partials/_nav.html' %}
+    <section class="content-wrapper" style="margin-top: 15px;">
+        <div class="header-bar">Cadastrar Escola</div>
+        <form id="schoolForm">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group short-field">
+                    <label for="schoolCnpj">CNPJ</label>
+                    <div class="input-group-cnpj">
+                        <input type="text" id="schoolCnpj" name="cnpj" placeholder="00.000.000/0000-00" required oninput="this.value = mascaraCnpj(this.value)" maxlength="18">
+                        <button type="button" onclick="buscarCnpj()">Buscar</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="schoolName">Nome da Escola</label>
+                    <input type="text" id="schoolName" name="nome" placeholder="Nome da Escola" class="disabled-field" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group short-field">
+                    <label for="schoolEmail">E-mail</label>
+                    <input type="email" id="schoolEmail" name="email" placeholder="email@escola.com.br" class="disabled-field" readonly>
+                </div>
+                <div class="form-group short-field">
+                    <label for="schoolPhone">Telefone</label>
+                    <input type="text" id="schoolPhone" name="telefone" placeholder="(xx) xxxx-xxxx" class="disabled-field" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="schoolCep">CEP</label>
+                    <input type="text" id="schoolCep" name="cep" placeholder="00000-000" class="disabled-field" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="schoolStreet">Logradouro</label>
+                    <input type="text" id="schoolStreet" name="endereco" placeholder="Rua / Avenida" class="disabled-field" readonly>
+                </div>
+                <div class="form-group short-field">
+                    <label for="schoolNumber">Número</label>
+                    <input type="text" id="schoolNumber" name="numero" class="disabled-field" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group short-field">
+                    <label for="schoolComplement">Complemento</label>
+                    <input type="text" id="schoolComplement" name="complemento" class="disabled-field" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="schoolNeighborhood">Bairro</label>
+                    <input type="text" id="schoolNeighborhood" name="bairro" class="disabled-field" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="schoolCity">Cidade</label>
+                    <input type="text" id="schoolCity" name="cidade" class="disabled-field" readonly>
+                </div>
+                <div class="form-group short-field">
+                    <label for="schoolState">Estado</label>
+                    <select id="schoolState" name="estado" class="disabled-field" disabled>
+                        <option value="">Escolher...</option>
+                        <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                        <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                        <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                        <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                        <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                        <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                        <option>SP</option><option>SE</option><option>TO</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="schoolWebsite">Site</label>
+                    <input type="url" id="schoolWebsite" name="site" placeholder="www.escola.com.br" class="disabled-field" readonly>
+                </div>
+            </div>
+
+            <div class="form-footer">
+                <button type="button" class="btn btn-secondary" id="resetButton" onclick="resetForm()">Limpar</button>
+                <button type="button" class="btn btn-secondary" id="alterarButton" onclick="enableFields()" disabled>Alterar</button>
+                <button type="button" class="btn btn-primary" id="submitButton">Cadastrar Escola</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'index' %}'" id="cancelButton">Cancelar</button>
+            </div>
+        </form>
+    </section>
+
+    <footer>
+        {% include 'plantaopro/partials/_footer.html' %}
+    </footer>
+    <script>
+        const fields = [
+            'schoolName', 'schoolEmail', 'schoolPhone', 'schoolStreet',
+            'schoolNumber', 'schoolComplement', 'schoolNeighborhood',
+            'schoolCity', 'schoolState', 'schoolWebsite', 'schoolCep', 'schoolCnpj'
+        ];
+    
+        function enableFields() {
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.readOnly = false;
+                    el.disabled = false;
+                    el.classList.remove('disabled-field');
+                }
+            });
+        }
+    
+        function disableFields() {
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.readOnly = true;
+                    el.disabled = true;
+                    el.classList.add('disabled-field');
+                }
+            });
+        }
+    
+        function limparCampos() {
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+        }
+    
+        function preencherCampos(data) {
+            for (let key in data) {
+                const el = document.getElementById(key);
+                if (el) el.value = data[key];
+            }
+        }
+    
+        function mascaraCnpj(value) {
+            value = value.replace(/\D/g, '');
+            if (value.length > 14) value = value.slice(0, 14);
+            return value
+                .replace(/^(\d{2})(\d)/, '$1.$2')
+                .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+                .replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3/$4')
+                .replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})(\d)/, '$1.$2.$3/$4-$5');
+        }
+    
+        function validarCNPJ(cnpj) {
+            cnpj = cnpj.replace(/[^\d]+/g, '');
+            if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
+    
+            let tamanho = cnpj.length - 2;
+            let numeros = cnpj.substring(0, tamanho);
+            let digitos = cnpj.substring(tamanho);
+            let soma = 0;
+            let pos = tamanho - 7;
+    
+            for (let i = tamanho; i >= 1; i--) {
+                soma += numeros.charAt(tamanho - i) * pos--;
+                if (pos < 2) pos = 9;
+            }
+    
+            let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+            if (resultado != digitos.charAt(0)) return false;
+    
+            tamanho++;
+            numeros = cnpj.substring(0, tamanho);
+            soma = 0;
+            pos = tamanho - 7;
+    
+            for (let i = tamanho; i >= 1; i--) {
+                soma += numeros.charAt(tamanho - i) * pos--;
+                if (pos < 2) pos = 9;
+            }
+    
+            resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+            return resultado == digitos.charAt(1);
+        }
+    
+        function buscarCnpj() {
+            const cnpjInput = document.getElementById("schoolCnpj");
+            const cnpj = cnpjInput.value.trim();
+    
+            if (!cnpj) {
+                alert("Por favor, preencha o campo de CNPJ.");
+                return;
+            }
+    
+            if (!validarCNPJ(cnpj)) {
+                alert("CNPJ inválido.");
+                return;
+            }
+    
+            fetch("/buscar_cnpj/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({ cnpj })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.exists) {
+                    preencherCampos(data.escola);
+                    disableFields();
+                    document.getElementById('submitButton').disabled = true;
+                    document.getElementById('alterarButton').disabled = false;
+                } else {
+                    limparCampos();
+                    enableFields();
+                    document.getElementById('submitButton').disabled = false;
+                    document.getElementById('alterarButton').disabled = true;
+                }
+            })
+            .catch(error => {
+                alert("Erro ao buscar o CNPJ.");
+                console.error("Erro na requisição:", error);
+            });
+        }
+    
+        document.getElementById('submitButton').addEventListener('click', function(event) {
+            event.preventDefault();
+    
+            const dados = {
+                schoolName: document.getElementById('schoolName').value.trim(),
+                schoolCnpj: document.getElementById('schoolCnpj').value.trim(),
+                schoolPhone: document.getElementById('schoolPhone').value.trim(),
+                schoolEmail: document.getElementById('schoolEmail').value.trim(),
+                schoolStreet: document.getElementById('schoolStreet').value.trim(),
+                schoolNumber: document.getElementById('schoolNumber').value.trim(),
+                schoolComplement: document.getElementById('schoolComplement').value.trim(),
+                schoolNeighborhood: document.getElementById('schoolNeighborhood').value.trim(),
+                schoolCity: document.getElementById('schoolCity').value.trim(),
+                schoolState: document.getElementById('schoolState').value.trim(),
+                schoolWebsite: document.getElementById('schoolWebsite').value.trim(),
+                schoolCep: document.getElementById('schoolCep').value.trim()
+            };
+    
+            for (let key in dados) {
+                if (!dados[key] && key !== 'schoolComplement' && key !== 'schoolWebsite') {
+                    alert(`Preencha o campo obrigatório: ${key}`);
+                    return;
+                }
+            }
+    
+            console.log("📦 Dados a enviar:", dados);
+    
+            fetch("/cadastrar_escola_banco/", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                    
+                },
+                body: JSON.stringify(dados)
+            })
+            .then(res => {
+            console.log("🔍 Status da resposta:", res.status);
+            return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert("✅ Escola cadastrada com sucesso!");
+                    disableFields();
+                    document.getElementById('submitButton').disabled = true;
+                    document.getElementById('alterarButton').disabled = false;
+                } else {
+                    alert("❌ Erro: " + (data.error || "Não foi possível cadastrar."));
+                    console.error("Erro no backend:", data);
+                }
+            })
+            .catch(error => {
+                alert("❌ Erro ao enviar dados. Veja o console.");
+                console.error("🚨 Erro na requisição:", error);
+            });
+        });
+    </script>
+    
+</body>
+</html>

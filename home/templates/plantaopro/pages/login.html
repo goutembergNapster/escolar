@@ -1,0 +1,129 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Escolinha</title>
+
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/identidade.css' %}">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #fff0e6, #fefefe);
+    }
+
+    .login-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-card {
+      background-color: #fff;
+      border-radius: 20px;
+      padding: 40px 30px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .login-title {
+      font-weight: bold;
+      color: #fab982;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+
+    .logo-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo-container img {
+      max-height: 70px;
+    }
+
+    .btn-login {
+      background-color: #f89952;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+      padding: 10px;
+      border: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .btn-login:hover {
+      background-color: #e28032;
+    }
+
+    .form-control-custom {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #f89952;
+      font-size: 0.95rem;
+      background-color: #fff;
+      color: #333;
+      box-sizing: border-box;
+    }
+
+    .form-control-custom:focus {
+      border-color: #f6821f;
+      outline: none;
+      box-shadow: 0 0 0 0.15rem rgba(248, 137, 82, 0.25);
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 5px;
+      color: #444;
+      font-weight: normal;
+    }
+
+    .alert-danger {
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="logo-container">
+      <img src="{% static 'plantaopro/images/logo.svg' %}" alt="Logo Escolinha">
+    </div>
+    <h2 class="login-title">Login do Sistema</h2>
+
+    <form method="POST" action="{% url 'login' %}">
+      {% csrf_token %}
+      {% if form.errors %}
+        <div class="alert alert-danger">
+          Usuário ou senha inválidos. Tente novamente.
+        </div>
+      {% endif %}
+
+      <div class="form-group mb-3">
+        <label for="username">Usuário</label>
+        <input type="text" name="username" placeholder="Digite seu CPF" class="form-control-custom" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 10px;">
+        <label for="password">Senha</label>
+        <input type="password" name="password" placeholder="Digite sua Senha" class="form-control-custom" required>
+      </div>
+
+      <button type="submit" class="btn-login">Entrar</button>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

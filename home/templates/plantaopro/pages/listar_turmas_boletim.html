@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  {% include 'plantaopro/partials/_head.html' %}
+</head>
+<body>
+<div class="container mt-5">
+  <h3 class="mb-4">Selecionar Turma e Aluno</h3>
+
+  <form method="get" class="form-inline mb-3">
+    <label class="mr-2" for="turma">Turma:</label>
+    <select name="turma" id="turma" class="form-control mr-2">
+      <option value="">-- Selecione --</option>
+      {% for turma in turmas %}
+        <option value="{{ turma.id }}" {% if turma.id|stringformat:'s' == turma_id %}selected{% endif %}>
+          {{ turma.nome }}
+        </option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+  </form>
+
+  {% if alunos %}
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Nome do Aluno</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for aluno in alunos %}
+      <tr>
+        <td>{{ aluno.nome }}</td>
+        <td>
+          <a href="{% url 'visualizar_boletim' aluno.id %}" class="btn btn-sm btn-info">
+            Visualizar Boletim
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+</body>
+</html>

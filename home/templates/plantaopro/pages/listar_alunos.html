@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% include 'plantaopro/partials/_head.html' %}
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+        }
+    
+        .flex-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+    
+        .content {
+            flex: 1;
+            padding-bottom: 2rem;
+        }
+    
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+    
+        .form-group {
+            margin-bottom: 1rem;
+        }
+    
+        h5 {
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 1.5rem;
+        }
+    
+        .btn {
+            margin-right: 10px;
+        }
+    
+        .disabled-field {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+    
+        /* === Título "Lista de Alunos" com estilo laranja alinhado à esquerda === */
+        .titulo-pagina {
+            background-color: #fab982;
+            color: #000;
+            font-weight: bold;
+            font-size: 1.5rem;
+            padding: 1rem 1.5rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+    
+        /* === Botões === */
+        .btn-info {
+            background-color: #fab982 !important;
+            border-color: #fab982 !important;
+            color: #000 !important;
+            box-shadow: none !important;
+        }
+    
+        .btn-info:hover,
+        .btn-info:focus,
+        .btn-info:active {
+            background-color: #f9a85c !important;
+            border-color: #f9a85c !important;
+            color: #000 !important;
+            box-shadow: none !important;
+        }
+    
+        .btn-warning {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: #fff;
+        }
+    
+        .btn-warning:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+    
+        .btn-success {
+            background-color: #fab982;
+            border-color: #fab982;
+            color: #000;
+        }
+    
+        .btn-success:hover {
+            background-color: #f9a85c;
+            border-color: #f9a85c;
+            color: #000;
+        }
+    
+        /* === Badge personalizado === */
+        .badge-success {
+            background-color: #fab982;
+            color: #000;
+        }
+    
+        .badge-secondary {
+            background-color: #6c757d;
+        }
+    
+        /* === Modal === */
+        .modal-header {
+            background-color: #fab982;
+            border-bottom: none;
+        }
+    
+        .modal-title {
+            color: #000;
+        }
+    
+        .modal-footer .btn-primary {
+            background-color: #fab982;
+            border-color: #fab982;
+            color: #000;
+        }
+    
+        .modal-footer .btn-primary:hover {
+            background-color: #f9a85c;
+            border-color: #f9a85c;
+        }
+    
+        .modal-footer .btn-secondary {
+            background-color: #e9ecef;
+            border-color: #e9ecef;
+            color: #000;
+        }
+    
+        .modal-footer .btn-secondary:hover {
+            background-color: #d6d6d6;
+            border-color: #d6d6d6;
+            color: #000;
+        }
+    
+        /* === Tabela === */
+        .table thead.thead-dark th {
+            background-color: #fab982;
+            color: #000;
+            border-color: #fab982;
+        }
+    
+        .table-hover tbody tr:hover {
+            background-color: #fff4eb;
+        }
+    
+        /* === Inputs === */
+        .form-control:focus {
+            border-color: #fab982;
+            box-shadow: 0 0 0 0.2rem rgba(250, 185, 130, 0.25);
+        }
+    
+        /* === Abas === */
+        .nav-tabs .nav-link.active {
+            background-color: #fab982;
+            color: #000;
+            font-weight: bold;
+        }
+    
+        .nav-tabs .nav-link {
+            border: 1px solid #dee2e6;
+            color: #212529;
+        }
+    
+        .nav-tabs .nav-link:hover {
+            background-color: #ffe4ca;
+            color: #000;
+        }
+        .titulo-pagina {
+            background-color: #fab982;
+            color: #000;
+            font-weight: bold;
+            font-size: 1.5rem;
+            padding: 1rem 1.5rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        
+    </style>
+    
+</head>
+<body>
+    {% include 'plantaopro/partials/_nav.html' %}
+
+    <section class="py-5">
+        <div class="container">
+            <div class="titulo-pagina">Listar Alunos</div>
+
+            <div class="form-group">
+                <input type="text" id="filtroAluno" class="form-control" placeholder="🔍 Buscar por nome, CPF, matrícula, responsável...">
+            </div>
+
+            <table class="table table-bordered table-hover table-striped" id="tabelaAlunos">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Matrícula</th>
+                        <th>Turma</th>
+                        <th>Nome</th>
+                        <th>Nome Responsável</th>
+                        <th>Telefone Resposável</th>
+                        <th>Necessidade Especial</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaAlunosBody">
+                    <script id="alunos-data" type="application/json">{{ alunos_json|safe }}</script>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {% include 'plantaopro/partials/_footer.html' %}
+
+    <!-- Modal de edição -->
+    <div class="modal fade" id="editarAlunoModal" tabindex="-1" role="dialog" aria-labelledby="editarAlunoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <form id="editarAlunoForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Aluno</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Abas -->
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#dadosAluno" role="tab">Dados do Aluno</a></li>
+                            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#dadosResponsavel" role="tab">Responsável</a></li>
+                            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#dadosSaude" role="tab">Saúde</a></li>
+                            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#dadosTransporte" role="tab">Transporte</a></li>
+                            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#dadosAutorizacoes" role="tab">Autorizações</a></li>
+                        </ul>
+
+                        <div class="tab-content p-3">
+                            <!-- Abas com conteúdo -->
+                            <div class="tab-pane fade show active" id="dadosAluno" role="tabpanel">
+                                <input type="hidden" id="alunoId">
+                                <div class="form-group"><label for="editNome">Nome</label><input type="text" class="form-control" id="editNome" required></div>
+                                <div class="form-group"><label for="editEmail">Email</label><input type="email" class="form-control" id="editEmail"></div>
+                                <div class="form-group"><label for="editTelefone">Telefone</label><input type="text" class="form-control" id="editTelefone"></div>
+                            </div>
+
+                            <div class="tab-pane fade" id="dadosResponsavel" role="tabpanel">
+                                <div class="form-group"><label for="editResponsavelNome">Nome do Responsável</label><input type="text" class="form-control" id="editResponsavelNome"></div>
+                                <div class="form-group"><label for="editResponsavelCpf">CPF do Responsável</label><input type="text" class="form-control" id="editResponsavelCpf"></div>
+                                <div class="form-group"><label for="editResponsavelParentesco">Parentesco</label><input type="text" class="form-control" id="editResponsavelParentesco"></div>
+                                <div class="form-group"><label for="editResponsavelTelefone">Telefone</label><input type="text" class="form-control" id="editResponsavelTelefone"></div>
+                                <div class="form-group"><label for="editResponsavelEmail">Email</label><input type="email" class="form-control" id="editResponsavelEmail"></div>
+                            </div>
+
+                            <div class="tab-pane fade" id="dadosSaude" role="tabpanel">
+                                <div class="form-group"><label><input type="checkbox" id="editPossuiNecessidadeEspecial"> Possui Necessidade Especial</label></div>
+                                <div class="form-group"><label for="editDescricaoNecessidade">Descrição</label><textarea class="form-control" id="editDescricaoNecessidade"></textarea></div>
+                                <div class="form-group"><label><input type="checkbox" id="editUsaMedicacao"> Usa Medicação</label></div>
+                                <div class="form-group"><label for="editQuaisMedicacoes">Quais?</label><input type="text" class="form-control" id="editQuaisMedicacoes"></div>
+                                <div class="form-group"><label><input type="checkbox" id="editPossuiAlergia"> Possui Alergia</label></div>
+                                <div class="form-group"><label for="editDescricaoAlergia">Descrição da Alergia</label><textarea class="form-control" id="editDescricaoAlergia"></textarea></div>
+                            </div>
+
+                            <div class="tab-pane fade" id="dadosTransporte" role="tabpanel">
+                                <div class="form-group"><label><input type="checkbox" id="editUsaTransporte"> Usa Transporte Escolar</label></div>
+                                <div class="form-group"><label for="editTrajeto">Trajeto</label><input type="text" class="form-control" id="editTrajeto"></div>
+                            </div>
+
+                            <div class="tab-pane fade" id="dadosAutorizacoes" role="tabpanel">
+                                <div class="form-group"><label><input type="checkbox" id="editAutorizacaoSaida"> Autoriza Saída Sozinho</label></div>
+                                <div class="form-group"><label><input type="checkbox" id="editAutorizacaoFotos"> Autoriza Fotos/Evento</label></div>
+                                <div class="form-group"><label for="editPessoaAutorizada">Pessoa Autorizada a Buscar</label><input type="text" class="form-control" id="editPessoaAutorizada"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function abrirModalEditarCompleto(aluno) {
+            document.getElementById('alunoId').value = aluno.id;
+            document.getElementById('editNome').value = aluno.nome;
+            document.getElementById('editEmail').value = aluno.email;
+            document.getElementById('editTelefone').value = aluno.telefone;
+        
+            document.getElementById('editResponsavelNome').value = aluno.responsavel_nome || '';
+            document.getElementById('editResponsavelCpf').value = aluno.responsavel_cpf || '';
+            document.getElementById('editResponsavelParentesco').value = aluno.responsavel_parentesco || '';
+            document.getElementById('editResponsavelTelefone').value = aluno.responsavel_telefone || '';
+            document.getElementById('editResponsavelEmail').value = aluno.responsavel_email || '';
+        
+            document.getElementById('editPossuiNecessidadeEspecial').checked = !!aluno.possui_necessidade_especial;
+            document.getElementById('editDescricaoNecessidade').value = aluno.descricao_necessidade || '';
+            document.getElementById('editUsaMedicacao').checked = !!aluno.usa_medicacao;
+            document.getElementById('editQuaisMedicacoes').value = aluno.quais_medicacoes || '';
+            document.getElementById('editPossuiAlergia').checked = !!aluno.possui_alergia;
+            document.getElementById('editDescricaoAlergia').value = aluno.descricao_alergia || '';
+        
+            document.getElementById('editUsaTransporte').checked = !!aluno.usa_transporte_escolar;
+            document.getElementById('editTrajeto').value = aluno.trajeto || '';
+        
+            document.getElementById('editAutorizacaoSaida').checked = !!aluno.autorizacao_saida_sozinho;
+            document.getElementById('editAutorizacaoFotos').checked = !!aluno.autorizacao_fotos_eventos;
+            document.getElementById('editPessoaAutorizada').value = aluno.pessoa_autorizada_buscar || '';
+        
+            // Garante que a aba ativa ao abrir seja a de Dados do Aluno
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('show', 'active'));
+            document.querySelector('.nav-link[href="#dadosAluno"]').classList.add('active');
+            document.getElementById('dadosAluno').classList.add('show', 'active');
+        
+            $('#editarAlunoModal').modal('show');
+        }
+          // Submissão
+          const editarForm = document.getElementById('editarAlunoForm');
+          editarForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+          
+            const payload = {
+              nome: document.getElementById('editNome').value,
+              email: document.getElementById('editEmail').value,
+              telefone: document.getElementById('editTelefone').value,
+          
+              responsavel_nome: document.getElementById('editResponsavelNome').value,
+              responsavel_cpf: document.getElementById('editResponsavelCpf').value,
+              responsavel_parentesco: document.getElementById('editResponsavelParentesco').value,
+              responsavel_telefone: document.getElementById('editResponsavelTelefone').value,
+              responsavel_email: document.getElementById('editResponsavelEmail').value,
+          
+              possui_necessidade_especial: document.getElementById('editPossuiNecessidadeEspecial').checked,
+              descricao_necessidade: document.getElementById('editDescricaoNecessidade').value,
+              usa_medicacao: document.getElementById('editUsaMedicacao').checked,
+              quais_medicacoes: document.getElementById('editQuaisMedicacoes').value,
+              possui_alergia: document.getElementById('editPossuiAlergia').checked,
+              descricao_alergia: document.getElementById('editDescricaoAlergia').value,
+          
+              usa_transporte_escolar: document.getElementById('editUsaTransporte').checked,
+              trajeto: document.getElementById('editTrajeto').value,
+          
+              autorizacao_saida_sozinho: document.getElementById('editAutorizacaoSaida').checked,
+              autorizacao_fotos_eventos: document.getElementById('editAutorizacaoFotos').checked,
+              pessoa_autorizada_buscar: document.getElementById('editPessoaAutorizada').value,
+            };
+          
+            const alunoId = document.getElementById('alunoId').value;
+          
+            fetch(`/editar_aluno/${alunoId}/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+              },
+              body: JSON.stringify(payload)
+            })
+              .then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  alert('Aluno atualizado com sucesso!');
+                  location.reload();
+                } else {
+                  alert('Erro: ' + data.error);
+                }
+              });
+          });
+
+    function alternarStatus(id) {
+        fetch(`/alternar_status_aluno/${id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro ao alterar status');
+            }
+        });
+    }
+
+    document.getElementById('filtroAluno').addEventListener('input', function() {
+        const filtro = this.value.toLowerCase();
+        const linhas = document.querySelectorAll('#tabelaAlunos tbody tr');
+
+        linhas.forEach(function(linha) {
+            const textoLinha = linha.innerText.toLowerCase();
+            linha.style.display = textoLinha.includes(filtro) ? '' : 'none';
+        });
+    });
+    const alunos = JSON.parse(document.getElementById('alunos-data').textContent);
+
+function renderizarTabela() {
+    const tbody = document.getElementById('tabelaAlunosBody');
+    tbody.innerHTML = '';
+    alunos.forEach(aluno => {
+        const statusBadge = aluno.ativo
+            ? '<span class="badge badge-success">Ativo</span>'
+            : '<span class="badge badge-secondary">Inativo</span>';
+
+        const botaoStatus = aluno.ativo
+            ? `<button class="btn btn-sm btn-warning" onclick="alternarStatus(${aluno.id})">Inativar</button>`
+            : `<button class="btn btn-sm btn-success" onclick="alternarStatus(${aluno.id})">Ativar</button>`;
+
+        const linha = `
+            <tr>
+                <td>${aluno.matricula}</td>
+                <td>${aluno.matricula}</td>
+                <td>${aluno.nome}</td>
+                <td>${aluno.responsavel_nome}</td>
+                <td>${aluno.responsavel_telefone}</td>
+                <td>${aluno.possui_necessidade_especial ? '🧩 Sim' : '–'}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <div class="d-flex">
+                        <button class="btn btn-sm btn-info mr-2" data-id="${aluno.id}" onclick="editarPorId(this)">Editar</button>
+                        ${botaoStatus}
+                    </div>
+                </td>
+            </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', linha);
+    });
+}
+
+renderizarTabela();
+function editarPorId(botao) {
+    const id = parseInt(botao.dataset.id);
+    const aluno = alunos.find(a => a.id === id);
+    if (aluno) {
+        abrirModalEditarCompleto(aluno);
+    } else {
+        alert('Aluno não encontrado!');
+    }
+}
+    </script>
+
+    <div>
+        {% include 'plantaopro/partials/_footer.html' %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% include 'plantaopro/partials/_head.html' %}
+</head>
+<body>
+{% include 'plantaopro/partials/_nav.html' %}
+<section class="form-container">
+    <div class="container">
+        <div class="header-bar">Criar Turma</div>
+
+        <div class="content-wrapper">
+            <form method="post" id="turmaForm">
+                {% csrf_token %}
+
+                <!-- NOVOS CAMPOS DE INFORMAÇÃO DA TURMA -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nomeTurma">Nome da Turma</label>
+                        <input type="text" id="nomeTurma" name="nome" placeholder="Ex: 5º Ano A" required>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="turnoTurma">Turno</label>
+                        <select id="turnoTurma" name="turno" required>
+                            <option value="">Selecione</option>
+                            <option>Manhã</option>
+                            <option>Tarde</option>
+                            <option>Noite</option>
+                        </select>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="anoTurma">Ano</label>
+                        <input type="number" id="anoTurma" name="ano" min="1900" max="2100" required>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="salaTurma">Sala</label>
+                        <input type="text" id="salaTurma" name="sala" placeholder="Ex: 202" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="width: 100%">
+                        <label for="descricaoTurma">Descrição (opcional)</label>
+                        <textarea id="descricaoTurma" name="descricao" rows="3" style="width: 100%;"></textarea>
+                    </div>
+                </div>
+
+                <!-- CAMPO DE BUSCA DE ALUNO/PROFESSOR -->
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1; position: relative;">
+                        <label for="buscaPessoa">Buscar Aluno ou Professor</label>
+                        <input type="text" id="buscaPessoa" placeholder="Digite o nome" autocomplete="off">
+                        <ul id="sugestoes" class="autocomplete-lista" 
+                            style="position: absolute; z-index: 1000; background: white; 
+                                   list-style: none; padding: 0; margin-top: 0; 
+                                   width: 100%; border: 1px solid #ccc; max-height: 200px; overflow-y: auto;">
+                        </ul>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="tipoPessoa">Tipo</label>
+                        <select id="tipoPessoa">
+                            <option value="professor">Professor</option>
+                            <option value="aluno">Aluno</option>
+                        </select>
+                    </div>
+                    <div class="form-group short-field">
+                        <label style="color: transparent;">Add</label>
+                        <button type="button" class="btn btn-primary" onclick="adicionarPessoa()">Adicionar</button>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="width: 100%">
+                        <label>Turma Montada</label>
+                        <textarea id="turmaMontada" readonly rows="8" style="width: 100%; background-color: #f9f9f9;"></textarea>
+                        <input type="hidden" name="professor_id" id="professor_id">
+                        <input type="hidden" name="alunos_ids" id="alunos_ids">
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                    <button type="submit" class="btn btn-primary">Salvar Turma</button>
+                    <button type="reset" class="btn btn-secondary">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% include 'plantaopro/partials/_footer.html' %}
+<script src="{% static 'plantaopro/js/formulario_turma_dinamico.js' %}"></script>
+</body>
+</html>

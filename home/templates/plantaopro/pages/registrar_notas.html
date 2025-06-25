@@ -1,0 +1,143 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% include 'plantaopro/partials/_head.html' %}
+    <style>
+        .content {
+            max-width: 900px;
+            margin: 20px auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        th {
+            background-color: #fab982;
+            text-align: left;
+        }
+
+        input[type="number"] {
+            width: 80px;
+        }
+
+        .form-top {
+            margin-bottom: 20px;
+        }
+
+        .form-top select {
+            padding: 5px;
+            margin-right: 10px;
+        }
+
+        .btn-salvar {
+            background-color: #fab982;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    {% include 'plantaopro/partials/_nav.html' %}
+    <div class="content">
+        <h2>Lançamento de Notas</h2>
+
+        <form method="GET" class="form-top">
+            <label for="turma">Turma:</label>
+            <select id="turma" name="turma" onchange="this.form.submit()">
+                <option value="">Selecione uma turma</option>
+                {% for t in turmas %}
+                    <option value="{{ t.id }}" {% if request.GET.turma == t.id|stringformat:"s" %}selected{% endif %}>
+                        {{ t.nome }} - {{ t.turno }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            {% if disciplinas %}
+            <label for="disciplina">Disciplina:</label>
+            <select id="disciplina" name="disciplina" onchange="this.form.submit()">
+                <option value="">Selecione uma disciplina</option>
+                {% for d in disciplinas %}
+                    <option value="{{ d.id }}" {% if request.GET.disciplina == d.id|stringformat:"s" %}selected{% endif %}>
+                        {{ d.nome }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% endif %}
+        </form>
+
+        {% if alunos %}
+            <form id="notasForm">
+                <input type="hidden" name="turma_id" value="{{ turma_id }}">
+                <input type="hidden" name="disciplina_id" value="{{ disciplina_id }}">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aluno</th>
+                            <th>Nota</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for aluno in alunos %}
+                        <tr>
+                            <td>{{ aluno.nome }}</td>
+                            <td>
+                                <input type="number" name="nota_{{ aluno.id }}" step="0.1" min="0" max="10" required>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <button type="button" class="btn-salvar" onclick="salvarNotas()">Salvar Notas</button>
+            </form>
+        {% elif turma_id and disciplina_id %}
+            <p>Não há alunos cadastrados nesta turma.</p>
+        {% else %}
+            <p>Selecione uma turma e uma disciplina para lançar as notas.</p>
+        {% endif %}
+    </div>
+    {% include 'plantaopro/partials/_footer.html' %}
+
+    <script>
+        function salvarNotas() {
+            const form = document.getElementById('notasForm');
+            const data = {};
+            data['turma_id'] = form.querySelector('input[name="turma_id"]').value;
+            data['disciplina_id'] = form.querySelector('input[name="disciplina_id"]').value;
+
+            const inputs = form.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                const alunoId = input.name.replace('nota_', '');
+                data[alunoId] = input.value;
+            });
+
+            fetch('{% url "lancar_notas" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Notas salvas com sucesso!');
+                } else {
+                    alert('Erro ao salvar as notas.');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

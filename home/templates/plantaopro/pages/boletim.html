@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  {% include 'plantaopro/partials/_head.html' %}
+</head>
+<body>
+{% block content %}
+<div class="container mt-4" style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+  <div class="text-center mb-4">
+    <img src="{% static 'plantaopro/images/logo.svg' %}" alt="Logo da Escola" height="80">
+    <h3 class="mt-3">Boletim Escolar</h3>
+  </div>
+
+  <div class="mb-4">
+    <strong>Nome do Aluno:</strong> {{ aluno.nome }}<br>
+    <strong>CPF:</strong> {{ aluno.cpf }}<br>
+    <strong>Turma:</strong> {{ aluno.turma.nome|default:"-" }}<br>
+    <strong>Ano de Ingresso:</strong> {{ aluno.ano_ingresso|default:"-" }}<br>
+  </div>
+
+  <table class="table table-bordered">
+    <thead class="bg-light text-dark">
+      <tr>
+        <th>Disciplina</th>
+        <th>Nota</th>
+        <th>Observações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for nota in notas %}
+      <tr>
+        <td>{{ nota.disciplina.nome }}</td>
+        <td>{{ nota.valor }}</td>
+        <td>{{ nota.observacao|default:"-" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3" class="text-center">Nenhuma nota registrada.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="d-flex justify-content-between mt-4">
+    <a href="{% url 'listar_turmas_boletim' %}" class="btn btn-secondary">Voltar</a>
+    <button class="btn btn-outline-primary" onclick="window.print()">Imprimir</button>
+  </div>
+</div>
+{% endblock %}
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'plantaopro/partials/_head.html' %}
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+        }
+        .flex-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .content {
+            flex: 1;
+        }
+        #doctorSelect {
+            max-height: 150px; /* Limita a altura do dropdown */
+            overflow-y: auto; /* Adiciona rolagem se necessário */
+        }
+    </style>
+</head>
+<body>
+    <div class="flex-wrapper">
+        {% include 'plantaopro/partials/_nav.html' %}
+        <section id="shiftRegistration" class="py-5">
+            <div class="container">
+                <h2 class="text-center">Cadastro de Plantão</h2>
+                <form method="post" action="cadastrar_plantao/">
+                    {% csrf_token %}
+
+                    <!-- Cadastro de Horários de Plantão -->
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label for="shiftDate">Data do Plantão</label>
+                            <input type="date" class="form-control" id="shiftDate" name="shiftDate" required>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="startTime">Horário de Início</label>
+                            <input type="time" class="form-control" id="startTime" name="startTime" required>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="endTime">Horário de Término</label>
+                            <input type="time" class="form-control" id="endTime" name="endTime" required>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="breakTime">Intervalo (se houver)</label>
+                            <input type="time" class="form-control" id="breakTime" name="breakTime">
+                        </div>
+                    </div>
+
+                    <!-- Seleção do Médico e Especialidade -->
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="doctorSearch">Médico Responsável</label>
+                            <input type="text" class="form-control" id="doctorSearch" placeholder="Digite o nome do médico" autocomplete="off">
+                            <select class="form-control mt-2" id="doctorSelect" name="doctorSelect" size="5" style="display:none; position: absolute; z-index: 1000;"></select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="specialty">Especialidade</label>
+                            <input type="text" class="form-control" id="specialty" name="specialty" placeholder="Informe a especialidade">
+                        </div>
+                    </div>
+                    <!-- Tipo de Plantão -->
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="shiftType">Tipo de Plantão</label>
+                            <select class="form-control" id="shiftType" name="shiftType">
+                                <option selected>Escolha o Tipo</option>
+                                <option>Noturno</option>
+                                <option>Diurno</option>
+                                <option>Emergência</option>
+                                <option>Sobreaviso</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="location">Local do Plantão</label>
+                            <input type="text" class="form-control" id="location" name="location" placeholder="Informe a clínica ou hospital">
+                        </div>
+                    </div>
+
+                    <!-- Definição de Remuneração -->
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="paymentType">Tipo de Pagamento</label>
+                            <select class="form-control" id="paymentType" name="paymentType" onchange="toggleHoursField()">
+                                <option selected>Escolha o Tipo</option>
+                                <option value="fixed">Valor Fixo</option>
+                                <option value="hourly">Por Hora</option>
+                            </select>
+                        </div>
+                    
+                        <div class="form-group col-md-4">
+                            <label for="hoursQuantity">Quantidade de Horas</label>
+                            <input type="number" class="form-control" id="hoursQuantity" name="hoursQuantity" placeholder="Informe a quantidade de horas" disabled>
+                        </div>
+                    
+                        <div class="form-group col-md-4">
+                            <label for="shiftValue">Valor do Plantão</label>
+                            <input type="number" class="form-control" id="shiftValue" name="shiftValue" placeholder="Informe o valor">
+                        </div>
+                    </div>
+
+                    <!-- Recursos e Substituições -->
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="bedsAvailable">Número de Leitos/Salas</label>
+                            <input type="number" class="form-control" id="bedsAvailable" name="bedsAvailable" placeholder="Informe a quantidade">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="equipment">Equipamentos Necessários</label>
+                            <input type="text" class="form-control" id="equipment" name="equipment" placeholder="Informe os equipamentos necessários">
+                        </div>
+                    </div>
+
+                    <!-- Substituições e Faltas -->
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="substituteDoctor">Médico Substituto</label>
+                            <input type="text" class="form-control" id="substituteDoctor" name="substituteDoctor" placeholder="Informe o médico substituto">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="substitutionReason">Motivo da Substituição</label>
+                            <textarea class="form-control" id="substitutionReason" name="substitutionReason" rows="3" placeholder="Descreva o motivo"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Ações -->
+                    <div class="form-row mb-3" style="border-bottom: 1px solid #dee2e6;"></div>
+                        <div class="form-row">
+                            <div class="col-md-12 text-left">
+                                <button type="submit" class="btn btn-primary" id="submitButton" disabled>Cadastrar Plantão</button>
+                                <button type="button" class="btn btn-secondary" id="alterarButton" onclick="alterarDados()" disabled>Alterar</button>
+                                <button type="reset" class="btn btn-secondary" id="resetButton" onclick="resetForm()">Limpar</button>
+                                <button type="button" class="btn btn-danger" onclick="window.location.href='{% url 'index' %}'" id="canceltButton">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+        <div>
+            {% include 'plantaopro/partials/_footer.html' %}
+        </div>
+    </div> 
+    <script>
+        document.getElementById('doctorSearch').addEventListener('focus', function() {
+            const dropdown = document.getElementById('doctorSelect');
+            dropdown.style.display = 'block'; // Exibe a lista ao focar no campo
+            fetch(`/buscar-medicos/?search=`) // Busca todos os médicos para exibir inicialmente
+                .then(response => response.json())
+                .then(data => {
+                    updateDropdown(data);
+                });
+        });
+        document.getElementById('doctorSearch').addEventListener('input', function() {
+            const searchTerm = this.value;
+            const dropdown = document.getElementById('doctorSelect');
+            
+            if (searchTerm.length > 0) {
+                fetch(`/buscar-medicos/?search=${searchTerm}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        updateDropdown(data);
+                    });
+            } else {
+                dropdown.style.display = 'none'; // Esconde o dropdown se não houver texto
+            }
+        });
+        
+        // Função para atualizar o dropdown
+        function updateDropdown(data) {
+            const dropdown = document.getElementById('doctorSelect');
+            dropdown.innerHTML = ''; // Limpa opções anteriores
+        
+            data.forEach(medico => {
+                const option = document.createElement('option');
+                option.value = medico.doctorCpf; // Usa doctorCpf como valor
+                option.textContent = medico.doctorName; // Exibe o nome
+                dropdown.appendChild(option);
+            });
+            
+            dropdown.style.display = data.length > 0 ? 'block' : 'none'; // Mostra o dropdown se houver resultados
+        
+            // Limita a exibição a 10 médicos
+            if (dropdown.options.length > 10) {
+                for (let i = 10; i < dropdown.options.length; i++) {
+                    dropdown.options[i].remove();
+                }
+            }
+        }
+        
+        // Adiciona um evento de clique para selecionar o médico
+        document.getElementById('doctorSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            document.getElementById('doctorSearch').value = selectedOption.textContent; // Atualiza o campo de busca
+            this.style.display = 'none'; // Esconde o dropdown
+        });
+        
+        // Esconde o dropdown ao clicar fora
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('doctorSelect');
+            const searchField = document.getElementById('doctorSearch');
+        
+            if (!searchField.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = 'none'; // Esconde se clicar fora do campo
+            }
+        });
+        
+        // Função para habilitar o botão de Alterar quando um plantão for selecionado
+        function alterarDados() {
+            alert("Função para alterar dados do plantão");
+        }
+
+        function toggleHoursField() {
+            const paymentType = document.getElementById("paymentType").value;
+            const hoursField = document.getElementById("hoursQuantity");
+            const shiftValueField = document.getElementById("shiftValue");
+            const startTime = document.getElementById("startTime").value;
+            const endTime = document.getElementById("endTime").value;
+        
+            if (paymentType === "hourly") {
+                const start = new Date(`1970-01-01T${startTime}:00`);
+                const end = new Date(`1970-01-01T${endTime}:00`);
+                const hours = (end - start) / (1000 * 60 * 60); // Calcula a duração em horas
+                hoursField.value = hours > 0 ? hours : 0; // Evita valores negativos
+                hoursField.disabled = false;
+                shiftValueField.placeholder = "Informe o valor da hora";
+            } else {
+                hoursField.disabled = true;
+                hoursField.value = ""; // Limpa o campo de horas apenas ao mudar para Valor Fixo
+                shiftValueField.placeholder = "Informe o valor";
+            }
+        }
+
+        // Atualiza o campo de horas automaticamente ao mudar horários
+        document.getElementById("startTime").addEventListener("change", toggleHoursField);
+        document.getElementById("endTime").addEventListener("change", toggleHoursField);
+        
+        function searchShift() {
+            const searchDate = document.getElementById("searchDate").value;
+            const searchCpf = document.getElementById("searchCpf").value;
+            const searchSpecialty = document.getElementById("searchSpecialty").value;
+
+            if (searchDate || searchCpf || searchSpecialty) {
+                // Exemplo de lógica de busca (ajustar para integração com backend)
+                alert(`Iniciando busca com os parâmetros:
+                       Data: ${searchDate}, CPF: ${searchCpf}, Especialidade: ${searchSpecialty}`);
+            } else {
+                alert("Por favor, insira ao menos um critério para a busca.");
+            }
+        }
+
+        // Função para resetar o formulário de cadastro
+        function resetForm() {
+            document.getElementById("registerForm").reset();
+            document.getElementById("alterarButton").disabled = true;
+        }
+
+        // Habilitar/desabilitar o botão "Alterar" com base em critérios
+        document.getElementById("shiftDate").addEventListener("change", function() {
+            document.getElementById("alterarButton").disabled = !this.value;
+        });
+    </script>
+</body>
+</html>

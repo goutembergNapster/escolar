@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% include 'plantaopro/partials/_head.html' %}
+</head>
+<body>
+<div class="flex-wrapper">
+    {% include 'plantaopro/partials/_nav.html' %}
+
+    <section class="form-container">
+        <div class="container">
+        <div class="header-bar">Cadastrar Professor</div>
+    </div>
+
+        <div class="content-wrapper" style="padding-top: 0; margin-top: 0;">
+            <form method="post" action="cadastrar_professor/" id="professorForm">
+                {% csrf_token %}
+
+                <h3>Informações Pessoais</h3>
+                <div class="form-row">
+                    <div class="form-group short-field">
+                        <label for="doctorCpf">CPF</label>
+                        <div class="input-group-cpf">
+                            <input type="text" id="doctorCpf" name="doctorCpf" placeholder="000.000.000-00" required oninput="mascaraCpf(this)">
+                            <button type="button" class="btn" onclick="buscarCpf()">Buscar</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="doctorName">Nome Completo</label>
+                        <input type="text" id="doctorName" name="doctorName" required>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="birthdate">Data de Nascimento</label>
+                        <input type="date" id="birthdate" name="birthdate" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Telefone</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="cep">CEP</label>
+                        <input type="text" id="cep" name="cep" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="address">Logradouro</label>
+                        <input type="text" id="address" name="address" required>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="number">Número</label>
+                        <input type="text" id="number" name="number" required>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="complement">Complemento</label>
+                        <input type="text" id="complement" name="complement">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bairro">Bairro</label>
+                        <input type="text" id="bairro" name="bairro" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="city">Cidade</label>
+                        <input type="text" id="city" name="city" required>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="state">Estado</label>
+                        <input type="text" id="state" name="state" required>
+                    </div>
+                </div>
+
+                <h3>Dados Profissionais</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cargo">Cargo</label>
+                        <select id="cargo" name="cargo" required>
+                            <option value="professor">Professor</option>
+                            <option value="diretor">Diretor</option>
+                            <option value="coordenador">Coordenador</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="disciplinas">Disciplinas</label>
+                        <select id="disciplinas" name="disciplinas" multiple required>
+                            {% for disciplina in disciplinas %}
+                                <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <small>Segure Ctrl (ou Cmd no Mac) para selecionar mais de uma</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="formacao">Formação</label>
+                        <input type="text" id="formacao" name="formacao" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="experiencia">Experiência</label>
+                        <textarea id="experiencia" name="experiencia" required></textarea>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="sexo">Sexo</label>
+                        <select id="sexo" name="sexo">
+                            <option value="masc">Masculino</option>
+                            <option value="femi">Feminino</option>
+                        </select>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="ativo">Ativo</label>
+                        <select id="ativo" name="ativo">
+                            <option value="true">Sim</option>
+                            <option value="false">Não</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                      <label for="senha_temporaria">Senha Temporária</label>
+                      <input type="text" id="senha_temporaria" class="form-control" readonly style="background-color: #f1f1f1;">
+                    </div>
+                  </div>
+                <div class="form-footer">
+                    <button type="submit" class="btn btn-primary" id="submitButton">Cadastrar</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'index' %}'">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        {% include 'plantaopro/partials/_footer.html' %}
+    </footer>
+</div>
+</body>
+<script>
+    function gerarSenhaTemporaria(tamanho = 8) {
+        const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        let senha = "";
+        for (let i = 0; i < tamanho; i++) {
+            senha += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+        }
+        return senha;
+    }
+
+    const senhaTemporariaGerada = gerarSenhaTemporaria();
+
+    const fields = [
+        'doctorCpf', 'doctorName', 'birthdate', 'email', 'phone', 
+        'cep', 'address', 'number', 'complement', 'bairro',
+        'city', 'state', 'cargo', 'formacao', 'experiencia', 'sexo', 'ativo',
+    ];
+
+    function enableFields() {
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = false;
+        });
+        const disciplinas = document.getElementById('disciplinas');
+        if (disciplinas) disciplinas.disabled = false;
+        document.getElementById("submitButton").disabled = false;
+    }
+
+    function copiarSenha() {
+        const input = document.getElementById("senha_temporaria");
+        input.select();
+        document.execCommand("copy");
+        alert("Senha copiada para a área de transferência!");
+    }
+
+    function mascaraCpf(input) {
+        input.value = input.value
+            .replace(/\D/g, '')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+
+    function preencherCampos(data) {
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = data[id] || '';
+        });
+        const select = document.getElementById('disciplinas');
+        if (Array.isArray(data.disciplinas)) {
+            for (const option of select.options) {
+                option.selected = data.disciplinas.includes(parseInt(option.value));
+            }
+        }
+    }
+
+    function limparCampos() {
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        const select = document.getElementById('disciplinas');
+        for (const option of select.options) {
+            option.selected = false;
+        }
+    }
+
+    function validarCpf(cpf) {
+        cpf = cpf.replace(/\D/g, '');
+        if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+        let soma = 0;
+        for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
+        let d1 = (soma * 10) % 11;
+        if (d1 === 10) d1 = 0;
+        if (parseInt(cpf[9]) !== d1) return false;
+        soma = 0;
+        for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
+        let d2 = (soma * 10) % 11;
+        if (d2 === 10) d2 = 0;
+        return parseInt(cpf[10]) === d2;
+    }
+
+    function buscarCpf() {
+        const cpf = document.getElementById("doctorCpf").value;
+        if (!cpf || !validarCpf(cpf)) {
+            alert("Por favor, informe um CPF válido.");
+            document.getElementById("doctorCpf").value = "";
+            return;
+        }
+
+        fetch('/buscar_cpf/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ doctorCpf: cpf })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.exists) {
+                preencherCampos(data.professor);
+                enableFields();
+            } else {
+                alert('Professor não encontrado. Preencha os campos.');
+                limparCampos();
+                enableFields();
+            }
+        })
+        .catch(error => console.error('Erro ao buscar CPF:', error));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        enableFields();
+        document.getElementById('senha_temporaria').value = senhaTemporariaGerada;
+
+        const botaoCopiar = document.createElement("button");
+        botaoCopiar.type = "button";
+        botaoCopiar.className = "btn btn-secondary";
+        botaoCopiar.style.marginTop = "10px";
+        botaoCopiar.textContent = "Copiar Senha";
+        botaoCopiar.onclick = copiarSenha;
+
+        const divCampoSenha = document.getElementById('senha_temporaria').parentNode;
+        divCampoSenha.appendChild(botaoCopiar);
+    });
+
+    document.getElementById('submitButton').addEventListener('click', function(event) {
+        event.preventDefault();
+
+        const disciplinasSelecionadas = Array.from(
+            document.getElementById('disciplinas').selectedOptions
+        ).map(opt => parseInt(opt.value));
+
+        const dados = {
+            doctorCpf: document.getElementById('doctorCpf').value.replace(/\D/g, '').trim(),
+            doctorName: document.getElementById('doctorName').value.trim(),
+            birthdate: document.getElementById('birthdate').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            cep: document.getElementById('cep').value.trim(),
+            address: document.getElementById('address').value.trim(),
+            number: document.getElementById('number').value.trim(),
+            complement: document.getElementById('complement').value.trim(),
+            bairro: document.getElementById('bairro').value.trim(),
+            city: document.getElementById('city').value.trim(),
+            state: document.getElementById('state').value.trim(),
+            cargo: document.getElementById('cargo').value.trim(),
+            disciplinas: disciplinasSelecionadas,
+            formacao: document.getElementById('formacao').value.trim(),
+            experiencia: document.getElementById('experiencia').value.trim(),
+            sexo: document.getElementById('sexo').value.trim(),
+            ativo: 'true',
+            senha: senhaTemporariaGerada
+        };
+
+        fetch('/cadastrar_professor_banco/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(dados)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("✅ Professor cadastrado com sucesso!\nSenha: " + senhaTemporariaGerada);
+            } else {
+                alert("❌ Erro: " + (data.error || "Não foi possível cadastrar."));
+                console.error("Erro no backend:", data);
+            }
+        })
+        .catch(error => {
+            alert("❌ Erro ao enviar dados. Veja o console.");
+            console.error("🚨 Erro na requisição:", error);
+        });
+    });
+</script>
+</html>

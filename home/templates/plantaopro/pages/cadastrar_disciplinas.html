@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  {% include 'plantaopro/partials/_head.html' %}
+</head>
+<body>
+  <div class="flex-wrapper">
+    {% include 'plantaopro/partials/_nav.html' %}
+
+    <section class="form-container">
+      <div class="container">
+        <div class="header-bar">Cadastrar Disciplina</div>
+
+        <div class="content-wrapper" style="padding-top: 0; margin-top: 0;">
+          <form id="formDisciplina">
+            {% csrf_token %}
+            <div class="form-row">
+              <div class="form-group">
+                <label for="nome">Nome da Disciplina</label>
+                <input type="text" id="nome" name="nome" required class="form-control">
+              </div>
+            </div>
+
+            <div class="form-footer">
+              <button type="submit" class="btn btn-primary">Cadastrar</button>
+              <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'index' %}'">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      {% include 'plantaopro/partials/_footer.html' %}
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById('formDisciplina').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const nome = document.getElementById('nome').value.trim();
+
+      fetch("{% url 'cadastrar_disciplina' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ nome: nome })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert("✅ Disciplina cadastrada com sucesso!");
+          document.getElementById('formDisciplina').reset();
+        } else {
+          alert("❌ Erro: " + (data.error || "Erro ao cadastrar"));
+        }
+      })
+      .catch(error => {
+        console.error("Erro:", error);
+        alert("❌ Erro ao enviar dados.");
+      });
+    });
+  </script>
+</body>
+</html>

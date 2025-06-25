@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% include 'plantaopro/partials/_head.html' %}
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #ffffff; /* Cor exata do fundo da imagem */
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .imagem-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 70px; /* compensação da navbar */
+            margin-bottom: 40px; /* compensação do footer */
+            overflow: hidden;
+        }
+
+        .imagem-container img {
+            max-height: 100%;
+            max-width: 100%;
+            height: auto;
+            width: auto;
+        }
+
+        footer {
+            height: 40px;
+            background-color: #f6821f;
+            color: white;
+            text-align: center;
+            line-height: 40px;
+            font-size: 14px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    
+    {% include 'plantaopro/partials/_nav.html' %}
+
+    <div class="imagem-container">
+        <img src="{% static 'plantaopro/images/mainPhoto.png' %}" alt="Logo da Escola Pequeno Aprendiz">
+    </div>
+
+    {% include 'plantaopro/partials/_footer.html' %}
+    <script src="{% static 'plantaopro/js/formulario_padrao.js' %}"></script>
+</body>
+</html>
+

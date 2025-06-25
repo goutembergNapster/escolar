@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+{% include 'plantaopro/partials/_head.html' %}
+<body>
+    {% include 'plantaopro/partials/_nav.html' %}
+    <section class="content-wrapper" style="margin-top: 15px;">
+        <div class="header-bar">Minha Escola</div>
+        <form id="schoolForm">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group short-field">
+                    <label for="schoolCnpj">CNPJ</label>
+                    <input type="text" id="schoolCnpj" name="cnpj" value="{{ escola.cnpj }}" disabled class="disabled-field">
+                </div>
+                <div class="form-group">
+                    <label for="schoolName">Nome da Escola</label>
+                    <input type="text" id="schoolName" name="nome" value="{{ escola.nome }}" class="disabled-field" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group short-field">
+                    <label for="schoolEmail">E-mail</label>
+                    <input type="email" id="schoolEmail" name="email" value="{{ escola.email }}" class="disabled-field" readonly>
+                </div>
+                <div class="form-group short-field">
+                    <label for="schoolPhone">Telefone</label>
+                    <input type="text" id="schoolPhone" name="telefone" value="{{ escola.telefone }}" class="disabled-field" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="schoolCep">CEP</label>
+                    <input type="text" id="schoolCep" name="cep" value="{{ escola.cep }}" class="disabled-field" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="schoolStreet">Logradouro</label>
+                    <input type="text" id="schoolStreet" name="endereco" value="{{ escola.endereco }}" class="disabled-field" readonly>
+                </div>
+                <div class="form-group short-field">
+                    <label for="schoolNumber">Número</label>
+                    <input type="text" id="schoolNumber" name="numero" value="{{ escola.numero }}" class="disabled-field" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group short-field">
+                    <label for="schoolComplement">Complemento</label>
+                    <input type="text" id="schoolComplement" name="complemento" value="{{ escola.complemento }}" class="disabled-field" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="schoolNeighborhood">Bairro</label>
+                    <input type="text" id="schoolNeighborhood" name="bairro" value="{{ escola.bairro }}" class="disabled-field" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="schoolCity">Cidade</label>
+                    <input type="text" id="schoolCity" name="cidade" value="{{ escola.cidade }}" class="disabled-field" readonly>
+                </div>
+                <div class="form-group short-field">
+                    <label for="schoolState">Estado</label>
+                    <select id="schoolState" name="estado" class="disabled-field" disabled>
+                        <option value="">Escolher...</option>
+                        {% for estado in estados %}
+                        <option value="{{ estado }}" {% if escola.estado == estado %}selected{% endif %}>{{ estado }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="schoolWebsite">Site</label>
+                    <input type="url" id="schoolWebsite" name="site" value="{{ escola.site }}" class="disabled-field" readonly>
+                </div>
+            </div>
+            <div class="form-footer">
+                <button type="button" class="btn btn-secondary" onclick="enableFields()">Alterar</button>
+                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'index' %}'">Cancelar</button>
+            </div>
+        </form>
+    </section>
+
+    <footer>{% include 'plantaopro/partials/_footer.html' %}</footer>
+
+    <script>
+        const inputs = document.querySelectorAll('#schoolForm input, #schoolForm select');
+        function enableFields() {
+            inputs.forEach(el => {
+                if (el.id !== 'schoolCnpj') {
+                    el.readOnly = false;
+                    el.disabled = false;
+                    el.classList.remove('disabled-field');
+                }
+            });
+        }
+
+        document.getElementById('schoolForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {};
+            inputs.forEach(el => {
+                data[el.name] = el.value;
+            });
+
+            fetch('{% url "editar_escola" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Escola atualizada com sucesso!');
+                    window.location.reload();
+                } else {
+                    alert('Erro: ' + data.error);
+                }
+            })
+            .catch(err => {
+                alert('Erro ao atualizar escola.');
+                console.error(err);
+            });
+        });
+    </script>
+</body>
+</html>

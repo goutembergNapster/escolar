@@ -1,0 +1,25 @@
+ 
+    # numero 
+    # nome
+    # Inscricao municipal 
+
+    # razao_social OK
+    # cnpj - OK
+    # inscricao_estadual OK
+    # cep OK
+    # logradouro OK 
+    # bairro OK
+    # cidade OK 
+    # estado OK 
+    # telefone OK
+    # celular OK
+    # email OK
+    # isento_tributacao OK
+    # pessoa_contato OK
+    # valor_12h OK 
+    # valor_por_hora OK
+    # valor_semana OK
+    # valor_fim_semana OK
+    # taxa_administrativa OK
+    # valor_contrato OK 
+
