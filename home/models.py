@@ -4,6 +4,7 @@ from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 import uuid
 from .utils import gerar_matricula_unica
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 # Modelo de Usuário Customizado com a Role
 class Escola(models.Model):
@@ -191,22 +192,28 @@ class Turma(models.Model):
 class Nota(models.Model):
     aluno = models.ForeignKey('Aluno', on_delete=models.CASCADE, related_name='notas')
     disciplina = models.ForeignKey('Disciplina', on_delete=models.CASCADE)
-    bimestre = models.IntegerField(choices=[(1, '1º Bimestre'), (2, '2º Bimestre'), (3, '3º Bimestre'), (4, '4º Bimestre')])
+    turma = models.ForeignKey('Turma', on_delete=models.CASCADE, null=True, blank=True)  # <-- Temporariamente opcional
+    bimestre = models.IntegerField(choices=[
+        (1, '1º Bimestre'),
+        (2, '2º Bimestre'),
+        (3, '3º Bimestre'),
+        (4, '4º Bimestre')
+    ])
     valor = models.DecimalField(max_digits=5, decimal_places=2)
     observacoes = models.TextField(blank=True, null=True)
     escola = models.ForeignKey('Escola', on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = ('aluno', 'disciplina', 'bimestre', 'escola')
+        unique_together = ('aluno', 'disciplina', 'turma', 'bimestre', 'escola')
 
     def __str__(self):
-        return f"{self.aluno.nome} - {self.disciplina.nome} - {self.bimestre}º Bim: {self.valor}"
-    
+        return f"{self.aluno.nome} - {self.disciplina.nome} - {self.bimestre}º Bim: {self.valor}"   
     
 class TurmaDisciplina(models.Model):
     turma = models.ForeignKey('Turma', on_delete=models.CASCADE)
     disciplina = models.ForeignKey('Disciplina', on_delete=models.CASCADE)
     professor = models.ForeignKey('Docente', on_delete=models.CASCADE)
+    escola = models.ForeignKey('Escola', on_delete=models.CASCADE, null=True)
 
     class Meta:
         unique_together = ('turma', 'disciplina', 'professor')

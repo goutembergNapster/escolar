@@ -3,6 +3,45 @@
 <html lang="pt-br">
 <head>
     {% include 'plantaopro/partials/_head.html' %}
+    <style>
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .short-field {
+            max-width: 180px;
+        }
+
+        #campoDisciplina {
+            align-items: flex-end;
+        }
+
+        #campoDisciplina select {
+            min-width: 200px;
+        }
+
+        #sugestoes {
+            position: absolute;
+            z-index: 1000;
+            background: white;
+            list-style: none;
+            padding: 0;
+            margin-top: 0;
+            width: 100%;
+            border: 1px solid #ccc;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 <body>
 {% include 'plantaopro/partials/_nav.html' %}
@@ -14,7 +53,7 @@
             <form method="post" id="turmaForm">
                 {% csrf_token %}
 
-                <!-- NOVOS CAMPOS DE INFORMAÇÃO DA TURMA -->
+                <!-- Campos básicos da turma -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="nomeTurma">Nome da Turma</label>
@@ -46,30 +85,37 @@
                     </div>
                 </div>
 
-                <!-- CAMPO DE BUSCA DE ALUNO/PROFESSOR -->
+                <!-- Tipo, Busca e Disciplina em uma linha -->
                 <div class="form-row">
-                    <div class="form-group" style="flex: 1; position: relative;">
-                        <label for="buscaPessoa">Buscar Aluno ou Professor</label>
-                        <input type="text" id="buscaPessoa" placeholder="Digite o nome" autocomplete="off">
-                        <ul id="sugestoes" class="autocomplete-lista" 
-                            style="position: absolute; z-index: 1000; background: white; 
-                                   list-style: none; padding: 0; margin-top: 0; 
-                                   width: 100%; border: 1px solid #ccc; max-height: 200px; overflow-y: auto;">
-                        </ul>
-                    </div>
                     <div class="form-group short-field">
                         <label for="tipoPessoa">Tipo</label>
-                        <select id="tipoPessoa">
+                        <select id="tipoPessoa" onchange="atualizarCampoDisciplina()">
                             <option value="professor">Professor</option>
                             <option value="aluno">Aluno</option>
                         </select>
                     </div>
+                    <div class="form-group" style="flex: 2; position: relative;">
+                        <label for="buscaPessoa">Buscar Aluno ou Professor</label>
+                        <input type="text" id="buscaPessoa" placeholder="Digite o nome" autocomplete="off">
+                        <ul id="sugestoes"></ul>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="disciplinaSelecionada">Disciplina</label>
+                        <select id="disciplinaSelecionada" name="disciplina_id">
+                            <option value="">Selecione a disciplina</option>
+                            {% for disciplina in disciplinas %}
+                                <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <div class="form-group short-field">
                         <label style="color: transparent;">Add</label>
                         <button type="button" class="btn btn-primary" onclick="adicionarPessoa()">Adicionar</button>
                     </div>
                 </div>
 
+                <!-- Turma Montada -->
                 <div class="form-row">
                     <div class="form-group" style="width: 100%">
                         <label>Turma Montada</label>
@@ -87,7 +133,19 @@
         </div>
     </div>
 </section>
+
 {% include 'plantaopro/partials/_footer.html' %}
 <script src="{% static 'plantaopro/js/formulario_turma_dinamico.js' %}"></script>
+<script>
+function atualizarCampoDisciplina() {
+    const tipo = document.getElementById('tipoPessoa').value;
+    const selectDisciplina = document.getElementById('disciplinaSelecionada');
+    selectDisciplina.disabled = tipo !== 'professor';
+    if (tipo !== 'professor') {
+        selectDisciplina.value = '';
+    }
+}
+document.addEventListener('DOMContentLoaded', atualizarCampoDisciplina);
+</script>
 </body>
 </html>

@@ -14,3 +14,8 @@ def has_role(user, roles):
         return False
     return user.role in [r.strip() for r in roles.split(',')]
 
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)
+

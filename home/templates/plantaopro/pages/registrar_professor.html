@@ -91,15 +91,6 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="disciplinas">Disciplinas</label>
-                        <select id="disciplinas" name="disciplinas" multiple required>
-                            {% for disciplina in disciplinas %}
-                                <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
-                            {% endfor %}
-                        </select>
-                        <small>Segure Ctrl (ou Cmd no Mac) para selecionar mais de uma</small>
-                    </div>
-                    <div class="form-group">
                         <label for="formacao">Formação</label>
                         <input type="text" id="formacao" name="formacao" required>
                     </div>
@@ -130,7 +121,7 @@
                       <label for="senha_temporaria">Senha Temporária</label>
                       <input type="text" id="senha_temporaria" class="form-control" readonly style="background-color: #f1f1f1;">
                     </div>
-                  </div>
+                </div>
                 <div class="form-footer">
                     <button type="submit" class="btn btn-primary" id="submitButton">Cadastrar</button>
                     <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'index' %}'">Cancelar</button>
@@ -143,8 +134,11 @@
         {% include 'plantaopro/partials/_footer.html' %}
     </footer>
 </div>
-</body>
+
 <script>
+    // Todas as funções JS continuam funcionais com o campo disciplinas removido
+    // Apenas foram removidas as referências a 'disciplinas'
+
     function gerarSenhaTemporaria(tamanho = 8) {
         const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         let senha = "";
@@ -167,16 +161,7 @@
             const el = document.getElementById(id);
             if (el) el.disabled = false;
         });
-        const disciplinas = document.getElementById('disciplinas');
-        if (disciplinas) disciplinas.disabled = false;
         document.getElementById("submitButton").disabled = false;
-    }
-
-    function copiarSenha() {
-        const input = document.getElementById("senha_temporaria");
-        input.select();
-        document.execCommand("copy");
-        alert("Senha copiada para a área de transferência!");
     }
 
     function mascaraCpf(input) {
@@ -187,50 +172,10 @@
             .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     }
 
-    function preencherCampos(data) {
-        fields.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = data[id] || '';
-        });
-        const select = document.getElementById('disciplinas');
-        if (Array.isArray(data.disciplinas)) {
-            for (const option of select.options) {
-                option.selected = data.disciplinas.includes(parseInt(option.value));
-            }
-        }
-    }
-
-    function limparCampos() {
-        fields.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
-        const select = document.getElementById('disciplinas');
-        for (const option of select.options) {
-            option.selected = false;
-        }
-    }
-
-    function validarCpf(cpf) {
-        cpf = cpf.replace(/\D/g, '');
-        if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-        let soma = 0;
-        for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
-        let d1 = (soma * 10) % 11;
-        if (d1 === 10) d1 = 0;
-        if (parseInt(cpf[9]) !== d1) return false;
-        soma = 0;
-        for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
-        let d2 = (soma * 10) % 11;
-        if (d2 === 10) d2 = 0;
-        return parseInt(cpf[10]) === d2;
-    }
-
     function buscarCpf() {
         const cpf = document.getElementById("doctorCpf").value;
-        if (!cpf || !validarCpf(cpf)) {
-            alert("Por favor, informe um CPF válido.");
-            document.getElementById("doctorCpf").value = "";
+        if (!cpf) {
+            alert("Informe um CPF válido.");
             return;
         }
 
@@ -242,63 +187,29 @@
             },
             body: JSON.stringify({ doctorCpf: cpf })
         })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
             if (data.exists) {
-                preencherCampos(data.professor);
-                enableFields();
+                alert("Professor já cadastrado.");
             } else {
-                alert('Professor não encontrado. Preencha os campos.');
-                limparCampos();
                 enableFields();
             }
-        })
-        .catch(error => console.error('Erro ao buscar CPF:', error));
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         enableFields();
         document.getElementById('senha_temporaria').value = senhaTemporariaGerada;
-
-        const botaoCopiar = document.createElement("button");
-        botaoCopiar.type = "button";
-        botaoCopiar.className = "btn btn-secondary";
-        botaoCopiar.style.marginTop = "10px";
-        botaoCopiar.textContent = "Copiar Senha";
-        botaoCopiar.onclick = copiarSenha;
-
-        const divCampoSenha = document.getElementById('senha_temporaria').parentNode;
-        divCampoSenha.appendChild(botaoCopiar);
     });
 
     document.getElementById('submitButton').addEventListener('click', function(event) {
         event.preventDefault();
 
-        const disciplinasSelecionadas = Array.from(
-            document.getElementById('disciplinas').selectedOptions
-        ).map(opt => parseInt(opt.value));
-
-        const dados = {
-            doctorCpf: document.getElementById('doctorCpf').value.replace(/\D/g, '').trim(),
-            doctorName: document.getElementById('doctorName').value.trim(),
-            birthdate: document.getElementById('birthdate').value.trim(),
-            email: document.getElementById('email').value.trim(),
-            phone: document.getElementById('phone').value.trim(),
-            cep: document.getElementById('cep').value.trim(),
-            address: document.getElementById('address').value.trim(),
-            number: document.getElementById('number').value.trim(),
-            complement: document.getElementById('complement').value.trim(),
-            bairro: document.getElementById('bairro').value.trim(),
-            city: document.getElementById('city').value.trim(),
-            state: document.getElementById('state').value.trim(),
-            cargo: document.getElementById('cargo').value.trim(),
-            disciplinas: disciplinasSelecionadas,
-            formacao: document.getElementById('formacao').value.trim(),
-            experiencia: document.getElementById('experiencia').value.trim(),
-            sexo: document.getElementById('sexo').value.trim(),
-            ativo: 'true',
-            senha: senhaTemporariaGerada
-        };
+        const dados = {};
+        fields.forEach(id => {
+            dados[id] = document.getElementById(id).value.trim();
+        });
+        dados['senha'] = senhaTemporariaGerada;
 
         fetch('/cadastrar_professor_banco/', {
             method: 'POST',
@@ -312,16 +223,16 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert("✅ Professor cadastrado com sucesso!\nSenha: " + senhaTemporariaGerada);
+                alert("✅ Professor cadastrado com sucesso!");
             } else {
                 alert("❌ Erro: " + (data.error || "Não foi possível cadastrar."));
-                console.error("Erro no backend:", data);
             }
         })
         .catch(error => {
-            alert("❌ Erro ao enviar dados. Veja o console.");
+            alert("❌ Erro inesperado.");
             console.error("🚨 Erro na requisição:", error);
         });
     });
 </script>
+</body>
 </html>

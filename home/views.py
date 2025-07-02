@@ -104,9 +104,11 @@ def cadastro_funcionarios(request):
 @login_required
 @role_required(['diretor', 'coordenador'])
 def cadastro_turma(request):
-    cadastro_turma = Escola.objects.all()  
+    escola = request.user.escola
+    disciplinas = Disciplina.objects.filter(escola=escola)
+
     context = {
-        'cadastro_turma': cadastro_turma  
+        'disciplinas': disciplinas
     }
     return render(request, 'plantaopro/pages/registrar_turma.html', context)
 
@@ -187,7 +189,6 @@ def cadastrar_professor_banco(request):
             experiencia = data.get('experiencia', '').strip()
             ativo = data.get('ativo', 'True') == 'True'
             senha = data.get('senha')
-            disciplinas_ids = data.get('disciplinas', [])
 
             escola_usuario = getattr(request.user, 'escola', None)
             if not escola_usuario:
@@ -238,11 +239,10 @@ def cadastrar_professor_banco(request):
                 formacao=formacao,
                 experiencia=experiencia,
                 ativo=ativo,
-                escola=escola_usuario  # ✅ essencial
+                escola=escola_usuario
             )
 
-            if disciplinas_ids and isinstance(disciplinas_ids, list):
-                docente.disciplinas.set(disciplinas_ids)
+            # ❌ Nenhum vínculo com disciplinas neste momento
 
             return JsonResponse({'success': True, 'senha': senha})
 
@@ -251,7 +251,6 @@ def cadastrar_professor_banco(request):
             return JsonResponse({'success': False, 'error': f'Erro interno: {str(e)}'}, status=500)
 
     return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)
-
 
 
 @login_required
@@ -599,28 +598,38 @@ def criar_turma(request):
             sala = data.get('sala', '').strip()
             descricao = data.get('descricao', '').strip()
             professor_id = data.get('professor_id', '')
-            alunos_ids = data.get('alunos_ids', '')
+            disciplina_id = data.get('disciplina_id', '')
+            alunos_ids = data.get('alunos_ids', [])
 
             if not nome or not turno or not ano or not sala:
                 return JsonResponse({'success': False, 'mensagem': 'Preencha todos os campos obrigatórios.'})
 
+            # Garante que a turma pertença à escola do usuário
+            escola = request.user.escola
             turma = Turma.objects.create(
                 nome=nome,
                 turno=turno,
                 ano=ano,
                 sala=sala,
-                descricao=descricao
+                descricao=descricao,
+                escola=escola
             )
 
-            if professor_id:
-                professor = Docente.objects.filter(id=professor_id, escola=request.user.escola).first()
-                if professor:
-                    turma.professores.add(professor)
+            if professor_id and disciplina_id:
+                professor = Docente.objects.filter(id=professor_id, escola=escola).first()
+                disciplina = Disciplina.objects.filter(id=disciplina_id, escola=escola).first()
 
-            alunos_ids = data.get('alunos_ids', [])
+                if professor and disciplina:
+                    # Cria relacionamento TurmaDisciplina
+                    TurmaDisciplina.objects.create(
+                        turma=turma,
+                        professor=professor,
+                        disciplina=disciplina,
+                        escola=escola
+                    )
 
             if isinstance(alunos_ids, list):
-                alunos = Aluno.objects.filter(id__in=alunos_ids, escola=request.user.escola)
+                alunos = Aluno.objects.filter(id__in=alunos_ids, escola=escola)
                 turma.alunos.add(*alunos)
 
             return JsonResponse({'success': True, 'mensagem': 'Turma criada com sucesso!'})
@@ -629,6 +638,16 @@ def criar_turma(request):
             return JsonResponse({'success': False, 'mensagem': f'Erro ao criar turma: {str(e)}'})
 
     return JsonResponse({'success': False, 'mensagem': 'Método não permitido'}, status=405)
+
+@login_required
+@role_required(['diretor', 'coordenador'])
+def formulario_criar_turma(request):
+    escola = request.user.escola
+    disciplinas = Disciplina.objects.filter(escola=escola).order_by('nome')
+
+    return render(request, 'plantaopro/pages/criar_turma.html', {
+        'disciplinas': disciplinas
+    })
 
 
 @login_required
@@ -704,7 +723,7 @@ def impressao_dados(request):
     }
     return render(request, 'plantaopro/pages/print.html', context)
 
-@csrf_exempt  # Você pode manter se for necessário por causa do fetch, mas veja nota abaixo
+@csrf_exempt  # necessário para o uso com fetch (a menos que use CSRF token no cabeçalho)
 @login_required
 @role_required(['professor', 'diretor', 'coordenador'])
 @require_POST
@@ -713,31 +732,40 @@ def lancar_notas(request):
         dados = json.loads(request.body)
         turma_id = dados.get("turma_id")
         disciplina_id = dados.get("disciplina_id")
+        notas = dados.get("notas", {})  # notas é um dicionário: { aluno_id: { nota1: 8.5, nota2: 7.0, ... } }
 
-        turma = Turma.objects.get(id=turma_id, escola=request.user.escola)
-        disciplina = Disciplina.objects.get(id=disciplina_id, escola=request.user.escola)
+        escola = request.user.escola
+        turma = Turma.objects.get(id=turma_id, escola=escola)
+        disciplina = Disciplina.objects.get(id=disciplina_id, escola=escola)
 
-        for aluno_id, nota_valor in dados.items():
-            if aluno_id in ["turma_id", "disciplina_id"]:
-                continue
-
+        for aluno_id_str, notas_aluno in notas.items():
             try:
-                aluno = Aluno.objects.get(id=aluno_id, escola=request.user.escola)
-                nota_valor = float(nota_valor)
+                aluno_id = int(aluno_id_str)
+                aluno = Aluno.objects.get(id=aluno_id, escola=escola)
 
-                Nota.objects.update_or_create(
-                    aluno=aluno,
-                    disciplina=disciplina,
-                    escola=request.user.escola,
-                    bimestre=1,  # 👈 ou outro valor que você queira como padrão
-                    defaults={'valor': nota_valor}
-                )
+                for bimestre_key, valor in notas_aluno.items():
+                    try:
+                        bimestre = int(bimestre_key.replace('nota', ''))
+                        valor_float = float(valor)
+
+                        Nota.objects.update_or_create(
+                            aluno=aluno,
+                            disciplina=disciplina,
+                            turma=turma,
+                            escola=escola,
+                            bimestre=bimestre,
+                            defaults={'valor': valor_float}
+                        )
+                    except (ValueError, TypeError):
+                        continue  # ignora se valor inválido ou bimestre errado
+
             except (Aluno.DoesNotExist, ValueError):
                 continue
 
         return JsonResponse({"mensagem": "Notas salvas com sucesso."})
     except Exception as e:
-        return JsonResponse({"erro": str(e)}, status=400)
+        return JsonResponse({"erro": f"Erro ao processar: {str(e)}"}, status=400)
+
 
 @login_required
 @role_required(['professor', 'diretor', 'coordenador'])
@@ -746,35 +774,38 @@ def registrar_notas(request):
     turma_id = request.GET.get('turma')
     disciplina_id = request.GET.get('disciplina')
 
-    # 🔍 Identifica a escola vinculada
     escola = user.escola
-    print("🧑‍🏫 Usuário:", user)
-    print("🏫 Escola vinculada:", escola)
 
-    # 🔍 Filtra os relacionamentos do professor ou da escola
     if hasattr(user, 'docente') and user.role == 'professor':
-        professor = user.docente
         relacoes = TurmaDisciplina.objects.filter(
-            professor=professor,
+            professor=user.docente,
             turma__escola=escola
         ).select_related('turma', 'disciplina')
-        print("🎯 Relacionamentos do professor:", list(relacoes))
     else:
         relacoes = TurmaDisciplina.objects.filter(
             turma__escola=escola
         ).select_related('turma', 'disciplina')
-        print("🎯 Relacionamentos da escola:", list(relacoes))
 
     turmas = list({rel.turma for rel in relacoes})
     disciplinas = list({rel.disciplina for rel in relacoes})
-    print("📚 Turmas disponíveis:", turmas)
-    print("📘 Disciplinas disponíveis:", disciplinas)
 
     alunos = []
+    notas_dict = {}
+
     if turma_id and disciplina_id:
         turma = get_object_or_404(Turma, id=turma_id, escola=escola)
+        disciplina = get_object_or_404(Disciplina, id=disciplina_id, escola=escola)
         alunos = turma.alunos.all().order_by('nome')
-        print(f"👨‍🎓 Alunos na turma {turma.nome}:", list(alunos))
+
+        # Busca notas já lançadas
+        for aluno in alunos:
+            notas = Nota.objects.filter(
+                aluno=aluno,
+                disciplina=disciplina,
+                turma=turma,
+                escola=escola
+            )
+            notas_dict[aluno.id] = {f"nota{n.bimestre}": n.valor for n in notas}
 
     context = {
         'turmas': turmas,
@@ -782,9 +813,9 @@ def registrar_notas(request):
         'alunos': alunos,
         'turma_id': turma_id or '',
         'disciplina_id': disciplina_id or '',
+        'notas': notas_dict
     }
     return render(request, 'plantaopro/pages/registrar_notas.html', context)
-
 
 def login_view(request):
     if request.user.is_authenticated:
