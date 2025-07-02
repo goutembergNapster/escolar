@@ -35,7 +35,7 @@ urlpatterns = [
 
     # Turma
     path('cadastro_turma/', views.cadastro_turma, name='cadastro_turma'),
-     path('criar_turma/', criar_turma, name='criar_turma'),
+    path('criar_turma/', criar_turma, name='criar_turma'),
 
     # Funcionário
     path('cadastro_funcionarios/', views.cadastro_funcionarios, name='cadastro_funcionarios'),

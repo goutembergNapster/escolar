@@ -1,7 +1,11 @@
+
 document.addEventListener('DOMContentLoaded', function () {
     const inputBusca = document.getElementById('buscaPessoa');
     const tipoPessoa = document.getElementById('tipoPessoa');
+    const disciplinaSelect = document.getElementById('disciplinaSelecionada');
+    const campoDisciplina = document.getElementById('campoDisciplina');
     const sugestoes = document.createElement('ul');
+
     sugestoes.id = 'sugestoes';
     sugestoes.className = 'autocomplete-lista';
     Object.assign(sugestoes.style, {
@@ -22,6 +26,16 @@ document.addEventListener('DOMContentLoaded', function () {
         inputBusca.value = '';
         sugestoes.innerHTML = '';
         sugestoes.dataset.lista = '[]';
+
+        const tipo = tipoPessoa.value;
+        if (tipo === 'professor') {
+            campoDisciplina.style.display = 'block';
+            disciplinaSelect.disabled = false;
+        } else {
+            campoDisciplina.style.display = 'none';
+            disciplinaSelect.disabled = true;
+            disciplinaSelect.value = '';
+        }
     });
 
     inputBusca.addEventListener('input', function () {
@@ -41,9 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 data.resultados.forEach(pessoa => {
                     const item = document.createElement('li');
-                    item.textContent = tipo === 'professor'
-                        ? `${pessoa.nome} – ${pessoa.disciplina}`
-                        : pessoa.nome;
+                    item.textContent = pessoa.nome;
                     Object.assign(item.style, {
                         padding: '8px',
                         cursor: 'pointer'
@@ -67,6 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const turma = {
         professor: null,
+        disciplina_id: null,
         alunos: []
     };
 
@@ -82,12 +95,22 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (tipo === 'professor') {
+            const disciplinaId = disciplinaSelect.value;
+            const disciplinaNome = disciplinaSelect.options[disciplinaSelect.selectedIndex]?.text || '';
+
+            if (!disciplinaId) {
+                alert("Selecione uma disciplina para o professor.");
+                return;
+            }
+
             turma.professor = {
                 id: pessoa.id,
                 nome: pessoa.nome,
-                disciplina: pessoa.disciplina || 'Disciplina não informada'
+                disciplinaId: disciplinaId,
+                disciplinaNome: disciplinaNome
             };
-            document.getElementById('professor_id').value = pessoa.id; // <- garante preenchimento imediato
+            turma.disciplina_id = disciplinaId;
+            document.getElementById('professor_id').value = pessoa.id;
         } else {
             if (!turma.alunos.some(aluno => aluno.id === pessoa.id)) {
                 turma.alunos.push({ id: pessoa.id, nome: pessoa.nome });
@@ -105,8 +128,10 @@ document.addEventListener('DOMContentLoaded', function () {
         let texto = '';
 
         if (turma.professor) {
-            texto += `👨‍🏫 ${turma.professor.nome} – ${turma.professor.disciplina}\n`;
-        }
+        const disciplinaSelect = document.getElementById('disciplinaSelecionada');
+        const disciplinaNome = disciplinaSelect.options[disciplinaSelect.selectedIndex]?.text || '';
+        texto += `👨‍🏫 ${turma.professor.nome}${disciplinaNome ? ' – ' + disciplinaNome : ''}\n`;
+}
 
         if (turma.alunos.length) {
             const alunosOrdenados = turma.alunos
@@ -135,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const descricao = document.getElementById('descricaoTurma').value.trim();
 
         const professorId = document.getElementById('professor_id').value.trim();
+        const disciplinaId = document.getElementById('disciplinaSelecionada').value.trim();
         const alunosIdsStr = document.getElementById('alunos_ids').value.trim();
         const alunosIds = alunosIdsStr ? alunosIdsStr.split(',') : [];
 
@@ -144,6 +170,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (!professorId) {
             alert("Adicione um professor à turma.");
+            return;
+        }
+        if (!disciplinaId) {
+            alert("Associe uma disciplina ao professor.");
             return;
         }
         if (!alunosIds.length) {
@@ -164,6 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sala,
                 descricao,
                 professor_id: professorId,
+                disciplina_id: disciplinaId,
                 alunos_ids: alunosIds
             })
         })
@@ -182,7 +213,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Função auxiliar para pegar o CSRF token
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -197,4 +227,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         return cookieValue;
     }
+
+    atualizarCampoDisciplina();
 });
