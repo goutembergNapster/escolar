@@ -64,6 +64,14 @@
         <div class="collapse navbar-collapse" id="navbarResponsive">
             <ul class="navbar-nav ml-auto">
 
+                {% if user.is_authenticated and escola_vinculada %}
+                    <li class="nav-item">
+                        <span class="nav-link text-primary">
+                            <i class="fas fa-school mr-1"></i> {{ escola_vinculada.nome }}
+                        </span>
+                    </li>
+                {% endif %}
+
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'index' %}">
                         <i class="fas fa-home mr-1"></i> Página Inicial
@@ -138,13 +146,6 @@
                 {% endif %}
 
                 {% if user.is_authenticated %}
-                    {% if escola_vinculada %}
-                        <li class="nav-item">
-                            <span class="nav-link text-primary">
-                                <i class="fas fa-school mr-1"></i> {{ escola_vinculada.nome }}
-                            </span>
-                        </li>
-                    {% endif %}
                     <li class="nav-item">
                         <span class="nav-link text-dark">
                             <i class="fas fa-user-circle mr-1"></i> Olá, {{ user.first_name }}👋
