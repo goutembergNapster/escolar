@@ -41,6 +41,36 @@
             max-height: 200px;
             overflow-y: auto;
         }
+
+        #turmaMontadaBox {
+            height: 180px;
+            overflow-y: auto;
+            background-color: #fab982;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+        }
+        #sugestoes:empty {
+            display: none;
+        }
+        .tag-item {
+            display: inline-flex;
+            align-items: center;
+            background: #eee;
+            border-radius: 4px;
+            padding: 5px 8px;
+            margin: 4px;
+            font-size: 14px;
+        }
+
+        .tag-item button {
+            margin-left: 6px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #d00;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -49,11 +79,10 @@
     <div class="container">
         <div class="header-bar">Criar Turma</div>
 
-        <div class="content-wrapper">
+         <section class="content-wrapper" style="margin-top: 15px;">
             <form method="post" id="turmaForm">
                 {% csrf_token %}
 
-                <!-- Campos básicos da turma -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="nomeTurma">Nome da Turma</label>
@@ -85,7 +114,6 @@
                     </div>
                 </div>
 
-                <!-- Tipo, Busca e Disciplina em uma linha -->
                 <div class="form-row">
                     <div class="form-group short-field">
                         <label for="tipoPessoa">Tipo</label>
@@ -108,23 +136,26 @@
                             {% endfor %}
                         </select>
                     </div>
-
                     <div class="form-group short-field">
                         <label style="color: transparent;">Add</label>
                         <button type="button" class="btn btn-primary" onclick="adicionarPessoa()">Adicionar</button>
                     </div>
                 </div>
 
-                <!-- Turma Montada -->
+                <!-- Novo campo visual da turma montada -->
                 <div class="form-row">
-                    <div class="form-group" style="width: 100%">
-                        <label>Turma Montada</label>
-                        <textarea id="turmaMontada" readonly rows="8" style="width: 100%; background-color: #f9f9f9;"></textarea>
-                        <input type="hidden" name="professor_id" id="professor_id">
-                        <input type="hidden" name="alunos_ids" id="alunos_ids">
-                    </div>
-                </div>
+    <div class="form-group" style="width: 100%">
+        <label>Turma Montada</label>
 
+        <!-- Substituímos o textarea por uma div visualmente idêntica -->
+        <div id="turmaMontadaTags" 
+             style="width: 100%; background-color: #f9f9f9; height: 180px; padding: 10px; border: 1px solid #fab982; 
+                    border-radius: 4px; overflow-y: auto; white-space: pre-wrap; cursor: default;"></div>
+
+        <input type="hidden" name="professor_id" id="professor_id">
+        <input type="hidden" name="alunos_ids" id="alunos_ids">
+    </div>
+</div>
                 <div class="form-footer">
                     <button type="submit" class="btn btn-primary">Salvar Turma</button>
                     <button type="reset" class="btn btn-secondary">Cancelar</button>
@@ -149,3 +180,4 @@ document.addEventListener('DOMContentLoaded', atualizarCampoDisciplina);
 </script>
 </body>
 </html>
+
