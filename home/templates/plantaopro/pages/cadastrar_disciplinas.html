@@ -11,7 +11,9 @@
     <section class="form-container">
       <div class="container">
         <div class="header-bar">Cadastrar Disciplina</div>
-        <section class="content-wrapper" style="margin-top: 15px;">
+
+        <!-- FORMULÁRIO -->
+        <section class="content-wrapper" style="margin-top: 15px; margin-bottom: 0;">
           <form id="formDisciplina">
             {% csrf_token %}
             <div class="form-row">
@@ -26,14 +28,33 @@
             </div>
           </form>
         </section>
+
+        <!-- CRUD DISCIPLINAS COM SECTION PRÓPRIA -->
+        <section class="content-wrapper" style="margin-top: -100px;">
+          <h4 style="margin-bottom: 15px;">Disciplinas Cadastradas</h4>
+          <table class="table" id="tabelaDisciplinas">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th style="width: 150px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Disciplinas serão carregadas via JS -->
+            </tbody>
+          </table>
+        </section>
+
       </div>
     </section>
+
     <footer>
       {% include 'plantaopro/partials/_footer.html' %}
     </footer>
   </div>
 
   <script>
+    // CADASTRO EXISTENTE
     document.getElementById('formDisciplina').addEventListener('submit', function(event) {
       event.preventDefault();
       const nome = document.getElementById('nome').value.trim();
@@ -51,6 +72,7 @@
         if (data.success) {
           alert("✅ Disciplina cadastrada com sucesso!");
           document.getElementById('formDisciplina').reset();
+          carregarDisciplinas(); // Recarrega lista após cadastro
         } else {
           alert("❌ Erro: " + (data.error || "Erro ao cadastrar"));
         }
@@ -60,6 +82,99 @@
         alert("❌ Erro ao enviar dados.");
       });
     });
+
+    // CRUD DISCIPLINAS
+    function carregarDisciplinas() {
+      fetch("{% url 'listar_disciplinas' %}")
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.querySelector("#tabelaDisciplinas tbody");
+          tbody.innerHTML = "";
+
+          data.disciplinas.forEach(disciplina => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+              <td>
+                <input type="text" value="${disciplina.nome}" data-id="${disciplina.id}" class="form-control input-nome" disabled>
+              </td>
+              <td>
+                <div style="text-align: right;">
+                  <button class="btn btn-sm btn-warning btn-editar">✏️</button>
+                  <button class="btn btn-sm btn-danger btn-excluir">🗑️</button>
+                </div>
+              </td>
+            `;
+
+            tbody.appendChild(row);
+          });
+
+          adicionarEventos();
+        });
+    }
+
+    function adicionarEventos() {
+      document.querySelectorAll(".btn-editar").forEach(btn => {
+        btn.addEventListener("click", function() {
+          const row = this.closest("tr");
+          const input = row.querySelector(".input-nome");
+          const id = input.dataset.id;
+
+          if (input.disabled) {
+            input.disabled = false;
+            this.textContent = "💾";
+            this.classList.replace("btn-warning", "btn-success");
+          } else {
+            const novoNome = input.value.trim();
+            fetch("{% url 'editar_disciplina' %}", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+              },
+              body: JSON.stringify({ id: id, nome: novoNome })
+            }).then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  alert("✅ Atualizado!");
+                  carregarDisciplinas();
+                } else {
+                  alert("❌ Erro ao atualizar.");
+                }
+              });
+          }
+        });
+      });
+
+      document.querySelectorAll(".btn-excluir").forEach(btn => {
+        btn.addEventListener("click", function() {
+          const row = this.closest("tr");
+          const input = row.querySelector(".input-nome");
+          const id = input.dataset.id;
+
+          if (confirm("Deseja realmente excluir esta disciplina?")) {
+            fetch("{% url 'excluir_disciplina' %}", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+              },
+              body: JSON.stringify({ id: id })
+            }).then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  alert("✅ Excluído com sucesso!");
+                  carregarDisciplinas();
+                } else {
+                  alert("❌ Erro ao excluir.");
+                }
+              });
+          }
+        });
+      });
+    }
+
+    carregarDisciplinas();
   </script>
 </body>
 </html>
