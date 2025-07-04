@@ -1163,3 +1163,28 @@ def salvar_turma(request):
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
     return JsonResponse({'success': False, 'error': 'Método inválido'}, status=405)
+
+@csrf_exempt
+def listar_disciplinas(request):
+    disciplinas = Disciplina.objects.all().values('id', 'nome')
+    return JsonResponse({'disciplinas': list(disciplinas)})
+
+@csrf_exempt
+def editar_disciplina(request):
+    data = json.loads(request.body)
+    try:
+        disciplina = Disciplina.objects.get(id=data['id'])
+        disciplina.nome = data['nome']
+        disciplina.save()
+        return JsonResponse({'success': True})
+    except:
+        return JsonResponse({'success': False})
+
+@csrf_exempt
+def excluir_disciplina(request):
+    data = json.loads(request.body)
+    try:
+        Disciplina.objects.get(id=data['id']).delete()
+        return JsonResponse({'success': True})
+    except:
+        return JsonResponse({'success': False})

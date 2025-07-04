@@ -8,11 +8,6 @@ urlpatterns = [
     
     path('', views.index, name='index'),
 
-    
-    # path('cadastrar-escola/', views.cadastro_escola, name='cadastrar-escola'),
-    # path('cadastrar_escola_banco/', views.cadastrar_escola_banco, name='cadastrar_escola_banco'),
-    # path('buscar_cnpj/', views.buscar_cnpj, name='buscar_cnpj'),
-
     # Escola
     path('minha_escola/', views.visualizar_escola, name='minha_escola'),
     path('editar_escola/', views.editar_escola, name='editar_escola'),
@@ -73,6 +68,10 @@ urlpatterns = [
     #Disciplinas
     path('disciplinas/cadastrar/', cadastrar_disciplina, name='cadastrar_disciplina'),
     path('disciplinas/', pagina_cadastrar_disciplina, name='pagina_cadastrar_disciplina'),
+    path('disciplinas/listar/', views.listar_disciplinas, name='listar_disciplinas'),
+    path('disciplinas/editar/', views.editar_disciplina, name='editar_disciplina'),
+    path('disciplinas/excluir/', views.excluir_disciplina, name='excluir_disciplina'),
+
 
     #usuario_sem_escola
     path('erro/sem-escola/', usuario_sem_escola, name='usuario_sem_escola'),
