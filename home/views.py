@@ -28,6 +28,7 @@ from django.contrib import messages
 import pandas as pd
 from collections import defaultdict
 from django.db.models import Avg
+from django.http import HttpResponseNotFound
 
 User = get_user_model()
 
@@ -1221,3 +1222,6 @@ def excluir_disciplina(request):
         return JsonResponse({'success': True})
     except:
         return JsonResponse({'success': False})
+    
+def pagina_404_teste(request):
+    return render(request, '404.html', status=404)
