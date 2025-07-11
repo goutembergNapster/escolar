@@ -222,167 +222,179 @@
   <body>
     {% include 'plantaopro/partials/_nav.html' %}
     {% block content %}
-      <section class="py-5">
-        <div class="container">
-          <div class="titulo-pagina">Listar Professores</div>
-          <div class="form-group">
-            <input type="text" id="filtroProfessor" class="form-control" placeholder="🔍 Buscar por nome, CPF, disciplina, email..." />
-          </div>
-
-          <table class="table table-bordered table-hover table-striped" id="tabelaProfessores">
-            <thead class="thead-dark">
-              <tr>
-                <th>Nome</th>
-                <th>CPF</th>
-                <th>Disciplina</th>
-                <th>Cargo</th>
-                <th>Telefone</th>
-                <th>Email</th>
-                <th>Status</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for professor in professores %}
-                <tr>
-                  <td>{{ professor.nome }}</td>
-                  <td>{{ professor.cpf }}</td>
-                  <td>
-                    {% for disciplina in professor.disciplinas.all %}
-                      {{ disciplina.nome }}{% if not forloop.last %}, {% endif %}
-                    {% empty %}
-                      Sem disciplina
-                    {% endfor %}
-                  </td>
-                  <td>{{ professor.cargo }}</td>
-                  <td>{{ professor.telefone }}</td>
-                  <td>{{ professor.email }}</td>
-                  <td>
-                    {% if professor.ativo %}
-                      <span class="badge badge-success">Ativo</span>
-                    {% else %}
-                      <span class="badge badge-secondary">Inativo</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    <div class="d-flex">
-                      <button class="btn btn-sm btn-info mr-2" onclick="abrirModalEditarComData(this)" data-id="{{ professor.id }}" data-nome="{{ professor.nome|escapejs }}" data-cpf="{{ professor.cpf }}" data-disciplinas="{{ professor.disciplinas.all|join:', '|escapejs }}" data-email="{{ professor.email }}" data-telefone="{{ professor.telefone }}" data-nascimento="{{ professor.nascimento|default_if_none:'' }}" data-sexo="{{ professor.sexo|default_if_none:'' }}" data-endereco="{{ professor.endereco|escapejs }}" data-formacao="{{ professor.formacao|escapejs }}">Editar</button>
-                      <button class="btn btn-sm {% if professor.ativo %}
-                          btn-warning
-                        {% else %}
-                          btn-success
-                        {% endif %}"
-                        onclick="alternarStatus({{ professor.id }})">
-                        {% if professor.ativo %}
-                          Inativar
-                        {% else %}
-                          Ativar
-                        {% endif %}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+    <section class="py-5">
+      <div class="container">
+        <div class="titulo-pagina">Listar Professores</div>
+        <div class="form-group">
+          <input type="text" id="filtroProfessor" class="form-control" placeholder="🔍 Buscar por nome, CPF, disciplina, email..." />
         </div>
-      </section>
-      <!-- Modal de Edição -->
-      <div class="modal fade" id="editarProfessorModal" tabindex="-1" role="dialog" aria-labelledby="editarModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-          <div class="modal-content">
-            <form id="editarProfessorForm">
-              <div class="modal-header">
-                <h5 class="modal-title" id="editarModalLabel">Editar Professor</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span aria-hidden="true">&times;</span></button>
+
+        <table class="table table-bordered table-hover table-striped" id="tabelaProfessores">
+          <thead class="thead-dark">
+            <tr>
+              <th>Nome</th>
+              <th>CPF</th>
+              <th>Disciplina</th>
+              <th>Cargo</th>
+              <th>Telefone</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for professor in professores %}
+            <tr>
+              <td>{{ professor.nome }}</td>
+              <td>{{ professor.cpf }}</td>
+              <td>
+                {% for disciplina in professor.disciplinas.all %}
+                  {{ disciplina.nome }}{% if not forloop.last %}, {% endif %}
+                {% empty %}Sem disciplina{% endfor %}
+              </td>
+              <td>{{ professor.cargo }}</td>
+              <td>{{ professor.telefone }}</td>
+              <td>{{ professor.email }}</td>
+              <td>
+                {% if professor.ativo %}
+                  <span class="badge badge-success">Ativo</span>
+                {% else %}
+                  <span class="badge badge-secondary">Inativo</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="d-flex">
+                  <button class="btn btn-sm btn-info mr-2" onclick="abrirModalEditarComData(this)"
+                          data-id="{{ professor.id }}"
+                          data-nome="{{ professor.nome|escapejs }}"
+                          data-cpf="{{ professor.cpf }}"
+                          data-disciplinas="{{ professor.disciplinas_ids|join:',' }}"
+                          data-email="{{ professor.email }}"
+                          data-telefone="{{ professor.telefone }}"
+                          data-nascimento="{{ professor.nascimento|default_if_none:'' }}"
+                          data-sexo="{{ professor.sexo|default_if_none:'' }}"
+                          data-endereco="{{ professor.endereco|escapejs }}"
+                          data-formacao="{{ professor.formacao|escapejs }}">
+                    Editar
+                  </button>
+                  <button class="btn btn-sm {% if professor.ativo %}btn-warning{% else %}btn-success{% endif %}" onclick="alternarStatus({{ professor.id }})">
+                    {% if professor.ativo %}Inativar{% else %}Ativar{% endif %}
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Modal de Edição -->
+    <div class="modal fade" id="editarProfessorModal" tabindex="-1" role="dialog" aria-labelledby="editarModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <form id="editarProfessorForm">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editarModalLabel">Editar Professor</h5>
+              <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="professorId" />
+              <div class="form-group">
+                <label for="editNome">Nome</label>
+                <input type="text" class="form-control" id="editNome" required />
               </div>
-              <div class="modal-body">
-                <input type="hidden" id="professorId" />
-                <div class="form-group">
-                  <label for="editNome">Nome</label>
-                  <input type="text" class="form-control" id="editNome" required />
-                </div>
-                <div class="form-group">
-                  <label for="editCpf">CPF</label>
-                  <input type="text" class="form-control" id="editCpf" disabled />
-                </div>
-                <div class="form-group">
-                  <label for="editDisciplina">Disciplina</label>
-                  <input type="text" class="form-control" id="editDisciplina" />
-                </div>
-                <div class="form-group">
-                  <label for="editEmail">Email</label>
-                  <input type="email" class="form-control" id="editEmail" />
-                </div>
-                <div class="form-group">
-                  <label for="editTelefone">Telefone</label>
-                  <input type="text" class="form-control" id="editTelefone" />
-                </div>
-                <div class="form-group">
-                  <label for="editNascimento">Data de Nascimento</label>
-                  <input type="date" class="form-control" id="editNascimento" />
-                </div>
-                <div class="form-group">
-                  <label for="editSexo">Sexo</label>
-                  <select class="form-control" id="editSexo">
-                    <option value="Masculino">Masculino</option>
-                    <option value="Feminino">Feminino</option>
-                    <option value="Outro">Outro</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="editEndereco">Endereço</label>
-                  <input type="text" class="form-control" id="editEndereco" />
-                </div>
-                <div class="form-group">
-                  <label for="editFormacao">Formação</label>
-                  <input type="text" class="form-control" id="editFormacao" />
-                </div>
+              <div class="form-group">
+                <label for="editCpf">CPF</label>
+                <input type="text" class="form-control" id="editCpf" disabled />
               </div>
-              <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Salvar</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+              <div class="form-group">
+                <label for="editDisciplina">Disciplinas</label>
+                <select class="form-control" id="editDisciplina" multiple>
+                  {% for disciplina in todas_disciplinas %}
+                    <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
+                  {% endfor %}
+                </select>
               </div>
-            </form>
-          </div>
+              <div class="form-group">
+                <label for="editEmail">Email</label>
+                <input type="email" class="form-control" id="editEmail" />
+              </div>
+              <div class="form-group">
+                <label for="editTelefone">Telefone</label>
+                <input type="text" class="form-control" id="editTelefone" />
+              </div>
+              <div class="form-group">
+                <label for="editNascimento">Data de Nascimento</label>
+                <input type="date" class="form-control" id="editNascimento" />
+              </div>
+              <div class="form-group">
+                <label for="editSexo">Sexo</label>
+                <select class="form-control" id="editSexo">
+                  <option value="Masculino">Masculino</option>
+                  <option value="Feminino">Feminino</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editEndereco">Endereço</label>
+                <input type="text" class="form-control" id="editEndereco" />
+              </div>
+              <div class="form-group">
+                <label for="editFormacao">Formação</label>
+                <input type="text" class="form-control" id="editFormacao" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Salvar</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
         </div>
       </div>
+    </div>
     {% endblock %}
 
     <script>
-        function abrirModalEditarComData(button) {
-            document.getElementById('professorId').value = button.dataset.id;
-            document.getElementById('editNome').value = button.dataset.nome;
-            document.getElementById('editCpf').value = button.dataset.cpf;
-            document.getElementById('editDisciplina').value = button.dataset.disciplinas;
-            document.getElementById('editEmail').value = button.dataset.email;
-            document.getElementById('editTelefone').value = button.dataset.telefone;
-            document.getElementById('editNascimento').value = button.dataset.nascimento;
-            document.getElementById('editSexo').value = button.dataset.sexo;
-            document.getElementById('editEndereco').value = button.dataset.endereco;
-            document.getElementById('editFormacao').value = button.dataset.formacao;
-        
-            $('#editarProfessorModal').modal('show');
+      function abrirModalEditarComData(button) {
+        document.getElementById('professorId').value = button.dataset.id
+        document.getElementById('editNome').value = button.dataset.nome
+        document.getElementById('editCpf').value = button.dataset.cpf
+        document.getElementById('editEmail').value = button.dataset.email
+        document.getElementById('editTelefone').value = button.dataset.telefone
+        document.getElementById('editNascimento').value = button.dataset.nascimento
+        document.getElementById('editSexo').value = button.dataset.sexo
+        document.getElementById('editEndereco').value = button.dataset.endereco
+        document.getElementById('editFormacao').value = button.dataset.formacao
+
+        const disciplinaIds = button.dataset.disciplinas.split(',').map(id => id.trim())
+        const select = document.getElementById('editDisciplina')
+        for (const option of select.options) {
+          option.selected = disciplinaIds.includes(option.value)
         }
+
+        $('#editarProfessorModal').modal('show')
+      }
+
       document.getElementById('editarProfessorForm').addEventListener('submit', function (e) {
         e.preventDefault()
         const id = document.getElementById('professorId').value
         const nome = document.getElementById('editNome').value
-        const disciplina = document.getElementById('editDisciplina').value
+        const disciplinas = Array.from(document.getElementById('editDisciplina').selectedOptions).map(opt => opt.value)
         const email = document.getElementById('editEmail').value
         const telefone = document.getElementById('editTelefone').value
         const data_nascimento = document.getElementById('editNascimento').value
         const sexo = document.getElementById('editSexo').value
         const endereco = document.getElementById('editEndereco').value
         const formacao = document.getElementById('editFormacao').value
-      
+
         fetch(`/editar_professor/${id}/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': '{{ csrf_token }}'
           },
-          body: JSON.stringify({ nome, disciplina, email, telefone, data_nascimento, sexo, endereco, formacao })
+          body: JSON.stringify({ nome, disciplinas, email, telefone, data_nascimento, sexo, endereco, formacao })
         })
           .then((res) => res.json())
           .then((data) => {
@@ -394,7 +406,7 @@
             }
           })
       })
-      
+
       function alternarStatus(id) {
         fetch(`/alternar_status_professor/${id}/`, {
           method: 'POST',
@@ -402,10 +414,7 @@
             'X-CSRFToken': '{{ csrf_token }}'
           }
         })
-          .then((res) => {
-            if (!res.ok) throw new Error(`Erro HTTP ${res.status}`)
-            return res.json()
-          })
+          .then((res) => res.ok ? res.json() : Promise.reject(res.status))
           .then((data) => {
             if (data.success) {
               location.reload()
@@ -414,15 +423,14 @@
             }
           })
           .catch((error) => {
-            console.error('Erro na requisição:', error)
-            alert('Falha na requisição: ' + error.message)
+            alert('Falha na requisição: ' + error)
           })
       }
-      
+
       document.getElementById('filtroProfessor').addEventListener('input', function () {
         const filtro = this.value.toLowerCase()
         const linhas = document.querySelectorAll('#tabelaProfessores tbody tr')
-      
+
         linhas.forEach(function (linha) {
           const textoLinha = linha.innerText.toLowerCase()
           linha.style.display = textoLinha.includes(filtro) ? '' : 'none'
@@ -435,3 +443,4 @@
     </div>
   </body>
 </html>
+   

@@ -259,12 +259,27 @@ def cadastrar_professor_banco(request):
 @login_required
 @role_required(['diretor', 'coordenador'])
 def listar_professores(request):
-    professores = Docente.objects.select_related('user').filter(escola=request.user.escola).order_by('nome')
+    professores = (
+        Docente.objects
+        .select_related('user')
+        .prefetch_related('disciplinas')
+        .filter(escola=request.user.escola)
+        .order_by('nome')
+    )
+
+    for professor in professores:
+        professor.disciplinas_ids = list(professor.disciplinas.values_list('id', flat=True))
+
+    todas_disciplinas = Disciplina.objects.filter(escola=request.user.escola).order_by('nome')
+
     return render(request, 'plantaopro/pages/listar_professores.html', {
-        'professores': professores
+        'professores': professores,
+        'todas_disciplinas': todas_disciplinas,  # <- agora está no contexto
     })
 
 @csrf_exempt
+@login_required
+@role_required(['diretor', 'coordenador'])
 def editar_professor(request, prof_id):
     if request.method == 'POST':
         try:
@@ -272,14 +287,20 @@ def editar_professor(request, prof_id):
             professor = Docente.objects.get(id=prof_id, escola=request.user.escola)
 
             professor.nome = data.get('nome', professor.nome)
-            professor.disciplina = data.get('disciplina', professor.disciplina)
+            professor.email = data.get('email', professor.email)
+            professor.telefone = data.get('telefone', professor.telefone)
+            professor.nascimento = data.get('data_nascimento') or None
+            professor.sexo = data.get('sexo', professor.sexo)
+            professor.endereco = data.get('endereco', professor.endereco)
+            professor.formacao = data.get('formacao', professor.formacao)
+
+            ids_disciplinas = data.get('disciplinas', [])
             professor.save()
+            professor.disciplinas.set(ids_disciplinas)
 
             return JsonResponse({'success': True})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
-
-    return JsonResponse({'success': False, 'error': 'Método inválido'})
 
 @csrf_exempt
 @login_required
