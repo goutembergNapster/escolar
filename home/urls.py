@@ -76,4 +76,7 @@ urlpatterns = [
     #usuario_sem_escola
     path('erro/sem-escola/', usuario_sem_escola, name='usuario_sem_escola'),
 
+    path('erro404/', views.pagina_404_teste, name='erro404'),
+
+
 ]

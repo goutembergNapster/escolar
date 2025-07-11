@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  {% include 'plantaopro/partials/_head.html' %}
+  <style>
+    .error-container {
+      text-align: center;
+      padding: 100px 20px;
+    }
+    .error-code {
+      font-size: 120px;
+      font-weight: bold;
+      color: #dc3545; /* vermelho para erro interno */
+    }
+    .error-message {
+      font-size: 24px;
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+  {% include 'plantaopro/partials/_nav.html' %}
+
+  <div class="error-container">
+    <div class="error-code">500</div>
+    <div class="error-message">
+      Ocorreu um erro interno no sistema.<br>
+      Nossa equipe já foi notificada e está cuidando disso!
+    </div>
+    <a href="{% url 'index' %}" class="btn btn-primary">Voltar para a página inicial</a>
+  </div>
+
+  {% include 'plantaopro/partials/_footer.html' %}
+</body>
+</html>

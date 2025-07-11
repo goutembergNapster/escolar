@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-&3d@0w2x0^@2juw_v478r0h_4rk6)iv_*o6r&hc0#eq!)th3&y'
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://clinica-medica-i66x.onrender.com','localhost', '127.0.0.1','clinica-medica-i66x.onrender.com','0.0.0.0','*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','0.0.0.0','*']
 
 AUTHENTICATION_BACKENDS = [
     'home.auth_backends.CPFBackend',  # backend por CPF
