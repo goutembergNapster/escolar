@@ -1223,5 +1223,3 @@ def excluir_disciplina(request):
     except:
         return JsonResponse({'success': False})
     
-def pagina_404_teste(request):
-    return render(request, '404.html', status=404)
