@@ -11,7 +11,6 @@
     <section class="form-container">
       <div class="container">
         <div class="header-bar">Cadastrar Disciplina</div>
-
         <!-- FORMULÁRIO -->
         <section class="content-wrapper" style="margin-top: 15px; margin-bottom: 0;">
           <form id="formDisciplina">
@@ -28,7 +27,6 @@
             </div>
           </form>
         </section>
-
         <!-- CRUD DISCIPLINAS COM SECTION PRÓPRIA -->
         <section class="content-wrapper" style="margin-top: -100px;">
           <h4 style="margin-bottom: 15px;">Disciplinas Cadastradas</h4>
@@ -44,21 +42,17 @@
             </tbody>
           </table>
         </section>
-
       </div>
     </section>
-
     <footer>
       {% include 'plantaopro/partials/_footer.html' %}
     </footer>
   </div>
-
   <script>
     // CADASTRO EXISTENTE
     document.getElementById('formDisciplina').addEventListener('submit', function(event) {
       event.preventDefault();
       const nome = document.getElementById('nome').value.trim();
-
       fetch("{% url 'cadastrar_disciplina' %}", {
         method: 'POST',
         headers: {
@@ -82,7 +76,6 @@
         alert("❌ Erro ao enviar dados.");
       });
     });
-
     // CRUD DISCIPLINAS
     function carregarDisciplinas() {
       fetch("{% url 'listar_disciplinas' %}")
@@ -112,14 +105,12 @@
           adicionarEventos();
         });
     }
-
     function adicionarEventos() {
       document.querySelectorAll(".btn-editar").forEach(btn => {
         btn.addEventListener("click", function() {
           const row = this.closest("tr");
           const input = row.querySelector(".input-nome");
           const id = input.dataset.id;
-
           if (input.disabled) {
             input.disabled = false;
             this.textContent = "💾";
@@ -145,13 +136,11 @@
           }
         });
       });
-
       document.querySelectorAll(".btn-excluir").forEach(btn => {
         btn.addEventListener("click", function() {
           const row = this.closest("tr");
           const input = row.querySelector(".input-nome");
           const id = input.dataset.id;
-
           if (confirm("Deseja realmente excluir esta disciplina?")) {
             fetch("{% url 'excluir_disciplina' %}", {
               method: 'POST',
@@ -173,7 +162,6 @@
         });
       });
     }
-
     carregarDisciplinas();
   </script>
 </body>
