@@ -1,10 +1,12 @@
 {% load static %}
+{% load dict_utils %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   {% include 'plantaopro/partials/_head.html' %}
 </head>
 <body>
+{% include 'plantaopro/partials/_nav.html' %}
 {% block content %}
 <div class="container mt-4" style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
   <div class="text-center mb-4">
@@ -15,28 +17,43 @@
   <div class="mb-4">
     <strong>Nome do Aluno:</strong> {{ aluno.nome }}<br>
     <strong>CPF:</strong> {{ aluno.cpf }}<br>
-    <strong>Turma:</strong> {{ aluno.turma.nome|default:"-" }}<br>
+    <strong>Turma:</strong> {{ aluno.turmas.all.0.nome|default:"-" }}<br>
     <strong>Ano de Ingresso:</strong> {{ aluno.ano_ingresso|default:"-" }}<br>
   </div>
 
-  <table class="table table-bordered">
+  <table class="table table-bordered text-center">
     <thead class="bg-light text-dark">
       <tr>
-        <th>Disciplina</th>
-        <th>Nota</th>
-        <th>Observações</th>
+        <th rowspan="2">Disciplina</th>
+        <th colspan="4">Unidades</th>
+        <th rowspan="2">Média Anual</th>
+        <th rowspan="2">Recuperação</th>
+        <th rowspan="2">Média Final</th>
+        <th rowspan="2">Observações</th>
+      </tr>
+      <tr>
+        <th>1ª</th>
+        <th>2ª</th>
+        <th>3ª</th>
+        <th>4ª</th>
       </tr>
     </thead>
     <tbody>
-      {% for nota in notas %}
+      {% for disciplina, dados in boletim.items %}
       <tr>
-        <td>{{ nota.disciplina.nome }}</td>
-        <td>{{ nota.valor }}</td>
-        <td>{{ nota.observacao|default:"-" }}</td>
+        <td>{{ disciplina }}</td>
+        <td>{{ dados|dict_get:"1"|default:"-" }}</td>
+        <td>{{ dados|dict_get:"2"|default:"-" }}</td>
+        <td>{{ dados|dict_get:"3"|default:"-" }}</td>
+        <td>{{ dados|dict_get:"4"|default:"-" }}</td>
+        <td>{{ dados.media|default:"-" }}</td>  {# Média Anual #}
+        <td>–</td>  {# Recuperação pode ser ajustada depois se houver campo #}
+        <td>{{ dados.media|default:"-" }}</td>  {# Média Final = igual à Anual por enquanto #}
+        <td>{{ dados.obs|default:"-" }}</td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="3" class="text-center">Nenhuma nota registrada.</td>
+        <td colspan="9" class="text-center">Nenhuma nota registrada.</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -48,5 +65,8 @@
   </div>
 </div>
 {% endblock %}
+<div>
+      {% include 'plantaopro/partials/_footer.html' %}
+    </div>
 </body>
 </html>

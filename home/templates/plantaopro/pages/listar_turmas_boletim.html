@@ -5,6 +5,7 @@
   {% include 'plantaopro/partials/_head.html' %}
 </head>
 <body>
+{% include 'plantaopro/partials/_nav.html' %}
 <div class="container mt-5">
   <h3 class="mb-4">Selecionar Turma e Aluno</h3>
 
@@ -34,7 +35,7 @@
       <tr>
         <td>{{ aluno.nome }}</td>
         <td>
-          <a href="{% url 'visualizar_boletim' aluno.id %}" class="btn btn-sm btn-info">
+          <a href="{% url 'visualizar_boletim' aluno.id %}?turma={{ turma_id }}" class="btn btn-sm btn-info">
             Visualizar Boletim
           </a>
         </td>
@@ -44,5 +45,8 @@
   </table>
   {% endif %}
 </div>
+<div>
+      {% include 'plantaopro/partials/_footer.html' %}
+    </div>
 </body>
 </html>

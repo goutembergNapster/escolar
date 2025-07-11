@@ -26,6 +26,8 @@ from home.utils_user import criar_usuario_com_cpf
 from django.db import transaction
 from django.contrib import messages
 import pandas as pd
+from collections import defaultdict
+from django.db.models import Avg
 
 User = get_user_model()
 
@@ -1017,7 +1019,7 @@ def listar_turmas_para_boletim(request):
 
     turma_id = request.GET.get('turma')
     if turma_id:
-        alunos = Aluno.objects.filter(turma_id=turma_id, escola=request.user.escola)
+        alunos = Aluno.objects.filter(turmas__id=turma_id, escola=request.user.escola)
 
     return render(request, 'plantaopro/pages/listar_turmas_boletim.html', {
         'turmas': turmas,
@@ -1030,12 +1032,43 @@ def listar_turmas_para_boletim(request):
 @role_required(['diretor', 'coordenador'])
 def visualizar_boletim(request, aluno_id):
     aluno = get_object_or_404(Aluno, pk=aluno_id)
-    notas = Nota.objects.filter(aluno=aluno, escola=request.user.escola).select_related('disciplina')
+    turma_id = request.GET.get("turma")
+
+    # Se turma for passada, filtra as notas por ela
+    if turma_id:
+        notas = Nota.objects.filter(
+            aluno=aluno,
+            escola=request.user.escola,
+            turma_id=turma_id
+        ).select_related('disciplina')
+    else:
+        # fallback se vier direto pela URL
+        notas = Nota.objects.filter(
+            aluno=aluno,
+            escola=request.user.escola
+        ).select_related('disciplina')
+
+    # Organiza as notas no formato {disciplina: {1: nota, 2: nota, ...}}
+    from collections import defaultdict
+
+    boletim = defaultdict(lambda: {"1": None, "2": None, "3": None, "4": None, "obs": "", "media": None})
+
+    for nota in notas:
+        nome_disciplina = nota.disciplina.nome
+        boletim[nome_disciplina][str(nota.bimestre)] = nota.valor
+        if nota.observacoes:
+            boletim[nome_disciplina]["obs"] = nota.observacoes
+
+    for dados in boletim.values():
+        notas_validas = [v for k, v in dados.items() if k in ['1', '2', '3', '4'] and v is not None]
+        if notas_validas:
+            dados["media"] = round(sum(notas_validas) / len(notas_validas), 2)
 
     return render(request, 'plantaopro/pages/boletim.html', {
         'aluno': aluno,
-        'notas': notas
+        'boletim': dict(boletim)
     })
+
 
 @csrf_exempt
 @login_required
