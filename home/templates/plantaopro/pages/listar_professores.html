@@ -218,7 +218,7 @@
         margin-bottom: 1.5rem;
       }
     </style>
-  </head>
+</head>
   <body>
     {% include 'plantaopro/partials/_nav.html' %}
     {% block content %}
@@ -268,7 +268,7 @@
                           data-id="{{ professor.id }}"
                           data-nome="{{ professor.nome|escapejs }}"
                           data-cpf="{{ professor.cpf }}"
-                          data-disciplinas="{{ professor.disciplinas_ids|join:',' }}"
+                          data-disciplinas="{{ professor.disciplinas_ids|default:''|join:',' }}"
                           data-email="{{ professor.email }}"
                           data-telefone="{{ professor.telefone }}"
                           data-nascimento="{{ professor.nascimento|default_if_none:'' }}"
@@ -367,7 +367,10 @@
         document.getElementById('editEndereco').value = button.dataset.endereco
         document.getElementById('editFormacao').value = button.dataset.formacao
 
-        const disciplinaIds = button.dataset.disciplinas.split(',').map(id => id.trim())
+        const disciplinaIds = button.dataset.disciplinas
+          ? button.dataset.disciplinas.split(',').map(id => id.trim())
+          : []
+
         const select = document.getElementById('editDisciplina')
         for (const option of select.options) {
           option.selected = disciplinaIds.includes(option.value)
@@ -398,6 +401,7 @@
         })
           .then((res) => res.json())
           .then((data) => {
+            console.log(data)
             if (data.success) {
               alert('Professor atualizado com sucesso!')
               location.reload()
@@ -443,4 +447,3 @@
     </div>
   </body>
 </html>
-   

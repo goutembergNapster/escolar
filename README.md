@@ -1,40 +1,56 @@
-# Plantao_pro
+# 🏫 Sistema Escolar - Escolinha
 
-A gestão eficiente dos plantões médicos é essencial para assegurar a continuidade dos cuidados de saúde e o bem-estar dos profissionais envolvidos. O PlantãoPro é um sistema inovador e intuitivo desenvolvido para otimizar o gerenciamento dos plantões médicos, garantindo que as clínicas funcionem de maneira eficaz e organizada.
+Este projeto é um sistema escolar completo desenvolvido com Django, que permite o gerenciamento de escolas, alunos, professores, turmas, disciplinas, boletins e mais.
 
-## Getting Started
+## 🚀 Funcionalidades
 
-Verificar se possui o python 3.x instalado na maquina;
-Verificar se possui o pip instalado;
+- Cadastro e edição de escolas
+- Cadastro de alunos, professores e funcionários
+- Associação de alunos e professores a turmas
+- Lançamento de notas por disciplina e bimestre
+- Geração de boletins individuais
+- Filtros de busca e status (ativo/inativo)
+- Interface moderna e responsiva
 
-Executar o comando: 
+## 🛠️ Tecnologias utilizadas
 
-$ python3 -m pip install Django
+- Python 3.11
+- Django 4.x
+- HTML, CSS, JavaScript
+- Bootstrap
+- PostgreSQL
+- Docker (opcional)
+- Render (deploy)
 
-Clonar o projeto localmente
+## 📦 Instalação local
 
-### Na raiz do projeto executar o comando: 
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/seu-usuario/seu-projeto-escolinha.git
+   cd seu-projeto-escolinha
 
-$ 'python3 manage.py migrate' para configurar o banco
+Crie um ambiente virtual e ative:
 
-$ 'python3 manage.py createsuperuser' para criar um super usuário para acessar o admin do python
+python -m venv venv
+source venv/bin/activate  # ou venv\Scripts\activate no Windows
+Instale as dependências:
 
-$ python3 manage.py runserver
+pip install -r requirements.txt
+Rode as migrações e inicie o servidor:
 
-O servidor estará rodando no endereço: 
+python manage.py migrate
+python manage.py runserver
+👤 Acesso inicial
+Você pode criar um superusuário para acessar o admin:
 
-http://127.0.0.1:8000/
+python manage.py createsuperuser
+📁 Organização
+home/ – App principal com models de Escola, Aluno, Docente etc.
 
-### Para parar o serviço basta executar o comando: 
+templates/ – Páginas HTML com identidade visual personalizada
 
-CONTROL-C
-
-ou o script: 
-
-$ ./stop_django.sh
+static/ – Estilos, scripts e imagens do sistema
 
 
-
-
-https://www.youtube.com/watch?v=ozAZL3IATTo
-# escolar
+📌 Licença
+Este projeto é de uso privado e educativo, não sendo licenciado para uso comercial sem autorização.
