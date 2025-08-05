@@ -220,5 +220,27 @@ class TurmaDisciplina(models.Model):
 
     def __str__(self):
         return f"{self.turma.nome} - {self.disciplina.nome} ({self.professor.nome})"
+    
+class Chamada(models.Model):
+    data = models.DateField(auto_now_add=True)
+    turma = models.ForeignKey('Turma', on_delete=models.CASCADE)
+    disciplina = models.ForeignKey('Disciplina', on_delete=models.CASCADE)
+    professor = models.ForeignKey('Docente', on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f"{self.data} - {self.turma.nome} - {self.disciplina.nome}"
 
+    class Meta:
+        unique_together = ('data', 'turma', 'disciplina', 'professor')
+
+class Presenca(models.Model):
+    chamada = models.ForeignKey('Chamada', on_delete=models.CASCADE)
+    aluno = models.ForeignKey('Aluno', on_delete=models.CASCADE)
+    presente = models.BooleanField(default=True)
+    observacao = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.aluno.nome} - {self.chamada.data} - {'Presente' if self.presente else 'Ausente'}"
+
+    class Meta:
+        unique_together = ('chamada', 'aluno')

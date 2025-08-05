@@ -12,7 +12,7 @@ from .models import Docente
 from django.contrib.auth import get_user_model, logout, login, update_session_auth_hash
 from django.utils.dateparse import parse_date
 from django.views.decorators.csrf import ensure_csrf_cookie
-from .models import Aluno, Responsavel, Saude, TransporteEscolar, Autorizacoes, Turma, Disciplina, Funcionario, Nota, TurmaDisciplina 
+from .models import Aluno, Responsavel, Saude, TransporteEscolar, Autorizacoes, Turma, Disciplina, Funcionario, Nota, TurmaDisciplina, Presenca, Chamada 
 from home.utils import gerar_matricula_unica
 from datetime import datetime
 from django.db.models.functions import Substr, Cast
@@ -26,9 +26,8 @@ from home.utils_user import criar_usuario_com_cpf
 from django.db import transaction
 from django.contrib import messages
 import pandas as pd
-from collections import defaultdict
-from django.db.models import Avg
-from django.http import HttpResponseNotFound
+from datetime import date
+
 
 User = get_user_model()
 
@@ -1243,4 +1242,180 @@ def excluir_disciplina(request):
         return JsonResponse({'success': True})
     except:
         return JsonResponse({'success': False})
+
+
+@login_required
+@role_required(['diretor', 'coordenador', 'professor'])
+def diario_classe(request):
+    user = request.user
+    today = date.today()
+
+    contexto = {
+        'today': today,
+    }
+
+    if user.role == 'professor':
+        try:
+            docente = user.docente  # recupera o objeto Docente vinculado
+            turmas_professor = TurmaDisciplina.objects.filter(professor=docente)
+            contexto['turmas_professor'] = turmas_professor
+
+            if turmas_professor.count() == 1:
+                turma_disciplina = turmas_professor.first()
+                contexto['turma'] = turma_disciplina.turma
+                contexto['disciplina'] = turma_disciplina.disciplina
+                contexto['alunos'] = turma_disciplina.turma.aluno_set.filter(ativo=True).order_by('nome')
+
+        except Docente.DoesNotExist:
+            contexto['erro'] = "Este usuário não possui vínculo com um docente."
+
+    else:
+        # Diretor ou coordenador
+        contexto['turmas'] = TurmaDisciplina.objects.select_related('turma', 'disciplina').all()
+
+    return render(request, 'plantaopro/pages/diario_classe.html', contexto)
+
+
+@require_POST
+@login_required
+def salvar_chamada(request):
+    data = json.loads(request.body)
+    turma_id = data['turma_id']
+    disciplina_id = data['disciplina_id']
+    presencas = data['presencas']
+
+    professor = request.user.docente
+
+    # Evita duplicação: uma chamada por dia, por professor/turma/disciplina
+    chamada_existente = Chamada.objects.filter(
+        data=date.today(),
+        turma_id=turma_id,
+        disciplina_id=disciplina_id,
+        professor=professor
+    ).first()
+
+    if chamada_existente:
+        return JsonResponse({'success': False, 'erro': 'Chamada já registrada para hoje.'}, status=400)
+
+    chamada = Chamada.objects.create(
+        turma_id=turma_id,
+        disciplina_id=disciplina_id,
+        professor=professor
+    )
+
+    for p in presencas:
+        Presenca.objects.create(
+            chamada=chamada,
+            aluno_id=p['aluno_id'],
+            presente=p['presente'],
+            observacao=p['observacao']
+        )
+
+    return JsonResponse({'success': True})
+
+
+@login_required
+@role_required('professor,diretor,coordenador')
+def buscar_alunos(request, turma_id):
+    turma = get_object_or_404(Turma, id=turma_id)
+    alunos = turma.alunos.filter(ativo=True)
     
+    alunos_serializados = [
+        {"id": aluno.id, "nome": aluno.nome}
+        for aluno in alunos
+    ]
+
+    return JsonResponse({
+        "alunos": alunos_serializados
+    })
+
+@login_required
+@require_POST
+@csrf_exempt  # opcional se você já passa o CSRFToken no fetch
+def editar_registro(request, registro_id):
+    try:
+        data = json.loads(request.body)
+        presente = data.get('presente')
+        observacao = data.get('observacao', '')
+
+        registro = Presenca.objects.select_related('chamada').get(id=registro_id)
+
+        # Verifica se o professor é dono da chamada
+        if request.user.role == 'professor' and registro.chamada.professor.user != request.user:
+            return JsonResponse({'sucesso': False, 'erro': 'Sem permissão para editar este registro'}, status=403)
+
+        registro.presente = presente
+        registro.observacao = observacao
+        registro.save()
+
+        return JsonResponse({'sucesso': True})
+
+    except Presenca.DoesNotExist:
+        return JsonResponse({'sucesso': False, 'erro': 'Registro não encontrado'}, status=404)
+
+    except Exception as e:
+        return JsonResponse({'sucesso': False, 'erro': str(e)}, status=500)
+
+def visualizar_chamada(request):
+    user = request.user
+    turma_id = request.GET.get('turma')
+    disciplina_id = request.GET.get('disciplina')
+    data_filtro = request.GET.get('data')
+
+    presencas = Presenca.objects.select_related(
+        'chamada', 'aluno', 'chamada__disciplina', 'chamada__turma', 'chamada__professor'
+    )
+
+    if user.role == 'professor':
+        try:
+            docente = user.docente
+            presencas = presencas.filter(chamada__professor=docente)
+
+            turmas_vinculadas = TurmaDisciplina.objects.filter(professor=docente).select_related('turma', 'disciplina')
+            turmas = [td.turma for td in turmas_vinculadas]
+            disciplinas = list({td.disciplina for td in turmas_vinculadas})  # evita duplicatas
+
+        except Docente.DoesNotExist:
+            return render(request, 'plantaopro/pages/visualizar_diario.html', {
+                'erro': 'Usuário sem vínculo com docente.'
+            })
+    else:
+        presencas = presencas.all()
+        turmas = Turma.objects.all()
+        disciplinas = Disciplina.objects.all()
+
+    if turma_id:
+        presencas = presencas.filter(chamada__turma_id=turma_id)
+    if disciplina_id:
+        presencas = presencas.filter(chamada__disciplina_id=disciplina_id)
+    if data_filtro:
+        presencas = presencas.filter(chamada__data=data_filtro)
+
+    contexto = {
+        'registros': presencas,
+        'turmas': turmas,
+        'disciplinas': disciplinas,
+    }
+
+    return render(request, 'plantaopro/pages/visualizar_diario.html', contexto)
+
+@csrf_exempt
+@require_POST
+@login_required
+def editar_registro(request, registro_id):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            presente = data.get('presente') == 'True'
+            observacao = data.get('observacao')
+
+            presenca = Presenca.objects.get(id=registro_id)
+            presenca.presente = presente
+            presenca.observacao = observacao
+            presenca.save()
+
+            return JsonResponse({'status': 'sucesso'})
+        except Exception as e:
+            return JsonResponse({'status': 'erro', 'mensagem': str(e)})
+    
+    return JsonResponse({'status': 'erro', 'mensagem': 'Método não permitido'})

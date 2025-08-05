@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Diário de Classe</title>
+  {% include 'plantaopro/partials/_head.html' %}
+  <style>
+    .titulo-pagina {
+      background-color: #fab982;
+      color: #000;
+      font-weight: bold;
+      font-size: 1.5rem;
+      padding: 1rem 1.5rem;
+      border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  {% include 'plantaopro/partials/_nav.html' %}
+
+  <section class="py-5">
+    <div class="container">
+      <div class="titulo-pagina">Diário de Classe</div>
+
+      {% if user.role != 'professor' %}
+        <div class="form-group">
+          <label for="turmaSelect">Selecione a Turma</label>
+          <select class="form-control" id="turmaSelect">
+            <option value="">Selecione</option>
+            {% for turma in turmas %}
+              <option value="{{ turma.turma.id }}" data-disciplina="{{ turma.disciplina.id }}">{{ turma.turma.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div id="formularioChamadaContainer"></div>
+      {% else %}
+        {% if turmas_professor|length > 1 %}
+          <div class="form-group">
+            <label for="turmaSelect">Selecione a Turma</label>
+            <select class="form-control" id="turmaSelect">
+              <option value="">Selecione</option>
+              {% for t in turmas_professor %}
+                <option value="{{ t.turma.id }}" data-disciplina="{{ t.disciplina.id }}">{{ t.turma.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div id="formularioChamadaContainer"></div>
+        {% elif turma %}
+          <h5>Turma: {{ turma.nome }}</h5>
+          <form id="formChamada">
+            <input type="hidden" id="turmaId" value="{{ turma.id }}">
+            <input type="hidden" id="disciplinaId" value="{{ disciplina.id }}">
+
+            <div class="form-group mb-3">
+              <label for="dataChamada">Data</label>
+              <input type="date" class="form-control" id="dataChamada" name="data" required value="{{ today }}" max="{{ today }}" min="2000-01-01">
+            </div>
+
+            <table class="table table-bordered table-hover table-striped">
+              <thead class="thead-dark">
+                <tr>
+                  <th>Nome do Aluno</th>
+                  <th>Presença</th>
+                  <th>Observações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for aluno in alunos %}
+                <tr>
+                  <td>{{ aluno.nome }}</td>
+                  <td>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input presenca" type="checkbox" data-id="{{ aluno.id }}" checked>
+                      <label class="form-check-label">Presente</label>
+                    </div>
+                  </td>
+                  <td>
+                    <input type="text" class="form-control observacao" data-id="{{ aluno.id }}" placeholder="Observações">
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+            <button type="submit" class="btn btn-primary">Salvar Chamada</button>
+          </form>
+        {% else %}
+          <p>Você ainda não possui uma turma vinculada.</p>
+        {% endif %}
+      {% endif %}
+    </div>
+  </section>
+
+  <script>
+    // Preenche e restringe o campo de data para hoje
+    document.addEventListener('DOMContentLoaded', function () {
+      const inputData = document.getElementById('dataChamada');
+      if (inputData) {
+        const today = new Date().toISOString().split('T')[0];
+        inputData.value = today;
+        inputData.max = today;
+        inputData.min = "2000-01-01";
+      }
+    });
+
+    function montarFormularioChamada(turmaId, disciplinaId, alunos) {
+      const container = document.getElementById('formularioChamadaContainer');
+      if (!alunos.length) {
+        container.innerHTML = "<p>Não há alunos nessa turma.</p>";
+        return;
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+
+      let html = `
+        <form id="formChamada">
+          <input type="hidden" id="turmaId" value="${turmaId}">
+          <input type="hidden" id="disciplinaId" value="${disciplinaId}">
+          <div class="form-group mb-3">
+            <label for="dataChamada">Data</label>
+            <input type="date" class="form-control" id="dataChamada" name="data" required
+                   value="${today}" max="${today}" min="2000-01-01">
+          </div>
+          <table class="table table-bordered table-hover table-striped">
+            <thead class="thead-dark">
+              <tr>
+                <th>Nome do Aluno</th>
+                <th>Presença</th>
+                <th>Observações</th>
+              </tr>
+            </thead>
+            <tbody>`;
+
+      alunos.forEach(aluno => {
+        html += `
+          <tr>
+            <td>${aluno.nome}</td>
+            <td>
+              <div class="form-check form-switch">
+                <input class="form-check-input presenca" type="checkbox" data-id="${aluno.id}" checked>
+                <label class="form-check-label">Presente</label>
+              </div>
+            </td>
+            <td>
+              <input type="text" class="form-control observacao" data-id="${aluno.id}" placeholder="Observações">
+            </td>
+          </tr>`;
+      });
+
+      html += `
+            </tbody>
+          </table>
+          <button type="submit" class="btn btn-primary">Salvar Chamada</button>
+        </form>`;
+
+      container.innerHTML = html;
+      document.getElementById('formChamada').addEventListener('submit', enviarChamada);
+    }
+
+    function enviarChamada(e) {
+      e.preventDefault();
+
+      const turmaId = document.getElementById('turmaId').value;
+      const disciplinaId = document.getElementById('disciplinaId').value;
+      const presencas = [];
+
+      document.querySelectorAll('.presenca').forEach(input => {
+        const alunoId = input.dataset.id;
+        const presente = input.checked;
+        const observacao = document.querySelector(`.observacao[data-id="${alunoId}"]`).value;
+
+        presencas.push({
+          aluno_id: alunoId,
+          presente: presente,
+          observacao: observacao
+        });
+      });
+
+      fetch('{% url "salvar_chamada" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          turma_id: turmaId,
+          disciplina_id: disciplinaId,
+          presencas: presencas
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Chamada salva com sucesso!');
+          location.reload();
+        } else {
+          alert(data.erro || 'Erro ao salvar chamada!');
+        }
+      });
+    }
+
+    document.getElementById('turmaSelect')?.addEventListener('change', function () {
+      const turmaId = this.value;
+      const disciplinaId = this.options[this.selectedIndex].dataset.disciplina;
+
+      if (!turmaId) return;
+
+      fetch(`/buscar-alunos/${turmaId}/`)
+        .then(res => res.json())
+        .then(data => montarFormularioChamada(turmaId, disciplinaId, data.alunos));
+    });
+  </script>
+
+  {% include 'plantaopro/partials/_footer.html' %}
+</body>
+</html>

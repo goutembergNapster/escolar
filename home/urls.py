@@ -2,7 +2,7 @@ from django.urls import path
 from .views import login_view, logout_view  
 from . import views
 from .views import salvar_aluno, cadastrar_disciplina, pagina_cadastrar_disciplina, usuario_sem_escola
-from .views import criar_turma, verificar_senha_temporaria, importar_alunos, trocar_senha_api, listar_turmas_para_boletim, visualizar_boletim
+from .views import criar_turma, verificar_senha_temporaria, importar_alunos, trocar_senha_api, listar_turmas_para_boletim, visualizar_boletim, editar_registro, visualizar_chamada
 
 urlpatterns = [
     
@@ -76,5 +76,13 @@ urlpatterns = [
     #usuario_sem_escola
     path('erro/sem-escola/', usuario_sem_escola, name='usuario_sem_escola'),
 
+    #Chamada 
+
+    path('diario-classe/', views.diario_classe, name='diario_classe'),
+    path('salvar-chamada/', views.salvar_chamada, name='salvar_chamada'),
+    path('buscar-alunos/<int:turma_id>/', views.buscar_alunos, name='buscar_alunos'),
+    path('diario-classe/editar-registro/<int:registro_id>/', editar_registro, name='editar_registro'),
+    path('diario-classe/visualizar/', views.visualizar_chamada, name='visualizar_chamada'),
+    path('diario-classe/editar-registro/<int:registro_id>/', views.editar_registro, name='editar_registro'),
 
 ]
