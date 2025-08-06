@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% include 'plantaopro/partials/_head.html' %}
+    <style>
+        .header-bar {
+            background-color: #fab982;
+            padding: 10px 20px;
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .filter-bar {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-bar select,
+        .filter-bar input[type="date"] {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        table thead {
+            background-color: #f0f0f0;
+        }
+
+        table th, table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .no-results {
+            text-align: center;
+            margin-top: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    {% include 'plantaopro/partials/_nav.html' %}
+    <section class="content-wrapper" style="margin-top: 15px;">
+        <div class="header-bar">Visualizar Presenças</div>
+
+        <form method="get" class="filter-bar">
+            <select name="turma">
+                <option value="">Todas as turmas</option>
+                {% for turma in turmas %}
+                    <option value="{{ turma.id }}" {% if request.GET.turma == turma.id|stringformat:"s" %}selected{% endif %}>
+                        {{ turma.nome }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="disciplina">
+                <option value="">Todas as disciplinas</option>
+                {% for disciplina in disciplinas %}
+                    <option value="{{ disciplina.id }}" {% if request.GET.disciplina == disciplina.id|stringformat:"s" %}selected{% endif %}>
+                        {{ disciplina.nome }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <input type="date" name="data" value="{{ request.GET.data }}">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </form>
+
+        {% if registros %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Aluno</th>
+                        <th>Turma</th>
+                        <th>Disciplina</th>
+                        <th>Data</th>
+                        <th>Presente</th>
+                        <th>Observação</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for presenca in registros %}
+                        <tr data-registro-id="{{ presenca.id }}">
+                            <td>{{ presenca.aluno.nome }}</td>
+                            <td>{{ presenca.chamada.turma.nome }}</td>
+                            <td>{{ presenca.chamada.disciplina.nome }}</td>
+                            <td>{{ presenca.chamada.data|date:"d/m/Y" }}</td>
+                            <td>
+                                <select class="presente-select" disabled>
+                                    <option value="True" {% if presenca.presente %}selected{% endif %}>Sim</option>
+                                    <option value="False" {% if not presenca.presente %}selected{% endif %}>Não</option>
+                                </select>
+                            </td>
+                            <td><input type="text" class="observacao-input" value="{{ presenca.observacao }}" disabled></td>
+                            <td>
+                                <button class="btn btn-sm btn-secondary editar-btn" type="button">Editar</button>
+                                <button class="btn btn-sm btn-success salvar-btn" type="button" style="display: none;">Salvar</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="no-results">Nenhuma presença registrada.</p>
+        {% endif %}
+    </section>
+
+    <footer>
+        {% include 'plantaopro/partials/_footer.html' %}
+    </footer>
+
+    <script>
+        document.querySelectorAll('.editar-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const row = this.closest('tr');
+                row.querySelector('.presente-select').disabled = false;
+                row.querySelector('.observacao-input').disabled = false;
+                row.querySelector('.salvar-btn').style.display = 'inline-block';
+                this.style.display = 'none';
+            });
+        });
+
+        document.querySelectorAll('.salvar-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const row = this.closest('tr');
+                const registroId = row.dataset.registroId;
+                const presente = row.querySelector('.presente-select').value;
+                const observacao = row.querySelector('.observacao-input').value;
+
+                fetch(`/diario-classe/editar-registro/${registroId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ presente, observacao })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'sucesso') {
+                        alert("✅ Atualizado com sucesso");
+                        row.querySelector('.presente-select').disabled = true;
+                        row.querySelector('.observacao-input').disabled = true;
+                        row.querySelector('.editar-btn').style.display = 'inline-block';
+                        button.style.display = 'none';
+                    } else {
+                        alert("❌ Erro: " + data.mensagem);
+                    }
+                })
+                .catch(error => {
+                    alert("❌ Erro ao salvar.");
+                    console.error(error);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
