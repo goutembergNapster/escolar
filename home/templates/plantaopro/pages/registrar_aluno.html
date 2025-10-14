@@ -5,20 +5,23 @@
 </head>
 <body>
     {% include 'plantaopro/partials/_nav.html' %}
+
     <section class="content-wrapper" style="margin-top: 15px;">
         <div class="header-bar">Cadastrar Aluno</div>
 
         <div class="tab-buttons" style="padding-top: 1 !important; margin-top: 0 !important;">
-            <button onclick="showTab(0)">Informações Acadêmicas</button>
-            <button onclick="showTab(1)">Dados dos Responsáveis</button>
-            <button onclick="showTab(2)">Saúde</button>
-            <button onclick="showTab(3)">Transporte</button>
-            <button onclick="showTab(4)">Autorizações</button>
+            <button type="button" onclick="showTab(0)">Informações Acadêmicas</button>
+            <button type="button" onclick="showTab(1)">Dados dos Responsáveis</button>
+            <button type="button" onclick="showTab(2)">Saúde</button>
+            <button type="button" onclick="showTab(3)">Transporte</button>
+            <button type="button" onclick="showTab(4)">Autorizações</button>
         </div>
+
         <form method="post" id="formCadastro">
             {% csrf_token %}
-            <div class="tab-content active">
-                <!-- INFORMAÇÕES ACADÊMICAS -->
+
+            <!-- TAB 0 -->
+            <div class="tab-content">
                 <h3>Informações Pessoais</h3>
                 <div class="form-row">
                     <div class="form-group">
@@ -129,85 +132,87 @@
                     </div>
                 </div>
             </div>
-             <!-- Aba: Dados dos Responsáveis -->
-    <div class="tab-section">
-        <h3>Dados dos Responsáveis</h3>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="responsavel_nome">Nome do Responsável</label>
-                <input type="text" id="responsavel_nome" name="responsavel_nome">
-            </div>
-            <div class="form-group">
-                <label for="responsavel_email">Email</label>
-                <input type="email" id="responsavel_email" name="responsavel_email">
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="responsavel_telefone">Telefone</label>
-                <input type="text" id="responsavel_telefone" name="responsavel_telefone">
-            </div>
-        </div>
-    </div>
 
-    <!-- Aba: Saúde e Necessidades Especiais -->
-    <div class="tab-section">
-        <h3>Saúde e Necessidades Especiais</h3>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="alergias">Alergias</label>
-                <input type="text" id="alergias" name="alergias">
+            <!-- TAB 1 -->
+            <div class="tab-section" style="display:none">
+                <h3>Dados dos Responsáveis</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="responsavel_nome">Nome do Responsável</label>
+                        <input type="text" id="responsavel_nome" name="responsavel_nome">
+                    </div>
+                    <div class="form-group">
+                        <label for="responsavel_email">Email</label>
+                        <input type="email" id="responsavel_email" name="responsavel_email">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="responsavel_telefone">Telefone</label>
+                        <input type="text" id="responsavel_telefone" name="responsavel_telefone">
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="restricoes">Restrições alimentares</label>
-                <input type="text" id="restricoes" name="restricoes">
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="necessidades">Necessidades especiais</label>
-                <input type="text" id="necessidades" name="necessidades">
-            </div>
-        </div>
-    </div>
 
-    <!-- Aba: Transporte Escolar -->
-    <div class="tab-section">
-        <h3>Transporte Escolar</h3>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="utiliza_transporte">Utiliza transporte escolar?</label>
-                <select id="utiliza_transporte" name="utiliza_transporte">
-                    <option value="">Selecione</option>
-                    <option value="sim">Sim</option>
-                    <option value="nao">Não</option>
-                </select>
+            <!-- TAB 2 -->
+            <div class="tab-section" style="display:none">
+                <h3>Saúde e Necessidades Especiais</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="alergias">Alergias</label>
+                        <input type="text" id="alergias" name="alergias">
+                    </div>
+                    <div class="form-group">
+                        <label for="restricoes">Restrições alimentares</label>
+                        <input type="text" id="restricoes" name="restricoes">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="necessidades">Necessidades especiais</label>
+                        <input type="text" id="necessidades" name="necessidades">
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="ponto_onibus">Ponto de ônibus</label>
-                <input type="text" id="ponto_onibus" name="ponto_onibus">
-            </div>
-        </div>
-    </div>
 
-    <!-- Aba: Autorização dos Responsáveis -->
-    <div class="tab-section">
-        <h3>Autorização dos Responsáveis</h3>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="pode_sair_sozinho">Pode sair sozinho?</label>
-                <select id="pode_sair_sozinho" name="pode_sair_sozinho">
-                    <option value="">Selecione</option>
-                    <option value="sim">Sim</option>
-                    <option value="nao">Não</option>
-                </select>
+            <!-- TAB 3 -->
+            <div class="tab-section" style="display:none">
+                <h3>Transporte Escolar</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="utiliza_transporte">Utiliza transporte escolar?</label>
+                        <select id="utiliza_transporte" name="utiliza_transporte">
+                            <option value="">Selecione</option>
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ponto_onibus">Ponto de ônibus</label>
+                        <input type="text" id="ponto_onibus" name="ponto_onibus">
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="autorizados_buscar">Pessoas autorizadas a buscar</label>
-                <input type="text" id="autorizados_buscar" name="autorizados_buscar">
+
+            <!-- TAB 4 -->
+            <div class="tab-section" style="display:none">
+                <h3>Autorização dos Responsáveis</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pode_sair_sozinho">Pode sair sozinho?</label>
+                        <select id="pode_sair_sozinho" name="pode_sair_sozinho">
+                            <option value="">Selecione</option>
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="autorizados_buscar">Pessoas autorizadas a buscar</label>
+                        <input type="text" id="autorizados_buscar" name="autorizados_buscar">
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+
             <div class="form-footer">
                 <button type="button" class="btn btn-secondary" onclick="goBack()">Voltar</button>
                 <button type="button" class="btn btn-primary" id="submitButton">Salvar</button>
@@ -218,92 +223,123 @@
     <footer>
         {% include 'plantaopro/partials/_footer.html' %}
     </footer>
+
     <script>
+        // Alterna abas considerando .tab-content (primeira) e .tab-section (demais)
         function showTab(index) {
-            const tabs = document.querySelectorAll('.tab-content');
+            const tabs = [
+                document.querySelector('.tab-content'),
+                ...document.querySelectorAll('.tab-section')
+            ];
             tabs.forEach((tab, i) => {
-                tab.style.display = (i === index) ? 'block' : 'none';
+                if (tab) tab.style.display = (i === index) ? 'block' : 'none';
             });
         }
-    
+        // Abre a primeira aba
+        showTab(0);
+
         function goBack() {
-            // lógica do botão voltar
             window.history.back();
         }
-    
+
+        // Helper CSRF (opcional; sua view está @csrf_exempt)
+        function getCsrfToken() {
+            const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+            return input ? input.value : '';
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('submitButton').addEventListener('click', function (event) {
+            const btn = document.getElementById('submitButton');
+            btn.addEventListener('click', function (event) {
                 event.preventDefault();
-    
+
                 const dados = {
-                    matricula: document.getElementById('matricula').value.trim(),
-                    nome: document.getElementById('nome').value.trim(),
-                    data_nascimento: document.getElementById('data_nascimento').value.trim(),
-                    cpf: document.getElementById('cpf').value.trim(),
-                    rg: document.getElementById('rg').value.trim(),
-                    sexo: document.getElementById('sexo').value.trim(),
-                    nacionalidade: document.getElementById('nacionalidade').value.trim(),
-                    naturalidade: document.getElementById('naturalidade').value.trim(),
-                    certidao_numero: document.getElementById('certidao_numero').value.trim(),
-                    certidao_livro: document.getElementById('certidao_livro').value.trim(),
-                    tipo_sanguineo: document.getElementById('tipo_sanguineo').value.trim(),
-                    rua: document.getElementById('rua').value.trim(),
-                    numero: document.getElementById('numero').value.trim(),
-                    cep: document.getElementById('cep').value.trim(),
-                    bairro: document.getElementById('bairro').value.trim(),
-                    cidade: document.getElementById('cidade').value.trim(),
-                    estado: document.getElementById('estado').value.trim(),
-                    email: document.getElementById('email').value.trim(),
-                    telefone: document.getElementById('telefone').value.trim(),
-    
-                    responsavel_nome: document.getElementById('responsavel_nome').value.trim(),
-                    responsavel_cpf: document.getElementById('responsavel_cpf')?.value.trim() || '',
-                    responsavel_parentesco: document.getElementById('responsavel_parentesco')?.value.trim() || '',
-                    responsavel_telefone: document.getElementById('responsavel_telefone').value.trim(),
-                    responsavel_email: document.getElementById('responsavel_email').value.trim(),
-    
+                    matricula: (document.getElementById('matricula').value || '').trim(),
+                    nome: (document.getElementById('nome').value || '').trim(),
+                    data_nascimento: (document.getElementById('data_nascimento').value || '').trim(),
+                    cpf: (document.getElementById('cpf').value || '').trim(),
+                    rg: (document.getElementById('rg').value || '').trim(),
+                    sexo: (document.getElementById('sexo').value || '').trim(),
+                    nacionalidade: (document.getElementById('nacionalidade').value || '').trim(),
+                    naturalidade: (document.getElementById('naturalidade').value || '').trim(),
+                    certidao_numero: (document.getElementById('certidao_numero').value || '').trim(),
+                    certidao_livro: (document.getElementById('certidao_livro').value || '').trim(),
+                    tipo_sanguineo: (document.getElementById('tipo_sanguineo').value || '').trim(),
+                    rua: (document.getElementById('rua').value || '').trim(),
+                    numero: (document.getElementById('numero').value || '').trim(),
+                    cep: (document.getElementById('cep').value || '').trim(),
+                    bairro: (document.getElementById('bairro').value || '').trim(),
+                    cidade: (document.getElementById('cidade').value || '').trim(),
+                    estado: (document.getElementById('estado').value || '').trim(),
+                    email: (document.getElementById('email').value || '').trim(),
+                    telefone: (document.getElementById('telefone').value || '').trim(),
+
+                    responsavel_nome: (document.getElementById('responsavel_nome').value || '').trim(),
+                    responsavel_cpf: document.getElementById('responsavel_cpf') ? document.getElementById('responsavel_cpf').value.trim() : '',
+                    responsavel_parentesco: document.getElementById('responsavel_parentesco') ? document.getElementById('responsavel_parentesco').value.trim() : '',
+                    responsavel_telefone: (document.getElementById('responsavel_telefone').value || '').trim(),
+                    responsavel_email: (document.getElementById('responsavel_email').value || '').trim(),
+
                     possui_necessidade_especial: false,
-                    descricao_necessidade: document.getElementById('necessidades').value.trim(),
+                    descricao_necessidade: (document.getElementById('necessidades').value || '').trim(),
                     usa_medicacao: false,
                     quais_medicacoes: '',
-                    possui_alergia: document.getElementById('alergias').value.trim() !== '',
-                    descricao_alergia: document.getElementById('alergias').value.trim(),
-    
-                    usa_transporte_escolar: document.getElementById('utiliza_transporte').value === 'sim',
-                    trajeto: document.getElementById('ponto_onibus').value.trim(),
-    
-                    autorizacao_saida_sozinho: document.getElementById('pode_sair_sozinho').value === 'sim',
+                    possui_alergia: (document.getElementById('alergias').value || '').trim() !== '',
+                    descricao_alergia: (document.getElementById('alergias').value || '').trim(),
+
+                    usa_transporte_escolar: (document.getElementById('utiliza_transporte').value === 'sim'),
+                    trajeto: (document.getElementById('ponto_onibus').value || '').trim(),
+
+                    autorizacao_saida_sozinho: (document.getElementById('pode_sair_sozinho').value === 'sim'),
                     autorizacao_fotos_eventos: false,
-                    pessoa_autorizada_buscar: document.getElementById('autorizados_buscar').value.trim()
+                    pessoa_autorizada_buscar: (document.getElementById('autorizados_buscar').value || '').trim()
                 };
-    
+
                 console.log("📦 Enviando:", dados);
-    
+
                 fetch('/salvar_aluno/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCsrfToken()
                     },
                     body: JSON.stringify(dados)
                 })
-                .then(res => res.json())
-                .then(data => {
+                .then(async (res) => {
+                    // tenta parsear JSON mesmo em erro 400
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        throw new Error(data.mensagem || `Erro HTTP ${res.status}`);
+                    }
+                    return data;
+                })
+                .then((data) => {
                     if (data.status === 'sucesso') {
-                        alert("✅ Aluno cadastrado com sucesso!");
-                        window.location.reload();
+                        const alunoId = data.aluno_id;
+                        const container = document.createElement('div');
+                        container.className = 'alert alert-success';
+                        container.style.marginTop = '12px';
+                        container.innerHTML = `
+                          ✅ Aluno cadastrado com sucesso!
+                          <a class="btn btn-sm btn-primary ml-2" href="/alunos/${alunoId}/pdf/" target="_blank" rel="noopener">
+                            Imprimir cadastro (PDF)
+                          </a>
+                        `;
+                        const form = document.getElementById('formCadastro');
+                        form.parentNode.insertBefore(container, form.nextSibling);
+                        document.getElementById('submitButton').disabled = true;
                     } else {
                         alert("❌ Erro: " + (data.mensagem || "Não foi possível cadastrar."));
                         console.error("Erro no backend:", data);
                     }
                 })
-                .catch(error => {
+                .catch((error) => {
                     alert("❌ Erro ao enviar dados. Veja o console.");
                     console.error("🚨 Erro na requisição:", error);
                 });
             });
         });
-    </script>  
+    </script>
 </body>
 </html>

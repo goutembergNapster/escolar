@@ -1,32 +1,57 @@
-from django.shortcuts import render
-from .models import Escola
-from django.http import JsonResponse
-import re
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404, redirect
-from .forms import EscolaForm
+# Standard library
 import json
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-from .models import Docente
-from django.contrib.auth import get_user_model, logout, login, update_session_auth_hash
-from django.utils.dateparse import parse_date
-from django.views.decorators.csrf import ensure_csrf_cookie
-from .models import Aluno, Responsavel, Saude, TransporteEscolar, Autorizacoes, Turma, Disciplina, Funcionario, Nota, TurmaDisciplina, Presenca, Chamada 
-from home.utils import gerar_matricula_unica
-from datetime import datetime
-from django.db.models.functions import Substr, Cast
-from django.db.models import IntegerField
-from django.core.serializers.json import DjangoJSONEncoder
-from django.views.decorators.http import require_GET
-from django.db.models import Q
-from home.decorators import role_required
-from django.contrib.auth.forms import AuthenticationForm
-from home.utils_user import criar_usuario_com_cpf
-from django.db import transaction
-from django.contrib import messages
+import re
+from datetime import date, datetime
+from io import BytesIO
+
+# Third-party
 import pandas as pd
-from datetime import date
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+
+# Django
+from django.contrib import messages
+from django.contrib.auth import get_user_model, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db import transaction
+from django.db.models import IntegerField, Q
+from django.db.models.functions import Cast, Substr
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.template.loader import get_template
+from django.utils.dateparse import parse_date
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from django.shortcuts import get_object_or_404, redirect, render
+from django.db import transaction, models
+import json
+
+# Local apps
+from .forms import EscolaForm
+from .models import (
+    Escola,
+    Docente,
+    Aluno,
+    Responsavel,
+    Saude,
+    TransporteEscolar,
+    Autorizacoes,
+    Turma,
+    Disciplina,
+    Funcionario,
+    Nota,
+    TurmaDisciplina,
+    Presenca,
+    Chamada,
+)
+from home.decorators import role_required
+from home.utils import gerar_matricula_unica
+from home.utils_user import criar_usuario_com_cpf
+
 
 
 User = get_user_model()
@@ -421,6 +446,160 @@ def salvar_aluno(request):
 
     return JsonResponse({'mensagem': 'Método não permitido'}, status=405)
 
+@login_required
+def aluno_pdf(request, aluno_id):
+    aluno = get_object_or_404(Aluno, pk=aluno_id)
+    escola = getattr(aluno, 'escola', None) or getattr(request.user, 'escola', None)
+
+    # Relacionamentos (ajuste se seus related_names forem diferentes)
+    responsaveis = list(getattr(aluno, 'responsavel_set', []).all()) if hasattr(aluno, 'responsavel_set') else []
+    saude = getattr(aluno, 'saude', None) if hasattr(aluno, 'saude') else None
+    transporte = getattr(aluno, 'transporte', None) if hasattr(aluno, 'transporte') else None
+    autorizacoes = getattr(aluno, 'autorizacoes', None) if hasattr(aluno, 'autorizacoes') else None
+
+    buf = BytesIO()
+    doc = SimpleDocTemplate(
+        buf,
+        pagesize=A4,
+        leftMargin=2*cm, rightMargin=2*cm, topMargin=1.7*cm, bottomMargin=1.5*cm
+    )
+
+    styles = getSampleStyleSheet()
+    title = ParagraphStyle('TitleCenter', parent=styles['Title'], alignment=1, fontSize=16, spaceAfter=6)
+    h3 = ParagraphStyle('H3', parent=styles['Heading3'], spaceBefore=10, spaceAfter=6)
+    normal = styles['BodyText']
+
+    story = []
+
+    # Cabeçalho da escola
+    escola_nome = getattr(escola, 'nome', 'Escola')
+    escola_endereco = getattr(escola, 'endereco', '') or ''
+    story.append(Paragraph(escola_nome, title))
+    if escola_endereco:
+        story.append(Paragraph(escola_endereco, normal))
+    story.append(Spacer(1, 6))
+
+    # Seção: Dados do Aluno
+    story.append(Paragraph("Dados do Aluno", h3))
+    dados_aluno = [
+        ["Matrícula", aluno.matricula or ""],
+        ["Nome", aluno.nome or ""],
+        ["Data de Nascimento", str(aluno.data_nascimento or "")],
+        ["CPF", aluno.cpf or ""],
+        ["RG", aluno.rg or ""],
+        ["Sexo", aluno.sexo or ""],
+        ["Nacionalidade", aluno.nacionalidade or ""],
+        ["Naturalidade", aluno.naturalidade or ""],
+        ["Certidão", f"Nº {aluno.certidao_numero or ''} — Livro {aluno.certidao_livro or ''}"],
+        ["Tipo sanguíneo", aluno.tipo_sanguineo or ""],
+    ]
+    t1 = Table(dados_aluno, colWidths=[5*cm, 10*cm])
+    t1.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.25, colors.HexColor('#dddddd')),
+        ('BACKGROUND', (0,0), (-1,0), colors.whitesmoke),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('FONT', (0,0), (-1,-1), 'Helvetica', 10),
+        ('TEXTCOLOR', (0,0), (0,-1), colors.HexColor('#444444')),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fafafa')]),
+    ]))
+    story.append(t1)
+
+    # Seção: Endereço/Contato
+    story.append(Paragraph("Endereço e Contato", h3))
+    endereco = f"{aluno.rua or ''}, {aluno.numero or ''} — {aluno.bairro or ''} — {aluno.cidade or ''}/{aluno.estado or ''} — CEP {aluno.cep or ''}"
+    dados_contato = [
+        ["Endereço", endereco],
+        ["Email", aluno.email or ""],
+        ["Telefone", aluno.telefone or ""],
+    ]
+    t2 = Table(dados_contato, colWidths=[5*cm, 10*cm])
+    t2.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.25, colors.HexColor('#dddddd')),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('FONT', (0,0), (-1,-1), 'Helvetica', 10),
+        ('TEXTCOLOR', (0,0), (0,-1), colors.HexColor('#444444')),
+        ('ROWBACKGROUNDS', (0,0), (-1,-1), [colors.white, colors.HexColor('#fafafa')]),
+    ]))
+    story.append(t2)
+
+    # Seção: Responsáveis (se houver)
+    if responsaveis:
+        story.append(Paragraph("Responsáveis", h3))
+        rows = [["Nome", "CPF", "Parentesco", "Telefone", "Email"]]
+        for r in responsaveis:
+            rows.append([
+                getattr(r, 'nome', '') or '',
+                getattr(r, 'cpf', '') or '',
+                getattr(r, 'parentesco', '') or '',
+                getattr(r, 'telefone', '') or '',
+                getattr(r, 'email', '') or '',
+            ])
+        t_resp = Table(rows, colWidths=[5*cm, 3*cm, 3*cm, 3*cm, 6*cm])
+        t_resp.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-1), 0.25, colors.HexColor('#dddddd')),
+            ('BACKGROUND', (0,0), (-1,0), colors.whitesmoke),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('FONT', (0,0), (-1,-1), 'Helvetica', 9),
+        ]))
+        story.append(t_resp)
+
+    # Seção: Saúde
+    if saude:
+        story.append(Paragraph("Saúde", h3))
+        dados_saude = [
+            ["Necessidade especial", "Sim" if getattr(saude, 'possui_necessidade_especial', False) else "Não"],
+            ["Descrição", getattr(saude, 'descricao_necessidade', '') or ""],
+            ["Usa medicação", "Sim" if getattr(saude, 'usa_medicacao', False) else "Não"],
+            ["Quais", getattr(saude, 'quais_medicacoes', '') or ""],
+            ["Alergia", "Sim" if getattr(saude, 'possui_alergia', False) else "Não"],
+            ["Descrição alergia", getattr(saude, 'descricao_alergia', '') or ""],
+        ]
+        t_saude = Table(dados_saude, colWidths=[6*cm, 9*cm])
+        t_saude.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-1), 0.25, colors.HexColor('#dddddd')),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('FONT', (0,0), (-1,-1), 'Helvetica', 10),
+        ]))
+        story.append(t_saude)
+
+    # Seção: Transporte
+    if transporte:
+        story.append(Paragraph("Transporte Escolar", h3))
+        dados_transp = [
+            ["Usa transporte", "Sim" if getattr(transporte, 'usa_transporte_escolar', False) else "Não"],
+            ["Trajeto/Ponto", getattr(transporte, 'trajeto', '') or ""],
+        ]
+        t_transp = Table(dados_transp, colWidths=[6*cm, 9*cm])
+        t_transp.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-1), 0.25, colors.HexColor('#dddddd')),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('FONT', (0,0), (-1,-1), 'Helvetica', 10),
+        ]))
+        story.append(t_transp)
+
+    # Seção: Autorizações
+    if autorizacoes:
+        story.append(Paragraph("Autorizações", h3))
+        dados_auto = [
+            ["Pode sair sozinho", "Sim" if getattr(autorizacoes, 'autorizacao_saida_sozinho', False) else "Não"],
+            ["Permite fotos/eventos", "Sim" if getattr(autorizacoes, 'autorizacao_fotos_eventos', False) else "Não"],
+            ["Pessoas autorizadas a buscar", getattr(autorizacoes, 'pessoa_autorizada_buscar', '') or ""],
+        ]
+        t_auto = Table(dados_auto, colWidths=[6*cm, 9*cm])
+        t_auto.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-1), 0.25, colors.HexColor('#dddddd')),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('FONT', (0,0), (-1,-1), 'Helvetica', 10),
+        ]))
+        story.append(t_auto)
+
+    doc.build(story)
+
+    pdf = buf.getvalue()
+    buf.close()
+    resp = HttpResponse(pdf, content_type="application/pdf")
+    resp["Content-Disposition"] = f'inline; filename="aluno_{aluno_id}.pdf"'
+    return resp
 
 @login_required
 @role_required(['diretor', 'coordenador'])
@@ -502,15 +681,60 @@ def alternar_status_aluno(request, aluno_id):
 
     return JsonResponse({'success': False, 'error': 'Método inválido'})
 
-def listar_alunos(request):
-    alunos = Aluno.objects.filter(escola=request.user.escola)
-    lista = []
+from django.core.serializers.json import DjangoJSONEncoder
+import json
 
-    for aluno in alunos:
+def _extrair_turma_info(aluno):
+    """
+    Tenta obter (id, nome, sigla, turno) da turma do aluno,
+    cobrindo diferentes modelagens (FK direta, M2M, relação intermediária).
+    Retorna (None, '', '', '') quando não houver turma.
+    """
+    # 1) FK direta: aluno.turma
+    t = getattr(aluno, 'turma', None)
+    if t:
+        return getattr(t, 'id', None), getattr(t, 'nome', ''), getattr(t, 'sigla', ''), getattr(t, 'turno', '')
+
+    # 2) M2M padrão: aluno.turmas / aluno.turma_set
+    for rel_name in ('turmas', 'turma_set'):
+        mgr = getattr(aluno, rel_name, None)
+        if hasattr(mgr, 'all'):
+            t = mgr.all().first()
+            if t:
+                return getattr(t, 'id', None), getattr(t, 'nome', ''), getattr(t, 'sigla', ''), getattr(t, 'turno', '')
+
+    # 3) Relações intermediárias comuns que levam a uma turma
+    #    (ajusta os nomes se o seu projeto usar outros)
+    intermediarios = ('matriculas', 'matricula_set', 'alocacoes', 'alocacao_set', 'inscricoes', 'inscricao_set')
+    for rel_name in intermediarios:
+        mgr = getattr(aluno, rel_name, None)
+        # checa se é RelatedManager/QuerySet
+        if hasattr(mgr, 'select_related'):
+            rel = mgr.select_related('turma').first()
+            if rel is not None:
+                t = getattr(rel, 'turma', None)
+                if t:
+                    return getattr(t, 'id', None), getattr(t, 'nome', ''), getattr(t, 'sigla', ''), getattr(t, 'turno', '')
+
+    return None, '', '', ''
+
+
+def listar_alunos(request):
+    # Use apenas os relacionados que existem (conforme a mensagem de erro)
+    alunos_qs = (
+        Aluno.objects
+        .filter(escola=request.user.escola)
+        .select_related('escola', 'responsavel', 'saude', 'transporteescolar', 'autorizacoes')
+    )
+
+    lista = []
+    for aluno in alunos_qs:
         responsavel = getattr(aluno, 'responsavel', None)
         saude = getattr(aluno, 'saude', None)
         transporte = getattr(aluno, 'transporteescolar', None)
         autorizacoes = getattr(aluno, 'autorizacoes', None)
+
+        turma_id, turma_nome, turma_sigla, turma_turno = _extrair_turma_info(aluno)
 
         lista.append({
             'id': aluno.id,
@@ -521,14 +745,26 @@ def listar_alunos(request):
             'telefone': aluno.telefone,
             'ativo': aluno.ativo,
 
-            # Responsável
+            # --- TURMA (agora sempre presente, vazio se não houver) ---
+            'turma_id': turma_id,
+            'turma_nome': turma_nome,
+            'turma_sigla': turma_sigla,
+            'turno': turma_turno,
+            'turma': {
+                'id': turma_id,
+                'nome': turma_nome,
+                'sigla': turma_sigla,
+                'turno': turma_turno,
+            },
+
+            # --- Responsável ---
             'responsavel_nome': responsavel.nome if responsavel else '',
             'responsavel_cpf': responsavel.cpf if responsavel else '',
             'responsavel_parentesco': responsavel.parentesco if responsavel else '',
             'responsavel_telefone': responsavel.telefone if responsavel else '',
             'responsavel_email': responsavel.email if responsavel else '',
 
-            # Saúde
+            # --- Saúde ---
             'possui_necessidade_especial': saude.possui_necessidade_especial if saude else False,
             'descricao_necessidade': saude.descricao_necessidade if saude else '',
             'usa_medicacao': saude.usa_medicacao if saude else False,
@@ -536,20 +772,21 @@ def listar_alunos(request):
             'possui_alergia': saude.possui_alergia if saude else False,
             'descricao_alergia': saude.descricao_alergia if saude else '',
 
-            # Transporte
+            # --- Transporte ---
             'usa_transporte_escolar': transporte.usa_transporte_escolar if transporte else False,
             'trajeto': transporte.trajeto if transporte else '',
 
-            # Autorizações
+            # --- Autorizações ---
             'autorizacao_saida_sozinho': autorizacoes.autorizacao_saida_sozinho if autorizacoes else False,
             'autorizacao_fotos_eventos': autorizacoes.autorizacao_fotos_eventos if autorizacoes else False,
             'pessoa_autorizada_buscar': autorizacoes.pessoa_autorizada_buscar if autorizacoes else '',
         })
 
     context = {
-        'alunos_json': json.dumps(lista, cls=DjangoJSONEncoder)
+        'alunos_json': json.dumps(lista, cls=DjangoJSONEncoder, ensure_ascii=False)
     }
     return render(request, 'plantaopro/pages/listar_alunos.html', context)
+
 
 @csrf_exempt  # ou use um decorator de CSRF seguro se for AJAX autenticado
 @require_POST
@@ -1419,3 +1656,97 @@ def editar_registro(request, registro_id):
             return JsonResponse({'status': 'erro', 'mensagem': str(e)})
     
     return JsonResponse({'status': 'erro', 'mensagem': 'Método não permitido'})
+
+@login_required
+def listar_turmas(request):
+    qs = Turma.objects.all()
+    # filtra por escola, se houver escola vinculada
+    if 'escola' in [f.name for f in Turma._meta.fields] and getattr(request.user, 'escola', None):
+        qs = qs.filter(escola=request.user.escola)
+
+    qs = qs.order_by('nome')
+
+    turmas = []
+    for t in qs:
+        turmas.append({
+            'id': t.id,
+            'nome': t.nome or '',
+            'turno': t.turno or '',
+            'ano': t.ano,                 # inteiro
+            'sala': t.sala or '',
+            'descricao': t.descricao or '',
+        })
+
+    context = {'turmas_json': json.dumps(turmas, cls=DjangoJSONEncoder, ensure_ascii=False)}
+    return render(request, 'plantaopro/pages/listar_turmas.html', context)
+
+
+def _coerce_for_field(value, field: models.Field):
+    if value in ("", None):
+        return None if field.null else (0 if isinstance(field, models.IntegerField) else "")
+    if isinstance(field, models.IntegerField):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            raise ValueError(f"Valor inválido para {field.name}: esperado inteiro.")
+    if isinstance(field, (models.CharField, models.TextField)):
+        return str(value)
+    return value
+
+
+@login_required
+@require_http_methods(["POST"])
+def editar_turma(request, pk):
+    qs = Turma.objects
+    if 'escola' in [f.name for f in Turma._meta.fields] and getattr(request.user, 'escola', None):
+        turma = get_object_or_404(qs, pk=pk, escola=request.user.escola)
+    else:
+        turma = get_object_or_404(qs, pk=pk)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        return HttpResponseBadRequest('JSON inválido')
+
+    allowed = ['nome', 'sala', 'ano', 'turno', 'descricao']
+
+    updated = {}
+    for field_name in allowed:
+        if field_name in data:
+            field = Turma._meta.get_field(field_name)
+            try:
+                coerced = _coerce_for_field(data[field_name], field)
+            except ValueError as e:
+                return JsonResponse({'success': False, 'error': str(e)}, status=400)
+            setattr(turma, field_name, coerced)
+            updated[field_name] = coerced
+
+    try:
+        with transaction.atomic():
+            turma.save()
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Erro ao salvar: {e}'}, status=400)
+
+    return JsonResponse({
+        'success': True,
+        'turma': {
+            'id': turma.id,
+            'nome': turma.nome or '',
+            'sala': turma.sala or '',
+            'ano': turma.ano,
+            'turno': turma.turno or '',
+            'descricao': turma.descricao or '',
+        },
+        'updated_fields': list(updated.keys()),
+    })
+
+@login_required
+@require_http_methods(["POST"])
+def excluir_turma(request, pk):
+    qs = Turma.objects
+    if hasattr(Turma, 'escola_id') or 'escola' in [f.name for f in Turma._meta.fields]:
+        turma = get_object_or_404(qs, pk=pk, escola=request.user.escola)
+    else:
+        turma = get_object_or_404(qs, pk=pk)
+    turma.delete()
+    return JsonResponse({'success': True})
