@@ -3,3 +3,4 @@ psycopg2-binary>=2.9.6,<2.10
 Pillow>=9.5.0,<9.6
 pandas>=2.0.0
 openpyxl>=3.1.0
+reportlab==4.2.2
