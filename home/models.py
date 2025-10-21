@@ -144,7 +144,44 @@ class Aluno(models.Model):
     telefone = models.CharField(max_length=20, default='')
     ativo = models.BooleanField(default=True)
     escola = models.ForeignKey(Escola, on_delete=models.CASCADE, null=True, blank=True)
+    data_ingresso = models.DateField(null=True, blank=True)
+    cor_raca = models.CharField(max_length=20, null=True, blank=True, choices=[
+        ('branca','Branca'),
+        ('preta','Preta'),
+        ('parda','Parda'),
+        ('amarela','Amarela'),
+        ('indigena','Indígena'),
+        ('nao_informado','Não informado'),
+    ])
+    responsavel_financeiro = models.CharField(max_length=10, null=True, blank=True, choices=[
+        ('pai','Pai'),
+        ('mae','Mãe'),
+        ('outro','Outro'),
+    ])
+    situacao_familiar = models.CharField(max_length=12, null=True, blank=True, choices=[
+        ('casados','Casados'),
+        ('separados','Separados'),
+        ('outros','Outros'),
+    ])
+    dispensa_ensino_religioso = models.BooleanField(default=False)
+    forma_acesso = models.CharField(max_length=50, null=True, blank=True)
+    SITUACAO_MATRICULA = [
+        ("matricula", "Matrícula"),
+        ("rematricula", "Rematrícula"),
+        ("transferencia", "Transferência"),
+    ]
+    situacao_matricula = models.CharField(
+        max_length=20, choices=SITUACAO_MATRICULA, blank=True, null=True
+    )
+    bolsa_familia = models.BooleanField(default=False)
+    serie_ano = models.CharField(max_length=50, blank=True)  # ex: "5º Ano A"
+    turno_aluno = models.CharField(max_length=20, blank=True)  # Manhã/Tarde/Noite
 
+    # se quiser “fixar” uma turma principal (opcional)
+    turma_principal = models.ForeignKey(
+        "Turma", on_delete=models.SET_NULL, null=True, blank=True, related_name="alunos_principais"
+    ) 
+    
     def __str__(self):
         return f"{self.nome} - {self.matricula}"
 
@@ -155,6 +192,14 @@ class Responsavel(models.Model):
     parentesco = models.CharField(max_length=50, default='')
     telefone = models.CharField(max_length=20, default='')
     email = models.EmailField(default='')
+    tipo = models.CharField(max_length=10, null=True, blank=True, choices=[
+        ('pai','Pai'),
+        ('mae','Mãe'),
+        ('outro','Outro'),
+    ])
+    identidade = models.CharField(max_length=30, null=True, blank=True)
+    escolaridade = models.CharField(max_length=50, null=True, blank=True)
+    profissao = models.CharField(max_length=60, null=True, blank=True)
 
 class Saude(models.Model):
     aluno = models.OneToOneField(Aluno, on_delete=models.CASCADE)
@@ -175,6 +220,7 @@ class Autorizacoes(models.Model):
     autorizacao_saida_sozinho = models.BooleanField(default=False)
     autorizacao_fotos_eventos = models.BooleanField(default=False)
     pessoa_autorizada_buscar = models.CharField(max_length=255, blank=True, null=True, default='')
+    usa_transporte_publico = models.BooleanField(default=False)
 
 class Turma(models.Model):
     nome = models.CharField(max_length=100)

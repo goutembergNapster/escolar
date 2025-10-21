@@ -11,6 +11,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from django.db.models import Prefetch  
 
 # Django
 from django.contrib import messages
@@ -28,6 +29,8 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction, models
+from django.utils.timezone import localdate
+import locale
 import json
 
 # Local apps
@@ -51,6 +54,47 @@ from .models import (
 from home.decorators import role_required
 from home.utils import gerar_matricula_unica
 from home.utils_user import criar_usuario_com_cpf
+
+from django.utils import timezone
+
+
+MESES_PT = [
+    "", "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+    "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+]
+
+def _buscar_pai_mae(aluno):
+    """
+    Retorna (pai, mae) a partir dos registros de Responsavel do aluno.
+    Regras:
+      - Primeiro tenta por marcadores explícitos em tipo OU parentesco (casefold),
+        incluindo variações com/sem acento.
+      - Garante que pai e mãe não sejam o MESMO registro.
+      - Se não houver marcador para 'mãe', usa um segundo registro distinto como fallback.
+    """
+    qs = Responsavel.objects.filter(aluno=aluno).order_by('id')
+
+    pai = qs.filter(
+        Q(tipo__iexact='pai') | Q(parentesco__iexact='pai')
+    ).first()
+
+    mae = qs.filter(
+        Q(tipo__iexact='mae') | Q(tipo__iexact='mãe') |
+        Q(parentesco__iexact='mae') | Q(parentesco__iexact='mãe')
+    ).first()
+
+    # Evita colisão (pai==mae)
+    if pai and mae and pai.pk == mae.pk:
+        mae = qs.exclude(pk=pai.pk).filter(
+            Q(tipo__iexact='mae') | Q(tipo__iexact='mãe') |
+            Q(parentesco__iexact='mae') | Q(parentesco__iexact='mãe')
+        ).first()
+
+    # Fallback: se ainda não achou mãe mas existe outro responsável, pega um distinto do pai
+    if not mae:
+        mae = qs.exclude(pk=getattr(pai, 'pk', None)).first()
+
+    return pai, mae
 
 
 
@@ -113,9 +157,14 @@ def cadastrar_escola_banco(request):
 @login_required
 @role_required(['diretor', 'coordenador'])
 def cadastro_aluno(request):
-    cadastro_aluno = Escola.objects.all()  
+    cadastro_aluno = Escola.objects.all()
+    turmas = Turma.objects.filter(escola=request.user.escola).order_by('nome')
+    niveis_modalidades = ['Infantil', 'Fundamental I', 'Fundamental II']
+
     context = {
-        'cadastro_aluno': cadastro_aluno  
+        'cadastro_aluno': cadastro_aluno,
+        'turmas': turmas,
+        'niveis_modalidades': niveis_modalidades,
     }
     return render(request, 'plantaopro/pages/registrar_aluno.html', context)
 
@@ -351,101 +400,270 @@ def to_bool(value):
     return str(value).lower() in ['true', '1', 'sim']
 
 
+def safe_bool(v, default=False):
+    if isinstance(v, bool):
+        return v
+    if v is None:
+        return default
+    s = str(v).strip().lower()
+    if s in ('true','1','on','yes','y','sim'):
+        return True
+    if s in ('false','0','off','no','n','nao','não'):
+        return False
+    return default
+
+def omit_none(dct):
+    return {k: v for k, v in dct.items() if v is not None}
+
+def to_bool(v):
+    if isinstance(v, bool): return v
+    return str(v).strip().lower() in ("1","true","t","sim","yes","y")
+
 @csrf_exempt
 @login_required
 def salvar_aluno(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
+    if request.method != "POST":
+        return JsonResponse({'mensagem': 'Método não permitido'}, status=405)
 
-        # 🛡️ Validação dos campos obrigatórios
-        campos_obrigatorios = ['nome', 'data_nascimento', 'cpf', 'email', 'telefone', 'rua', 'numero', 'bairro', 'cidade', 'estado']
-        for campo in campos_obrigatorios:
-            if not data.get(campo):
-                return JsonResponse({'status': 'erro', 'mensagem': f'O campo "{campo}" é obrigatório.'}, status=400)
+    try:
+        data = json.loads(request.body or "{}")
+    except Exception:
+        return HttpResponseBadRequest("JSON inválido")
 
-        # Geração da matrícula, se necessário
-        if not data.get('matricula'):
-            ano = datetime.now().year
-            ultimo = (
-                Aluno.objects
-                .filter(matricula__startswith=str(ano))
-                .annotate(numero_final=Cast(Substr('matricula', -4, 4), IntegerField()))
-                .order_by('-numero_final')
-                .first()
-            )
-            ultimo_numero = ultimo.numero_final if ultimo else 0
-            novo_numero = ultimo_numero + 1
-            data['matricula'] = f"{ano}{novo_numero:04d}"
+    obrig = ['nome','data_nascimento','cpf','email','telefone','rua','numero','bairro','cidade','estado']
+    for c in obrig:
+        if not data.get(c):
+            return JsonResponse({'status':'erro','mensagem': f'O campo "{c}" é obrigatório.'}, status=400)
 
-        try:
-            data_nascimento_str = data.get('data_nascimento')
-            data_nascimento = datetime.strptime(data_nascimento_str, '%Y-%m-%d').date() if data_nascimento_str else None
+    # matrícula
+    if not data.get('matricula'):
+        ano = datetime.now().year
+        ultimo = (Aluno.objects
+                  .filter(matricula__startswith=f"ALU{ano}")
+                  .annotate(numero_final=Cast(Substr('matricula', -4, 4), IntegerField()))
+                  .order_by('-numero_final')
+                  .first())
+        prox = (ultimo.numero_final if ultimo else 0) + 1
+        data['matricula'] = f"ALU{ano}{prox:04d}"
+
+    try:
+        with transaction.atomic():
+            # parse datas
+            dn = datetime.strptime(data.get('data_nascimento'), "%Y-%m-%d").date()
 
             aluno = Aluno.objects.create(
-                matricula=data.get('matricula', ''),
-                nome=data.get('nome', ''),
-                data_nascimento=data_nascimento,
-                cpf=data.get('cpf', ''),
-                rg=data.get('rg', ''),
-                sexo=data.get('sexo', ''),
-                nacionalidade=data.get('nacionalidade', ''),
-                naturalidade=data.get('naturalidade', ''),
-                certidao_numero=data.get('certidao_numero', ''),
-                certidao_livro=data.get('certidao_livro', ''),
-                tipo_sanguineo=data.get('tipo_sanguineo', ''),
-                rua=data.get('rua', ''),
-                numero=data.get('numero', ''),
-                cep=data.get('cep', ''),
-                bairro=data.get('bairro', ''),
-                cidade=data.get('cidade', ''),
-                estado=data.get('estado', ''),
-                email=data.get('email', ''),
-                telefone=data.get('telefone', ''),
-                escola=request.user.escola  # ⬅️ Associar escola
+                matricula=data['matricula'],
+                nome=data.get('nome',''),
+                data_nascimento=dn,
+                cpf=data.get('cpf',''),
+                rg=data.get('rg',''),
+                sexo=data.get('sexo',''),
+                nacionalidade=data.get('nacionalidade',''),
+                naturalidade=data.get('naturalidade',''),
+                certidao_numero=data.get('certidao_numero',''),
+                certidao_livro=data.get('certidao_livro',''),
+                tipo_sanguineo=data.get('tipo_sanguineo',''),
+                rua=data.get('rua',''),
+                numero=data.get('numero',''),
+                cep=data.get('cep',''),
+                bairro=data.get('bairro',''),
+                cidade=data.get('cidade',''),
+                estado=data.get('estado',''),
+                email=data.get('email',''),
+                telefone=data.get('telefone',''),
+                escola=request.user.escola,
+
+                # novos
+                data_ingresso=datetime.strptime(data['data_ingresso'], "%Y-%m-%d").date() if data.get('data_ingresso') else None,
+                cor_raca=data.get('cor_raca','') or None,
+                responsavel_financeiro=data.get('responsavel_financeiro','') or None,
+                situacao_familiar=data.get('situacao_familiar','') or None,
+                forma_acesso=data.get('forma_acesso','') or None,
+                dispensa_ensino_religioso=to_bool(data.get('dispensa_ensino_religioso')),
+
+                situacao_matricula=data.get('situacao_matricula') or None,
+                bolsa_familia=to_bool(data.get('bolsa_familia')),
+                serie_ano=data.get('serie_ano',''),
+                turno_aluno=data.get('turno_aluno','') or data.get('turno',''),
             )
 
-            Responsavel.objects.create(
-                aluno=aluno,
-                nome=data.get('responsavel_nome', ''),
-                cpf=data.get('responsavel_cpf', ''),
-                parentesco=data.get('responsavel_parentesco', ''),
-                telefone=data.get('responsavel_telefone', ''),
-                email=data.get('responsavel_email', '')
-            )
+            # turma principal (opcional) + sincronizar série/turno se vier vazios
+            turma_id = data.get('turma_principal') or data.get('turma_id')
+            if turma_id:
+                turma = Turma.objects.filter(id=turma_id, escola=request.user.escola).first()
+                if turma:
+                    aluno.turma_principal = turma
+                    aluno.save(update_fields=['turma_principal'])
+                    # se existir M2M
+                    if hasattr(aluno, 'turmas'):
+                        aluno.turmas.add(turma)
+                    if not aluno.turno_aluno and getattr(turma, 'turno', ''):
+                        aluno.turno_aluno = turma.turno
+                    if not aluno.serie_ano and getattr(turma, 'nome', ''):
+                        aluno.serie_ano = turma.nome
+                    aluno.save(update_fields=['turno_aluno','serie_ano'])
 
+            # ===== Responsáveis =====  (BLOCO AJUSTADO)
+            def _casefold(s):
+                return (s or "").strip().casefold()
+
+            def _eh_mae(texto):
+                t = _casefold(texto)
+                return t in ("mae", "mãe")
+
+            def _eh_pai(texto):
+                return _casefold(texto) == "pai"
+
+            allows_multiple = True
+            try:
+                rel_field = Responsavel._meta.get_field('aluno')
+                if getattr(rel_field, 'unique', False):
+                    allows_multiple = False
+            except Exception:
+                allows_multiple = True  # fallback seguro
+
+            if allows_multiple:
+                # 2.1) Responsável genérico — se o parentesco vier “mãe” ou “pai”, salva com o tipo correspondente
+                if data.get('responsavel_nome'):
+                    parentesco_raw = (data.get('responsavel_parentesco') or '').strip()
+                    tipo_resp = None
+                    if _eh_mae(parentesco_raw):
+                        tipo_resp = 'mae'
+                        parentesco_raw = 'Mãe'
+                    elif _eh_pai(parentesco_raw):
+                        tipo_resp = 'pai'
+                        parentesco_raw = 'Pai'
+
+                    campos_gen = dict(
+                        aluno=aluno,
+                        nome=data.get('responsavel_nome',''),
+                        cpf=data.get('responsavel_cpf',''),
+                        parentesco=parentesco_raw,
+                        telefone=data.get('responsavel_telefone',''),
+                        email=data.get('responsavel_email',''),
+                    )
+                    if 'tipo' in [f.name for f in Responsavel._meta.fields] and tipo_resp:
+                        campos_gen['tipo'] = tipo_resp
+                    Responsavel.objects.create(**campos_gen)
+
+                # 2.2) Pai
+                if any(data.get(k) for k in ['pai_nome','pai_cpf','pai_identidade','pai_escolaridade','pai_profissao','pai_telefone','pai_email']):
+                    campos_pai = dict(
+                        aluno=aluno,
+                        nome=data.get('pai_nome',''),
+                        cpf=data.get('pai_cpf',''),
+                        identidade=data.get('pai_identidade',''),
+                        escolaridade=data.get('pai_escolaridade',''),
+                        profissao=data.get('pai_profissao',''),
+                        telefone=data.get('pai_telefone',''),
+                        email=data.get('pai_email',''),
+                        parentesco='Pai'
+                    )
+                    if 'tipo' in [f.name for f in Responsavel._meta.fields]:
+                        campos_pai['tipo'] = 'pai'
+                    Responsavel.objects.create(**campos_pai)
+
+                # 2.3) Mãe
+                if any(data.get(k) for k in ['mae_nome','mae_cpf','mae_identidade','mae_escolaridade','mae_profissao','mae_telefone','mae_email']):
+                    campos_mae = dict(
+                        aluno=aluno,
+                        nome=data.get('mae_nome',''),
+                        cpf=data.get('mae_cpf',''),
+                        identidade=data.get('mae_identidade',''),
+                        escolaridade=data.get('mae_escolaridade',''),
+                        profissao=data.get('mae_profissao',''),
+                        telefone=data.get('mae_telefone',''),
+                        email=data.get('mae_email',''),
+                        parentesco='Mãe'
+                    )
+                    if 'tipo' in [f.name for f in Responsavel._meta.fields]:
+                        campos_mae['tipo'] = 'mae'
+                    Responsavel.objects.create(**campos_mae)
+
+            else:
+                # OneToOne: prioridade pai → mãe → genérico
+                payload, tipo = {}, None
+
+                if any(data.get(k) for k in ['pai_nome','pai_cpf','pai_identidade','pai_escolaridade','pai_profissao','pai_telefone','pai_email']):
+                    payload = {
+                        'nome': data.get('pai_nome',''),
+                        'cpf': data.get('pai_cpf',''),
+                        'identidade': data.get('pai_identidade',''),
+                        'escolaridade': data.get('pai_escolaridade',''),
+                        'profissao': data.get('pai_profissao',''),
+                        'telefone': data.get('pai_telefone',''),
+                        'email': data.get('pai_email',''),
+                        'parentesco': 'Pai'
+                    }
+                    tipo = 'pai'
+
+                elif any(data.get(k) for k in ['mae_nome','mae_cpf','mae_identidade','mae_escolaridade','mae_profissao','mae_telefone','mae_email']):
+                    payload = {
+                        'nome': data.get('mae_nome',''),
+                        'cpf': data.get('mae_cpf',''),
+                        'identidade': data.get('mae_identidade',''),
+                        'escolaridade': data.get('mae_escolaridade',''),
+                        'profissao': data.get('mae_profissao',''),
+                        'telefone': data.get('mae_telefone',''),
+                        'email': data.get('mae_email',''),
+                        'parentesco': 'Mãe'
+                    }
+                    tipo = 'mae'
+
+                elif data.get('responsavel_nome'):
+                    parentesco_raw = (data.get('responsavel_parentesco') or '').strip()
+                    if _eh_mae(parentesco_raw): tipo = 'mae'
+                    elif _eh_pai(parentesco_raw): tipo = 'pai'
+                    payload = {
+                        'nome': data.get('responsavel_nome',''),
+                        'cpf': data.get('responsavel_cpf',''),
+                        'parentesco': parentesco_raw,
+                        'telefone': data.get('responsavel_telefone',''),
+                        'email': data.get('responsavel_email',''),
+                    }
+
+                if payload:
+                    defaults = dict(payload)
+                    if 'tipo' in [f.name for f in Responsavel._meta.fields] and tipo:
+                        defaults['tipo'] = tipo
+                    Responsavel.objects.update_or_create(aluno=aluno, defaults=defaults)
+
+            # Saúde
             Saude.objects.create(
                 aluno=aluno,
                 possui_necessidade_especial=to_bool(data.get('possui_necessidade_especial')),
-                descricao_necessidade=data.get('descricao_necessidade', ''),
+                descricao_necessidade=data.get('descricao_necessidade',''),
                 usa_medicacao=to_bool(data.get('usa_medicacao')),
-                quais_medicacoes=data.get('quais_medicacoes', ''),
+                quais_medicacoes=data.get('quais_medicacoes',''),
                 possui_alergia=to_bool(data.get('possui_alergia')),
-                descricao_alergia=data.get('descricao_alergia', '')
+                descricao_alergia=data.get('descricao_alergia',''),
             )
 
-            TransporteEscolar.objects.create(
-                aluno=aluno,
-                usa_transporte_escolar=to_bool(data.get('usa_transporte_escolar')),
-                trajeto=data.get('trajeto', '')
-            )
+            # Transporte (agora não é obrigatório — se vier vazio não cria)
+            usa_transporte = data.get('utiliza_transporte') or data.get('usa_transporte_escolar')
+            if usa_transporte is not None or data.get('trajeto'):
+                TransporteEscolar.objects.create(
+                    aluno=aluno,
+                    usa_transporte_escolar=to_bool(usa_transporte),
+                    trajeto=data.get('trajeto',''),
+                )
 
+            # Autorizações
             Autorizacoes.objects.create(
                 aluno=aluno,
                 autorizacao_saida_sozinho=to_bool(data.get('autorizacao_saida_sozinho')),
                 autorizacao_fotos_eventos=to_bool(data.get('autorizacao_fotos_eventos')),
-                pessoa_autorizada_buscar=data.get('pessoa_autorizada_buscar', '')
+                pessoa_autorizada_buscar=data.get('pessoa_autorizada_buscar',''),
             )
 
-            if 'matricula_gerada' in request.session:
-                del request.session['matricula_gerada']
+        # ok
+        return JsonResponse({'status':'sucesso', 'aluno_id': aluno.id, 'matricula': aluno.matricula})
 
-            return JsonResponse({'status': 'sucesso', 'aluno_id': aluno.id, 'matricula': aluno.matricula})
+    except Exception as e:
+        return JsonResponse({'status':'erro','mensagem': str(e)}, status=400)
 
-        except Exception as e:
-            return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
 
-    return JsonResponse({'mensagem': 'Método não permitido'}, status=405)
-
+    
 @login_required
 def aluno_pdf(request, aluno_id):
     aluno = get_object_or_404(Aluno, pk=aluno_id)
@@ -601,14 +819,20 @@ def aluno_pdf(request, aluno_id):
     resp["Content-Disposition"] = f'inline; filename="aluno_{aluno_id}.pdf"'
     return resp
 
+
 @login_required
 @role_required(['diretor', 'coordenador'])
 def cadastrar_aluno(request):
     # Sempre gera nova matrícula ao carregar a página
     request.session['matricula_gerada'] = gerar_matricula_unica()
 
+    turmas = Turma.objects.filter(escola=request.user.escola).order_by('nome')
+    niveis_modalidades = ['Infantil', 'Fundamental I', 'Fundamental II']
+
     return render(request, 'plantaopro/pages/registrar_aluno.html', {
-        'matricula': request.session['matricula_gerada']
+        'matricula': request.session['matricula_gerada'],
+        'turmas': turmas,
+        'niveis_modalidades': niveis_modalidades,
     })
 
 
@@ -909,7 +1133,6 @@ def formulario_criar_turma(request):
         'disciplinas': disciplinas
     })
 
-
 @login_required
 @role_required(['diretor', 'coordenador'])
 def impressao_dados(request):
@@ -919,7 +1142,11 @@ def impressao_dados(request):
     dados = []
 
     if tipo == 'turmas':
-        turmas = Turma.objects.prefetch_related('alunos', 'professores')
+        turmas = (
+            Turma.objects
+            .filter(escola=request.user.escola)
+            .prefetch_related('alunos', 'professores')
+        )
         if turma_id:
             turmas = turmas.filter(id=turma_id)
         if professor_id:
@@ -935,22 +1162,65 @@ def impressao_dados(request):
         } for t in turmas]
 
     elif tipo == 'alunos':
-        alunos = Aluno.objects.select_related('responsavel').prefetch_related('turmas')
+        # Precarrega turmas + TODOS os responsáveis do aluno
+        alunos = (
+            Aluno.objects
+            .filter(escola=request.user.escola)
+            .prefetch_related(
+                'turmas',
+                Prefetch('responsavel_set', queryset=Responsavel.objects.all(), to_attr='responsaveis')
+            )
+        )
         if turma_id:
             alunos = alunos.filter(turmas__id=turma_id)
         if professor_id:
             alunos = alunos.filter(turmas__professores__id=professor_id)
 
-        dados = [{
-            'nome': a.nome,
-            'cpf': a.cpf,
-            'turma': ', '.join([turma.nome for turma in a.turmas.all()]) if a.turmas.exists() else '—',
-            'telefone': a.telefone,
-            'responsavel': a.responsavel.nome if a.responsavel else '—'
-        } for a in alunos]
+        dados = []
+        for a in alunos:
+            responsaveis = getattr(a, 'responsaveis', []) or []
+
+            # tenta achar por marcadores
+            pai = next((r for r in responsaveis if _is_pai(r)), None)
+            mae = next((r for r in responsaveis if _is_mae(r)), None)
+
+            # evita colisão (mesmo registro para os dois)
+            if pai and mae and pai.pk == mae.pk:
+                mae = next((r for r in responsaveis if r.pk != pai.pk and _is_mae(r)), None)
+
+            # fallbacks para quando não há marcação
+            if not mae and len(responsaveis) >= 2 and pai:
+                mae = next((r for r in responsaveis if r.pk != getattr(pai, 'pk', None)), None)
+            if not pai and not mae and len(responsaveis) >= 2:
+                pai, mae = responsaveis[0], responsaveis[1]
+            elif not pai and responsaveis:
+                pai = responsaveis[0]  # mostra pelo menos um
+
+            dados.append({
+                'nome': a.nome,
+                'cpf': a.cpf,
+                'turma': ', '.join([t.nome for t in a.turmas.all()]) if hasattr(a, 'turmas') and a.turmas.exists() else '—',
+                'telefone': a.telefone,
+
+                # Pai / Mãe explícitos na listagem
+                'pai': getattr(pai, 'nome', '') or '—',
+                'pai_telefone': getattr(pai, 'telefone', '') or '',
+                'mae': getattr(mae, 'nome', '') or '—',
+                'mae_telefone': getattr(mae, 'telefone', '') or '',
+
+                # Campo "responsavel" genérico (mantido para compatibilidade de template)
+                'responsavel': (
+                    (getattr(pai, 'nome', '') or getattr(mae, 'nome', '')) or
+                    (responsaveis[0].nome if responsaveis else '—')
+                ),
+            })
 
     elif tipo == 'professores':
-        professores = Docente.objects.filter(escola=request.user.escola).prefetch_related("disciplinas")
+        professores = (
+            Docente.objects
+            .filter(escola=request.user.escola)
+            .prefetch_related("disciplinas")
+        )
         dados = [{
             'nome': p.nome,
             'cpf': p.cpf,
@@ -969,7 +1239,7 @@ def impressao_dados(request):
             'email': f.email
         } for f in funcionarios]
 
-    # Para popular os selects de filtro
+    # Selects de filtro
     turmas_disponiveis = Turma.objects.filter(escola=request.user.escola)
     professores_disponiveis = Docente.objects.filter(escola=request.user.escola)
 
@@ -982,6 +1252,7 @@ def impressao_dados(request):
         'professor_id': professor_id,
     }
     return render(request, 'plantaopro/pages/print.html', context)
+
 
 @csrf_exempt  # necessário para o uso com fetch (a menos que use CSRF token no cabeçalho)
 @login_required
@@ -1750,3 +2021,108 @@ def excluir_turma(request, pk):
         turma = get_object_or_404(qs, pk=pk)
     turma.delete()
     return JsonResponse({'success': True})
+
+def _data_por_extenso(dt):
+    try:
+        import locale
+        for loc in ("pt_BR.UTF-8","pt_BR.utf8","pt_BR","pt_BR.ISO8859-1"):
+            try:
+                locale.setlocale(locale.LC_TIME, loc)
+                break
+            except locale.Error:
+                continue
+        return dt.strftime("%d de %B de %Y")
+    except Exception:
+        return dt.strftime("%d/%m/%Y")
+
+def _norm(s):
+    return (s or "").strip().casefold()
+
+def _is_pai(resp):
+    return _norm(getattr(resp, "tipo", "")) == "pai" or _norm(getattr(resp, "parentesco", "")) == "pai"
+
+def _is_mae(resp):
+    t = _norm(getattr(resp, "tipo", ""))
+    p = _norm(getattr(resp, "parentesco", ""))
+    return t in ("mae", "mãe") or p in ("mae", "mãe")
+
+@login_required
+def aluno_requerimento_pdf(request, pk):
+    qs = Aluno.objects.select_related("escola").prefetch_related("turmas")
+    aluno = (
+        get_object_or_404(qs, pk=pk, escola=request.user.escola)
+        if hasattr(Aluno, "escola_id")
+        else get_object_or_404(qs, pk=pk)
+    )
+
+    # -------- Helpers locais para identificar pai/mãe --------
+    def _casefold(s):
+        return (s or "").strip().casefold()
+
+    def _is_pai(resp):
+        return _casefold(getattr(resp, "tipo", "")) == "pai" or _casefold(getattr(resp, "parentesco", "")) == "pai"
+
+    def _is_mae(resp):
+        t = _casefold(getattr(resp, "tipo", ""))
+        p = _casefold(getattr(resp, "parentesco", ""))
+        return t in ("mae", "mãe") or p in ("mae", "mãe")
+
+    # -------- Carrega todos os responsáveis do aluno --------
+    try:
+        # caminho “normal”: FK Responsavel.aluno -> reverse responsavel_set
+        todos_resp = list(aluno.responsavel_set.all().order_by("id"))
+    except Exception:
+        # fallback seguro
+        todos_resp = list(Responsavel.objects.filter(aluno=aluno).order_by("id"))
+
+    pai = next((r for r in todos_resp if _is_pai(r)), None)
+    mae = next((r for r in todos_resp if _is_mae(r)), None)
+
+    # Evita usar o mesmo registro nos dois campos
+    if pai and mae and pai.pk == mae.pk:
+        mae = next((r for r in todos_resp if r.pk != pai.pk and _is_mae(r)), None)
+
+    # Fallbacks quando a marcação não veio correta
+    if not pai and not mae and len(todos_resp) >= 2:
+        pai, mae = todos_resp[0], todos_resp[1]
+    elif pai and not mae and len(todos_resp) >= 2:
+        mae = next((r for r in todos_resp if r.pk != pai.pk), None)
+
+    # -------- Outras relações --------
+    saude = Saude.objects.filter(aluno=aluno).order_by("id").first()
+    transporte = TransporteEscolar.objects.filter(aluno=aluno).order_by("id").first()
+    autoriz = Autorizacoes.objects.filter(aluno=aluno).order_by("id").first()
+
+    # -------- Blindagens esperadas pelo template --------
+    if not hasattr(aluno, "resultado_ano"):
+        setattr(aluno, "resultado_ano", None)
+    if saude and not hasattr(saude, "restricoes_alimentares"):
+        setattr(saude, "restricoes_alimentares", "")
+
+    ctx = {
+        "aluno": aluno,
+        "dados_pai": {
+            "nome": getattr(pai, "nome", "") or "",
+            "cpf": getattr(pai, "cpf", "") or "",
+            "identidade": getattr(pai, "identidade", "") or "",
+            "escolaridade": getattr(pai, "escolaridade", "") or "",
+            "profissao": getattr(pai, "profissao", "") or "",
+            "telefone": getattr(pai, "telefone", "") or "",
+            "email": getattr(pai, "email", "") or "",
+        },
+        "dados_mae": {
+            "nome": getattr(mae, "nome", "") or "",
+            "cpf": getattr(mae, "cpf", "") or "",
+            "identidade": getattr(mae, "identidade", "") or "",
+            "escolaridade": getattr(mae, "escolaridade", "") or "",
+            "profissao": getattr(mae, "profissao", "") or "",
+            "telefone": getattr(mae, "telefone", "") or "",
+            "email": getattr(mae, "email", "") or "",
+        },
+        "saude": saude,
+        "transporte": transporte,
+        "autoriz": autoriz,
+        "hoje_extenso": _data_por_extenso(localdate()),
+    }
+    return render(request, "plantaopro/pages/aluno_ficha_impressao.html", ctx)
+

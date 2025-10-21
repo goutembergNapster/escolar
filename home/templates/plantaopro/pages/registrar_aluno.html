@@ -2,6 +2,69 @@
 <html lang="pt-br">
 <head>
     {% include 'plantaopro/partials/_head.html' %}
+    <style>
+      /* Borda laranja para a aba ativa E durante o foco/click */
+      .tab-buttons button.active,
+      .tab-buttons button:focus,
+      .tab-buttons button:focus-visible{
+        border: 2px solid #ff8a00 !important;
+        outline: none !important;
+      }
+      /* Suaviza o foco sem “flash” azul do bootstrap */
+      .tab-buttons button:focus{
+        box-shadow: 0 0 0 .2rem rgba(255,138,0,.25) !important;
+      }
+
+      /* Feedback CPF inválido (sem mexer no tema global) */
+      .cpf-invalido{
+        border-color:#dc3545 !important;
+        outline: none;
+      }
+
+      /* Mensagens de erro inline */
+      .field-error{
+        display:block;
+        font-size:.85rem;
+        color:#dc3545; /* vermelho bootstrap */
+        margin-top:.25rem;
+      }
+      .d-none{display:none !important;}
+
+      /* Botões do rodapé (Voltar / Cancelar / Salvar) laranja com texto branco */
+      .content-wrapper .form-footer .btn{
+        background:#ff8a00 !important;
+        border-color:#ff8a00 !important;
+        color:#fff !important;
+      }
+      .content-wrapper .form-footer .btn:hover{
+        background:#e67a00 !important;
+        border-color:#e67a00 !important;
+        color:#fff !important;
+      }
+
+      /* Estado desabilitado mais escuro para descrição de alergia */
+      .is-disabled-dark {
+        background: #e0e0e0 !important;  /* cinza mais escuro */
+        border-color: #bdbdbd !important;
+        color: #555 !important;
+      }
+      .is-disabled-dark::placeholder {
+        color: #6b6b6b !important;
+      }
+
+      /* Radios em linha (compacto) */
+      .radio-group{
+        display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+      }
+      .radio-inline{
+        display:flex; align-items:center; gap:6px;
+      }
+
+      /* Linha com campos lado a lado em Saúde/Transporte já existente */
+      .form-row{ display:flex; gap:12px; flex-wrap:wrap; }
+      .form-group{ flex:1 1 260px; min-width:220px; }
+      .form-group.short-field{ flex:1 1 200px; min-width:160px; }
+    </style>
 </head>
 <body>
     {% include 'plantaopro/partials/_nav.html' %}
@@ -10,11 +73,11 @@
         <div class="header-bar">Cadastrar Aluno</div>
 
         <div class="tab-buttons" style="padding-top: 1 !important; margin-top: 0 !important;">
-            <button type="button" onclick="showTab(0)">Informações Acadêmicas</button>
-            <button type="button" onclick="showTab(1)">Dados dos Responsáveis</button>
-            <button type="button" onclick="showTab(2)">Saúde</button>
-            <button type="button" onclick="showTab(3)">Transporte</button>
-            <button type="button" onclick="showTab(4)">Autorizações</button>
+            <button type="button" data-tab="0" onclick="showTab(0)">Informações Acadêmicas</button>
+            <button type="button" data-tab="1" onclick="showTab(1)">Dados dos Responsáveis</button>
+            <button type="button" data-tab="2" onclick="showTab(2)">Saúde</button>
+            <button type="button" data-tab="3" onclick="showTab(3)">Transporte</button>
+            <button type="button" data-tab="4" onclick="showTab(4)">Autorizações</button>
         </div>
 
         <form method="post" id="formCadastro">
@@ -27,12 +90,15 @@
                     <div class="form-group">
                         <label for="nome">Nome</label>
                         <input type="text" id="nome" name="nome" placeholder="Nome completo">
+                        <small id="nome_error" class="field-error d-none"></small>
                     </div>
                     <div class="form-group">
                         <label for="data_nascimento">Data de nascimento</label>
                         <input type="date" id="data_nascimento" name="data_nascimento">
+                        <small id="data_nascimento_error" class="field-error d-none"></small>
                     </div>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group short-field">
                         <label for="matricula">Matrícula</label>
@@ -41,13 +107,15 @@
                     </div>
                     <div class="form-group short-field">
                         <label for="cpf">CPF</label>
-                        <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00">
+                        <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+                        <small id="cpf_error" class="field-error d-none">CPF inválido.</small>
                     </div>
                     <div class="form-group short-field">
                         <label for="rg">RG</label>
                         <input type="text" id="rg" name="rg" placeholder="RG se houver">
                     </div>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group short-field">
                         <label for="sexo">Sexo</label>
@@ -67,6 +135,7 @@
                         <input type="text" id="naturalidade" name="naturalidade" placeholder="Cidade/Estado">
                     </div>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group short-field">
                         <label for="certidao_numero">Certidão de nascimento</label>
@@ -92,43 +161,153 @@
                     </div>
                 </div>
 
+                <!-- Linha com data_ingresso / cor_raca / responsavel_financeiro -->
+                <div class="form-row">
+                    <div class="form-group short-field">
+                        <label for="data_ingresso">Data de ingresso</label>
+                        <input type="date" id="data_ingresso" name="data_ingresso">
+                        <small id="data_ingresso_error" class="field-error d-none"></small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="cor_raca">Cor/Raça</label>
+                        <select id="cor_raca" name="cor_raca">
+                            <option value="">Selecione</option>
+                            <option value="branca">Branca</option>
+                            <option value="preta">Preta</option>
+                            <option value="parda">Parda</option>
+                            <option value="amarela">Amarela</option>
+                            <option value="indigena">Indígena</option>
+                            <option value="nao_informado">Não informado</option>
+                        </select>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="responsavel_financeiro">Resp. Financeiro</label>
+                        <select id="responsavel_financeiro" name="responsavel_financeiro">
+                            <option value="">Selecione</option>
+                            <option value="pai">Pai</option>
+                            <option value="mae">Mãe</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- NOVA linha: Série/Ano + Turno + Nível/Modalidade + Turma (do banco) -->
+                <div class="form-row">
+                    <div class="form-group short-field">
+                        <label for="serie_ano">Série/Ano</label>
+                        <input type="text" id="serie_ano" name="serie_ano" placeholder="Ex.: 5º Ano">
+                    </div>
+
+                    <div class="form-group short-field">
+                        <label for="turno">Turno</label>
+                        <select id="turno" name="turno">
+                            <option value="">Selecione</option>
+                            <option value="Matutino">Matutino</option>
+                            <option value="Vespertino">Vespertino</option>
+                            <option value="Noturno">Noturno</option>
+                            <option value="Integral">Integral</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group short-field">
+                        <label for="nivel_modalidade">Nível/Modalidade</label>
+                        <select id="nivel_modalidade" name="nivel_modalidade">
+                            <option value="">Selecione</option>
+                            <option value="Infantil">Infantil</option>
+                            <option value="Fundamental I">Fundamental I</option>
+                            <option value="Fundamental II">Fundamental II</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group short-field">
+                        <label for="turma_id">Turma</label>
+                        <select id="turma_id" name="turma_id">
+                            <option value="">Selecione</option>
+                            {% if turmas %}
+                              {% for t in turmas %}
+                                <option value="{{ t.id }}">{{ t.nome }}</option>
+                              {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Linha com situacao_familiar / forma_acesso / dispensa_ensino_religioso -->
+                <div class="form-row">
+                    <div class="form-group short-field">
+                        <label for="situacao_familiar">Situação familiar</label>
+                        <select id="situacao_familiar" name="situacao_familiar">
+                            <option value="">Selecione</option>
+                            <option value="casados">Casados</option>
+                            <option value="separados">Separados</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group short-field">
+                        <label for="forma_acesso">III - Forma de acesso</label>
+                        <select id="forma_acesso" name="forma_acesso">
+                          <option value="">Selecione</option>
+                          <option value="matricula">Matrícula</option>
+                          <option value="transferencia">Transferência</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group short-field">
+                        <label for="dispensa_ensino_religioso">Dispensa Ensino Religioso</label>
+                        <select id="dispensa_ensino_religioso" name="dispensa_ensino_religioso">
+                            <option value="">Selecione</option>
+                            <option value="false">Não</option>
+                            <option value="true">Sim</option>
+                        </select>
+                    </div>
+                </div>
+
                 <h3>Endereço</h3>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="rua">Rua</label>
                         <input type="text" id="rua" name="rua" placeholder="Logradouro">
+                        <small id="rua_error" class="field-error d-none"></small>
                     </div>
                     <div class="form-group">
                         <label for="numero">Número</label>
                         <input type="text" id="numero" name="numero" placeholder="Nº">
+                        <small id="numero_error" class="field-error d-none"></small>
                     </div>
                     <div class="form-group">
                         <label for="cep">CEP</label>
                         <input type="text" id="cep" name="cep" placeholder="00.000-000">
+                        <small id="cep_error" class="field-error d-none"></small>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="bairro">Bairro</label>
                         <input type="text" id="bairro" name="bairro">
+                        <small id="bairro_error" class="field-error d-none"></small>
                     </div>
                     <div class="form-group">
                         <label for="cidade">Cidade</label>
                         <input type="text" id="cidade" name="cidade">
+                        <small id="cidade_error" class="field-error d-none"></small>
                     </div>
                     <div class="form-group">
                         <label for="estado">Estado</label>
                         <input type="text" id="estado" name="estado">
+                        <small id="estado_error" class="field-error d-none"></small>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email">
+                        <small id="email_error" class="field-error d-none"></small>
                     </div>
                     <div class="form-group">
                         <label for="telefone">Telefone</label>
                         <input type="text" id="telefone" name="telefone">
+                        <small id="telefone_error" class="field-error d-none"></small>
                     </div>
                 </div>
             </div>
@@ -136,20 +315,118 @@
             <!-- TAB 1 -->
             <div class="tab-section" style="display:none">
                 <h3>Dados dos Responsáveis</h3>
+
+                <!-- Genérico (mantido) -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="responsavel_nome">Nome do Responsável</label>
                         <input type="text" id="responsavel_nome" name="responsavel_nome">
+                        <small id="responsavel_nome_error" class="field-error d-none"></small>
                     </div>
                     <div class="form-group">
                         <label for="responsavel_email">Email</label>
                         <input type="email" id="responsavel_email" name="responsavel_email">
+                        <small id="responsavel_email_error" class="field-error d-none"></small>
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group short-field">
                         <label for="responsavel_telefone">Telefone</label>
                         <input type="text" id="responsavel_telefone" name="responsavel_telefone">
+                        <small id="responsavel_telefone_error" class="field-error d-none"></small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="responsavel_cpf">CPF (se houver)</label>
+                        <input type="text" id="responsavel_cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+                        <small id="responsavel_cpf_error" class="field-error d-none">CPF inválido.</small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="responsavel_parentesco">Parentesco</label>
+                        <input type="text" id="responsavel_parentesco" placeholder="Pai, Mãe, ...">
+                        <small id="responsavel_parentesco_error" class="field-error d-none"></small>
+                    </div>
+                </div>
+
+                <!-- Pai / Mãe no mesmo padrão -->
+                <h4 style="font-size:1rem;margin:.5rem 0;">Pai</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pai_nome">Nome</label>
+                        <input id="pai_nome" type="text">
+                        <small id="pai_nome_error" class="field-error d-none"></small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="pai_cpf">CPF</label>
+                        <input id="pai_cpf" type="text" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+                        <small id="pai_cpf_error" class="field-error d-none">CPF inválido.</small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="pai_identidade">Identidade</label>
+                        <input id="pai_identidade" type="text">
+                        <small id="pai_identidade_error" class="field-error d-none"></small>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group short-field">
+                        <label for="pai_escolaridade">Escolaridade</label>
+                        <input id="pai_escolaridade" type="text">
+                        <small id="pai_escolaridade_error" class="field-error d-none"></small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="pai_profissao">Profissão</label>
+                        <input id="pai_profissao" type="text">
+                        <small id="pai_profissao_error" class="field-error d-none"></small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="pai_telefone">Telefone</label>
+                        <input id="pai_telefone" type="text">
+                        <small id="pai_telefone_error" class="field-error d-none"></small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="pai_email">Email</label>
+                        <input id="pai_email" type="email">
+                        <small id="pai_email_error" class="field-error d-none"></small>
+                    </div>
+                </div>
+
+                <h4 style="font-size:1rem;margin:.5rem 0;">Mãe</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="mae_nome">Nome</label>
+                        <input id="mae_nome" type="text">
+                        <small id="mae_nome_error" class="field-error d-none"></small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="mae_cpf">CPF</label>
+                        <input id="mae_cpf" type="text" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+                        <small id="mae_cpf_error" class="field-error d-none">CPF inválido.</small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="mae_identidade">Identidade</label>
+                        <input id="mae_identidade" type="text">
+                        <small id="mae_identidade_error" class="field-error d-none"></small>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group short-field">
+                        <label for="mae_escolaridade">Escolaridade</label>
+                        <input id="mae_escolaridade" type="text">
+                        <small id="mae_escolaridade_error" class="field-error d-none"></small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="mae_profissao">Profissão</label>
+                        <input id="mae_profissao" type="text">
+                        <small id="mae_profissao_error" class="field-error d-none"></small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="mae_telefone">Telefone</label>
+                        <input id="mae_telefone" type="text">
+                        <small id="mae_telefone_error" class="field-error d-none"></small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="mae_email">Email</label>
+                        <input id="mae_email" type="email">
+                        <small id="mae_email_error" class="field-error d-none"></small>
                     </div>
                 </div>
             </div>
@@ -158,19 +435,58 @@
             <div class="tab-section" style="display:none">
                 <h3>Saúde e Necessidades Especiais</h3>
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="alergias">Alergias</label>
-                        <input type="text" id="alergias" name="alergias">
+                    <!-- Possui alergia? Sim/Não -->
+                    <div class="form-group short-field">
+                        <label>Possui alergia?</label>
+                        <div class="radio-group">
+                          <label class="radio-inline">
+                            <input type="radio" name="possui_alergia" id="alergia_sim" value="sim"> Sim
+                          </label>
+                          <label class="radio-inline">
+                            <input type="radio" name="possui_alergia" id="alergia_nao" value="nao" checked> Não
+                          </label>
+                        </div>
+                        <small id="possui_alergia_error" class="field-error d-none"></small>
                     </div>
+
+                    <!-- Descrição (habilita só se Sim) -->
+                    <div class="form-group">
+                        <label for="descricao_alergia">Descrição da(s) alergia(s)</label>
+                        <input type="text" id="descricao_alergia" name="descricao_alergia" placeholder="Descreva a(s) alergia(s)" disabled class="is-disabled-dark">
+                        <small id="descricao_alergia_error" class="field-error d-none"></small>
+                    </div>
+
+                    <!-- Restrições alimentares (texto livre) -->
                     <div class="form-group">
                         <label for="restricoes">Restrições alimentares</label>
-                        <input type="text" id="restricoes" name="restricoes">
+                        <input type="text" id="restricoes" name="restricoes" placeholder="Ex.: intolerância à lactose">
+                        <small id="restricoes_error" class="field-error d-none"></small>
                     </div>
                 </div>
+
                 <div class="form-row">
+                    <!-- Necessidades especiais (simples) -->
                     <div class="form-group">
                         <label for="necessidades">Necessidades especiais</label>
-                        <input type="text" id="necessidades" name="necessidades">
+                        <input type="text" id="necessidades" name="necessidades" placeholder="Descreva, se houver">
+                        <small id="necessidades_error" class="field-error d-none"></small>
+                    </div>
+
+                    <!-- Usa medicação? (opcional) -->
+                    <div class="form-group short-field">
+                        <label for="usa_medicacao">Usa medicação?</label>
+                        <select id="usa_medicacao" name="usa_medicacao">
+                            <option value="">Selecione</option>
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                        <small id="usa_medicacao_error" class="field-error d-none"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quais_medicacoes">Quais medicações?</label>
+                        <input type="text" id="quais_medicacoes" name="quais_medicacoes" placeholder="Liste as medicações, se houver">
+                        <small id="quais_medicacoes_error" class="field-error d-none"></small>
                     </div>
                 </div>
             </div>
@@ -179,42 +495,67 @@
             <div class="tab-section" style="display:none">
                 <h3>Transporte Escolar</h3>
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group short-field">
                         <label for="utiliza_transporte">Utiliza transporte escolar?</label>
                         <select id="utiliza_transporte" name="utiliza_transporte">
                             <option value="">Selecione</option>
                             <option value="sim">Sim</option>
                             <option value="nao">Não</option>
                         </select>
+                        <small id="utiliza_transporte_error" class="field-error d-none"></small>
+                    </div>
+                    <div class="form-group short-field">
+                        <label for="usa_transporte_publico">Usa transporte público?</label>
+                        <select id="usa_transporte_publico" name="usa_transporte_publico">
+                            <option value="">Selecione</option>
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                        <small id="usa_transporte_publico_error" class="field-error d-none"></small>
                     </div>
                     <div class="form-group">
-                        <label for="ponto_onibus">Ponto de ônibus</label>
-                        <input type="text" id="ponto_onibus" name="ponto_onibus">
+                        <label for="ponto_onibus">Trajeto/Ponto de ônibus</label>
+                        <input type="text" id="ponto_onibus" name="ponto_onibus" placeholder="Ex.: Linha Centro • Ponto da Praça">
+                        <small id="ponto_onibus_error" class="field-error d-none"></small>
                     </div>
                 </div>
             </div>
 
             <!-- TAB 4 -->
             <div class="tab-section" style="display:none">
-                <h3>Autorização dos Responsáveis</h3>
+                <h3>Autorizações</h3>
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group short-field">
                         <label for="pode_sair_sozinho">Pode sair sozinho?</label>
                         <select id="pode_sair_sozinho" name="pode_sair_sozinho">
                             <option value="">Selecione</option>
                             <option value="sim">Sim</option>
                             <option value="nao">Não</option>
                         </select>
+                        <small id="pode_sair_sozinho_error" class="field-error d-none"></small>
                     </div>
                     <div class="form-group">
                         <label for="autorizados_buscar">Pessoas autorizadas a buscar</label>
-                        <input type="text" id="autorizados_buscar" name="autorizados_buscar">
+                        <input type="text" id="autorizados_buscar" name="autorizados_buscar" placeholder="Nome(s) e relação">
+                        <small id="autorizados_buscar_error" class="field-error d-none"></small>
+                    </div>
+
+                    <!-- Bolsa Família -->
+                    <div class="form-group short-field">
+                        <label for="bolsa_familia">Recebe Bolsa Família?</label>
+                        <select id="bolsa_familia" name="bolsa_familia">
+                            <option value="">Selecione</option>
+                            <option value="true">Sim</option>
+                            <option value="false">Não</option>
+                        </select>
+                        <small id="bolsa_familia_error" class="field-error d-none"></small>
                     </div>
                 </div>
             </div>
 
-            <div class="form-footer">
+            <div class="form-footer" style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button type="button" class="btn btn-secondary" onclick="goBack()">Voltar</button>
+                <button type="button" class="btn btn-light" onclick="cancelForm()">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="submitButton">Salvar</button>
             </div>
         </form>
@@ -225,35 +566,237 @@
     </footer>
 
     <script>
-        // Alterna abas considerando .tab-content (primeira) e .tab-section (demais)
+        // ===== Tabs =====
         function showTab(index) {
             const tabs = [
                 document.querySelector('.tab-content'),
                 ...document.querySelectorAll('.tab-section')
             ];
+            const btns = document.querySelectorAll('.tab-buttons [data-tab]');
+
             tabs.forEach((tab, i) => {
-                if (tab) tab.style.display = (i === index) ? 'block' : 'none';
+                if (!tab) return;
+                tab.style.display = (i === index) ? 'block' : 'none';
             });
+            btns.forEach((b, i)=> b.classList.toggle('active', i===index));
+
+            const activeBtn = document.querySelector(`.tab-buttons [data-tab="${index}"]`);
+            if (activeBtn) activeBtn.focus({preventScroll:true});
         }
-        // Abre a primeira aba
         showTab(0);
 
-        function goBack() {
-            window.history.back();
-        }
+        function goBack() { window.history.back(); }
+        function cancelForm() { window.location.href = document.referrer || '/'; }
 
-        // Helper CSRF (opcional; sua view está @csrf_exempt)
         function getCsrfToken() {
             const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
             return input ? input.value : '';
         }
 
+        // ===== helpers de erro inline =====
+        function showFieldError(id, msg){
+          const el = document.getElementById(id + '_error');
+          if (el){ el.textContent = msg; el.classList.remove('d-none'); }
+        }
+        function clearFieldError(id){
+          const el = document.getElementById(id + '_error');
+          if (el){ el.textContent = ''; el.classList.add('d-none'); }
+        }
+
+        // ===== Máscara e validação de CPF =====
+        function onlyDigits(v){ return (v||'').replace(/\D/g,''); }
+        function maskCPF(v){
+          v = onlyDigits(v).slice(0,11);
+          if (v.length > 9) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+          if (v.length > 6) return v.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+          if (v.length > 3) return v.replace(/(\d{3})(\d{0,3})/, '$1.$2');
+          return v;
+        }
+        function cpfValido(cpf){
+          cpf = onlyDigits(cpf);
+          if (cpf.length !== 11) return false;
+          if (/^(\d)\1{10}$/.test(cpf)) return false;
+          let soma=0; for (let i=0;i<9;i++) soma += parseInt(cpf[i])*(10-i);
+          let d1 = (soma*10)%11; if (d1===10) d1=0; if (d1!==parseInt(cpf[9])) return false;
+          soma=0; for (let i=0;i<10;i++) soma += parseInt(cpf[i])*(11-i);
+          let d2 = (soma*10)%11; if (d2===10) d2=0; return d2===parseInt(cpf[10]);
+        }
+        function wireCPF(input, errorId){
+          if(!input) return;
+          input.addEventListener('input', ()=>{
+            input.value = maskCPF(input.value);
+            input.classList.remove('cpf-invalido');
+            if (errorId) clearFieldError(errorId);
+          });
+          input.addEventListener('blur', ()=>{
+            const v = input.value.trim();
+            const ok = v==='' ? true : cpfValido(v);
+            input.classList.toggle('cpf-invalido', !ok);
+            input.setCustomValidity(ok ? '' : 'CPF inválido');
+            if (!ok && errorId) showFieldError(errorId, 'CPF inválido.');
+            if (ok && errorId) clearFieldError(errorId);
+          });
+        }
+
+        // ===== Validações de data =====
+        function parseISODate(value){
+          if (!value) return null;
+          const d = new Date(value + 'T00:00:00');
+          return isNaN(d.getTime()) ? null : d;
+        }
+        function isFuture(d){
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          return d.getTime() > today.getTime();
+        }
+        function validateDataNascimento(){
+          const el = document.getElementById('data_nascimento');
+          const v = el.value;
+          clearFieldError('data_nascimento');
+          if (!v) return true;
+          const d = parseISODate(v);
+          if (!d){
+            showFieldError('data_nascimento','Data de nascimento inválida.');
+            return false;
+          }
+          const min = new Date('1900-01-01T00:00:00');
+          if (d < min){
+            showFieldError('data_nascimento','Data de nascimento não pode ser anterior a 01/01/1900.');
+            return false;
+          }
+          if (isFuture(d)){
+            showFieldError('data_nascimento','Data de nascimento não pode ser no futuro.');
+            return false;
+          }
+          return true;
+        }
+        function validateDataIngresso(){
+          const el = document.getElementById('data_ingresso');
+          const v = el.value;
+          clearFieldError('data_ingresso');
+          if (!v) return true; // opcional
+          const d = parseISODate(v);
+          if (!d){
+            showFieldError('data_ingresso','Data de ingresso inválida.');
+            return false;
+          }
+          if (isFuture(d)){
+            showFieldError('data_ingresso','Data de ingresso não pode ser no futuro.');
+            return false;
+          }
+          const nasc = parseISODate(document.getElementById('data_nascimento').value);
+          if (nasc && d < nasc){
+            showFieldError('data_ingresso','Data de ingresso não pode ser anterior à data de nascimento.');
+            return false;
+          }
+          return true;
+        }
+
+        // ===== Alergia: habilita/desabilita descrição + cor escura quando desabilitado =====
+        function setAlergiaState(has){
+          const desc = document.getElementById('descricao_alergia');
+          if (!desc) return;
+          desc.disabled = !has;
+          desc.classList.toggle('is-disabled-dark', !has);
+          if (!has) {
+            // Se desejar limpar quando marcar "Não"
+            // desc.value = '';
+          }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
+            // CPF + mensagens inline
+            wireCPF(document.getElementById('cpf'), 'cpf');
+            wireCPF(document.getElementById('responsavel_cpf'), 'responsavel_cpf');
+            wireCPF(document.getElementById('pai_cpf'), 'pai_cpf');
+            wireCPF(document.getElementById('mae_cpf'), 'mae_cpf');
+
+            // Datas no blur
+            const dn = document.getElementById('data_nascimento');
+            const di = document.getElementById('data_ingresso');
+            if (dn) dn.addEventListener('blur', validateDataNascimento);
+            if (di) di.addEventListener('blur', validateDataIngresso);
+
+            // Radios de alergia
+            const rSim = document.getElementById('alergia_sim');
+            const rNao = document.getElementById('alergia_nao');
+            if (rSim) rSim.addEventListener('change', ()=> setAlergiaState(true));
+            if (rNao) rNao.addEventListener('change', ()=> setAlergiaState(false));
+            // estado inicial
+            setAlergiaState(rSim?.checked === true);
+
             const btn = document.getElementById('submitButton');
             btn.addEventListener('click', function (event) {
                 event.preventDefault();
 
+                // Limpa erros antigos
+                ['cpf','responsavel_cpf','pai_cpf','mae_cpf','data_nascimento','data_ingresso','nome','rua','numero','cep','bairro','cidade','estado','email','telefone'].forEach(clearFieldError);
+
+                const erros = [];
+
+                // Valida CPFs
+                const cpfInputs = [
+                  {id:'cpf', label:'CPF do aluno'},
+                  {id:'responsavel_cpf', label:'CPF do responsável'},
+                  {id:'pai_cpf', label:'CPF do pai'},
+                  {id:'mae_cpf', label:'CPF da mãe'}
+                ];
+                for (const item of cpfInputs){
+                  const el = document.getElementById(item.id);
+                  if (!el) continue;
+                  const v = el.value.trim();
+                  if (v && !cpfValido(v)){
+                    el.classList.add('cpf-invalido');
+                    el.reportValidity();
+                    showFieldError(item.id, `${item.label} inválido.`);
+                    erros.push(`${item.label} inválido.`);
+                  }
+                }
+
+                // Datas
+                if (!validateDataNascimento()) erros.push('Corrija a Data de Nascimento.');
+                if (!validateDataIngresso()) erros.push('Corrija a Data de Ingresso.');
+
+                // Campos obrigatórios principais
+                function required(id, label){
+                  const el = document.getElementById(id);
+                  const val = (el && el.value || '').trim();
+                  if (!val){
+                    showFieldError(id, `O campo "${label}" é obrigatório.`);
+                    erros.push(`Campo obrigatório: ${label}.`);
+                    return false;
+                  }
+                  return true;
+                }
+                required('nome','Nome');
+                required('data_nascimento','Data de nascimento');
+                required('cpf','CPF');
+                required('email','Email');
+                required('telefone','Telefone');
+                required('rua','Rua');
+                required('numero','Número');
+                required('bairro','Bairro');
+                required('cidade','Cidade');
+                required('estado','Estado');
+
+                if (erros.length){
+                  alert('⚠️ Corrija os seguintes itens antes de salvar:\n\n• ' + erros.join('\n• '));
+                  const firstErr = document.querySelector('.field-error:not(.d-none)') ||
+                                   document.querySelector('.cpf-invalido');
+                  if (firstErr){
+                    const target = firstErr.id?.endsWith('_error')
+                      ? document.getElementById(firstErr.id.replace('_error',''))
+                      : firstErr;
+                    if (target && typeof target.focus === 'function') target.focus();
+                  }
+                  return;
+                }
+
+                // Lê radios de alergia
+                const possuiAlergia = document.getElementById('alergia_sim')?.checked === true;
+
                 const dados = {
+                    // ===== Básico
                     matricula: (document.getElementById('matricula').value || '').trim(),
                     nome: (document.getElementById('nome').value || '').trim(),
                     data_nascimento: (document.getElementById('data_nascimento').value || '').trim(),
@@ -274,25 +817,65 @@
                     email: (document.getElementById('email').value || '').trim(),
                     telefone: (document.getElementById('telefone').value || '').trim(),
 
+                    // ===== Novos do aluno (opcionais)
+                    data_ingresso: (document.getElementById('data_ingresso').value || '').trim(),
+                    cor_raca: (document.getElementById('cor_raca').value || '').trim(),
+                    responsavel_financeiro: (document.getElementById('responsavel_financeiro').value || '').trim(),
+                    situacao_familiar: (document.getElementById('situacao_familiar').value || '').trim(),
+                    forma_acesso: (document.getElementById('forma_acesso').value || '').trim(),
+                    dispensa_ensino_religioso: (document.getElementById('dispensa_ensino_religioso').value === 'true'),
+
+                    /* ===== NOVOS CAMPOS pedidos ===== */
+                    serie_ano: (document.getElementById('serie_ano').value || '').trim(),
+                    turno: (document.getElementById('turno').value || '').trim(),
+                    nivel_modalidade: (document.getElementById('nivel_modalidade').value || '').trim(),
+                    turma_id: (document.getElementById('turma_id').value || '').trim(),
+
+                    // ===== Responsável genérico
                     responsavel_nome: (document.getElementById('responsavel_nome').value || '').trim(),
                     responsavel_cpf: document.getElementById('responsavel_cpf') ? document.getElementById('responsavel_cpf').value.trim() : '',
                     responsavel_parentesco: document.getElementById('responsavel_parentesco') ? document.getElementById('responsavel_parentesco').value.trim() : '',
                     responsavel_telefone: (document.getElementById('responsavel_telefone').value || '').trim(),
                     responsavel_email: (document.getElementById('responsavel_email').value || '').trim(),
 
-                    possui_necessidade_especial: false,
-                    descricao_necessidade: (document.getElementById('necessidades').value || '').trim(),
-                    usa_medicacao: false,
-                    quais_medicacoes: '',
-                    possui_alergia: (document.getElementById('alergias').value || '').trim() !== '',
-                    descricao_alergia: (document.getElementById('alergias').value || '').trim(),
+                    // ===== Pai/Mãe (opcionais)
+                    pai_nome: (document.getElementById('pai_nome').value || '').trim(),
+                    pai_cpf: (document.getElementById('pai_cpf').value || '').trim(),
+                    pai_identidade: (document.getElementById('pai_identidade').value || '').trim(),
+                    pai_escolaridade: (document.getElementById('pai_escolaridade').value || '').trim(),
+                    pai_profissao: (document.getElementById('pai_profissao').value || '').trim(),
+                    pai_telefone: (document.getElementById('pai_telefone').value || '').trim(),
+                    pai_email: (document.getElementById('pai_email').value || '').trim(),
 
+                    mae_nome: (document.getElementById('mae_nome').value || '').trim(),
+                    mae_cpf: (document.getElementById('mae_cpf').value || '').trim(),
+                    mae_identidade: (document.getElementById('mae_identidade').value || '').trim(),
+                    mae_escolaridade: (document.getElementById('mae_escolaridade').value || '').trim(),
+                    mae_profissao: (document.getElementById('mae_profissao').value || '').trim(),
+                    mae_telefone: (document.getElementById('mae_telefone').value || '').trim(),
+                    mae_email: (document.getElementById('mae_email').value || '').trim(),
+
+                    // ===== Saúde (atualizado p/ Sim/Não + descrição)
+                    possui_necessidade_especial: (document.getElementById('necessidades').value || '').trim() !== '',
+                    descricao_necessidade: (document.getElementById('necessidades').value || '').trim(),
+                    usa_medicacao: (document.getElementById('usa_medicacao').value === 'sim'),
+                    quais_medicacoes: (document.getElementById('quais_medicacoes').value || '').trim(),
+                    possui_alergia: possuiAlergia,
+                    descricao_alergia: (document.getElementById('descricao_alergia').value || '').trim(),
+                    restricoes_alimentares: (document.getElementById('restricoes').value || '').trim(),
+
+                    // ===== Transporte
                     usa_transporte_escolar: (document.getElementById('utiliza_transporte').value === 'sim'),
                     trajeto: (document.getElementById('ponto_onibus').value || '').trim(),
+                    usa_transporte_publico: (document.getElementById('usa_transporte_publico')?.value === 'sim'),
 
+                    // ===== Autorizações
                     autorizacao_saida_sozinho: (document.getElementById('pode_sair_sozinho').value === 'sim'),
                     autorizacao_fotos_eventos: false,
-                    pessoa_autorizada_buscar: (document.getElementById('autorizados_buscar').value || '').trim()
+                    pessoa_autorizada_buscar: (document.getElementById('autorizados_buscar').value || '').trim(),
+
+                    // ===== Bolsa Família
+                    bolsa_familia: (document.getElementById('bolsa_familia').value === 'true')
                 };
 
                 console.log("📦 Enviando:", dados);
@@ -307,10 +890,11 @@
                     body: JSON.stringify(dados)
                 })
                 .then(async (res) => {
-                    // tenta parsear JSON mesmo em erro 400
                     const data = await res.json().catch(() => ({}));
                     if (!res.ok) {
-                        throw new Error(data.mensagem || `Erro HTTP ${res.status}`);
+                        const msg = data.mensagem || data.error || `Erro HTTP ${res.status}`;
+                        alert("❌ Erro ao salvar:\n\n" + msg);
+                        throw new Error(msg);
                     }
                     return data;
                 })
@@ -321,21 +905,23 @@
                         container.className = 'alert alert-success';
                         container.style.marginTop = '12px';
                         container.innerHTML = `
-                          ✅ Aluno cadastrado com sucesso!
-                          <a class="btn btn-sm btn-primary ml-2" href="/alunos/${alunoId}/pdf/" target="_blank" rel="noopener">
-                            Imprimir cadastro (PDF)
-                          </a>
+                           ✅ Aluno cadastrado com sucesso!
+                        <a class="btn btn-sm btn-primary ml-2"
+                        href="${"{% url 'aluno_requerimento' 0 %}".replace('/0/', `/${alunoId}/`)}"
+                        target="_blank" rel="noopener">
+                        Imprimir cadastro (PDF)
+                        </a>
                         `;
                         const form = document.getElementById('formCadastro');
                         form.parentNode.insertBefore(container, form.nextSibling);
                         document.getElementById('submitButton').disabled = true;
                     } else {
-                        alert("❌ Erro: " + (data.mensagem || "Não foi possível cadastrar."));
+                        const msg = data.mensagem || "Não foi possível cadastrar.";
+                        alert("❌ Erro:\n\n" + msg);
                         console.error("Erro no backend:", data);
                     }
                 })
                 .catch((error) => {
-                    alert("❌ Erro ao enviar dados. Veja o console.");
                     console.error("🚨 Erro na requisição:", error);
                 });
             });
