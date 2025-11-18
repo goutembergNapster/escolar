@@ -11,6 +11,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput --settings=plantao_pro.settings.prod
 
 CMD ["gunicorn", "plantao_pro.wsgi:application", "--bind", "0.0.0.0:8000"]
