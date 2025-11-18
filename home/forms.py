@@ -1,5 +1,23 @@
 from django import forms
 from .models import Escola
+from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from .models import User
+
+
+class UserCreationNoPasswordForm(forms.ModelForm):
+    """Form simples para criar usuário sem pedir senha."""
+
+    class Meta:
+        model = User
+        fields = ("cpf", "username", "first_name", "last_name", "email", "role", "escola")
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password("123456")  # senha padrão
+        user.senha_temporaria = True
+        if commit:
+            user.save()
+        return user
 
 class EscolaForm(forms.ModelForm):
     class Meta:

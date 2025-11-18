@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  db:
+    container_name: psql_prod
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: escolinha_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 34587895
+    ports:
+      - "5433:5432"   # diferente da dev
+    volumes:
+      - pg_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d escolinha_db || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    container_name: escolinha_prod
+    build:
+      context: .
+    command: [ "sh", "-lc", "chmod +x /scripts/*.sh || true; /scripts/commands.sh" ]
+    ports:
+      - "8000:8000"
+    volumes:
+      - staticfiles_prod:/escolinha/staticfiles
+      - media_prod:/data/web/media
+      - ./scripts:/scripts:ro
+    env_file:
+      - ./dotenv_files/.env.prod
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  staticfiles_prod:
+  media_prod:
+  pg_data_prod:

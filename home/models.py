@@ -45,18 +45,37 @@ class User(AbstractUser):
         ('responsavel', 'Responsável'),
     ]
 
-    cpf = models.CharField(max_length=11, unique=True, null=True, blank=True)  # <== ADICIONE ISSO
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='funcionario')
-    escola = models.ForeignKey(Escola, on_delete=models.CASCADE, null=True, blank=True)
-    senha_temporaria = models.BooleanField(default=False)
-    groups = models.ManyToManyField(Group, related_name="home_user_groups", blank=True)
-    user_permissions = models.ManyToManyField(Permission, related_name="home_user_permissions", blank=True)
+    cpf = models.CharField(
+        max_length=11,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="CPF do usuário (apenas números)"
+    )
 
-    USERNAME_FIELD = 'cpf'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default='responsavel',
+    )
+
+    escola = models.ForeignKey(
+        'home.Escola',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    senha_temporaria = models.BooleanField(default=False)
+
+    # ⚠️ Importante: username volta a ser o campo principal
+    USERNAME_FIELD = "username"
+
+    # Campos obrigatórios ao criar superuser
+    REQUIRED_FIELDS = ["cpf", "first_name", "last_name"]
 
     def __str__(self):
-        return self.cpf or self.username
+        return f"{self.username} ({self.cpf})"
 
 def gerar_matricula():
     return uuid.uuid4().hex[:10].upper()
