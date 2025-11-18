@@ -14,4 +14,3 @@ COPY . .
 RUN python manage.py collectstatic --noinput
 
 CMD ["gunicorn", "plantao_pro.wsgi:application", "--bind", "0.0.0.0:8000"]
-
