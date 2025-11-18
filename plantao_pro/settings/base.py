@@ -4,8 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()  # permite ler .env
 
-BASE_DIR = Path(__file__).resolve().parents[2]  # ajustado p/ .../plantao_pro/settings/base.py -> sobe 2
-
+BASE_DIR = BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 DEBUG = bool(int(os.getenv("DEBUG", "1")))
 
