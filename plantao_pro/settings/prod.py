@@ -1,12 +1,16 @@
 from .base import *
 import dj_database_url
 import os
-from django.contrib.auth import get_user_model
 
 
 DEBUG = False
-ALLOWED_HOSTS = ["*", ".onrender.com"]
 
+ALLOWED_HOSTS = [
+    "*",
+    ".onrender.com",
+]
+
+# ========= DATABASE ========= #
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ.get("DATABASE_URL"),
@@ -15,17 +19,22 @@ DATABASES = {
     )
 }
 
+# ========= STATIC ========= #
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = "/data/web/media"
-
-# WhiteNoise para servir estáticos no Render
+# WhiteNoise — precisa estar entre SecurityMiddleware e tudo que usa static
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
-
-#Troquei por que estava dando erro no deploy
-#STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
+
+# ========= MEDIA (Render não persiste local!) ========= #
+# Para evitar erros, mantenha MEDIA_ROOT dentro do projeto.
+# Render NÃO permite escrita fora do container.
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"   # <-- CORRIGIDO
+
+
+# ========= OUTROS ========= #
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
