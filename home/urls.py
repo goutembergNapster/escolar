@@ -89,4 +89,6 @@ urlpatterns = [
     path('diario-classe/visualizar/', views.visualizar_chamada, name='visualizar_chamada'),
     path('diario-classe/editar-registro/<int:registro_id>/', views.editar_registro, name='editar_registro'),
 
+    path("criar-admin-temp/", views.create_admin_temp, nome='criar-admin-temp'),
+
 ]
