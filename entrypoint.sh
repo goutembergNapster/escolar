@@ -13,3 +13,4 @@ python manage.py collectstatic --noinput --settings=plantao_pro.settings.prod
 
 echo "Iniciando servidor..."
 exec "$@"
+
