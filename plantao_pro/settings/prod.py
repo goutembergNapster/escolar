@@ -1,6 +1,8 @@
 from .base import *
 import dj_database_url
 import os
+from django.contrib.auth import get_user_model
+
 
 DEBUG = False
 ALLOWED_HOSTS = ["*", ".onrender.com"]
@@ -26,4 +28,8 @@ MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 #STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+
+User = get_user_model()
+if not User.objects.filter(username="admin").exists():
+    User.objects.create_superuser("bergadmin", "goutemberg@icloud.com", "Gps34587895@&*")
 
