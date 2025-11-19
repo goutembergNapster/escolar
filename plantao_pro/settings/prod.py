@@ -5,6 +5,7 @@ import os
 DEBUG = False
 ALLOWED_HOSTS = ["*", ".onrender.com"]
 
+# Database do Render
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ.get("DATABASE_URL"),
@@ -13,15 +14,15 @@ DATABASES = {
     )
 }
 
+# Static
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# Media
 MEDIA_URL = "/media/"
 MEDIA_ROOT = "/data/web/media"
 
-# WhiteNoise
+# WhiteNoise: inserir depois de SecurityMiddleware
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
-STATICFILES_STORAGE = (
-    "whitenoise.storage.CompressedManifestStaticFilesStorage"
-)
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
