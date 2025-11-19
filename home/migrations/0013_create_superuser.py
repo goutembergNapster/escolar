@@ -6,7 +6,7 @@ def create_admin(apps, schema_editor):
 
     if not User.objects.filter(username="admin").exists():
         User.objects.create(
-            username="bergadmin",
+            username="goutemberg",
             email="goutemberg@icloud.com",
             password=make_password("Gps34587895@&*"),
             is_staff=True,
@@ -20,7 +20,7 @@ def remove_admin(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('home', '0001_initial'),  # ajuste para sua primeira migration
+        ('home', '0012_aluno_bolsa_familia_aluno_serie_ano_and_more'),
     ]
 
     operations = [
