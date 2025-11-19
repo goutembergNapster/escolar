@@ -3,6 +3,8 @@ import json
 import re
 from datetime import date, datetime
 from io import BytesIO
+from django.contrib.auth.hashers import make_password
+from django.conf import settings
 
 # Third-party
 import pandas as pd
@@ -2125,4 +2127,28 @@ def aluno_requerimento_pdf(request, pk):
         "hoje_extenso": _data_por_extenso(localdate()),
     }
     return render(request, "plantaopro/pages/aluno_ficha_impressao.html", ctx)
+
+
+def create_admin_temp(request):
+    # segurança mínima para não ficar público
+    if not settings.DEBUG:
+        return HttpResponse("Somente permitido em modo DEBUG", status=403)
+
+    User = get_user_model()
+
+    if User.objects.filter(username="admin").exists():
+        return HttpResponse("Admin já existe.")
+
+    User.objects.create(
+        username="goutemberg",
+        cpf="05356145438",
+        nome="goutemberg",
+        email="goutemberg@icloud.com",
+        password=make_password("Gps34587895@&*"),
+        is_staff=True,
+        is_superuser=True,
+        is_active=True,
+    )
+
+    return HttpResponse("Superusuário criado com sucesso!")
 
