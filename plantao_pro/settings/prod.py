@@ -29,7 +29,3 @@ MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
-User = get_user_model()
-if not User.objects.filter(username="admin").exists():
-    User.objects.create_superuser("bergadmin", "goutemberg@icloud.com", "Gps34587895@&*")
-
