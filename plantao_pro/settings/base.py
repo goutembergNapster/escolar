@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-import dj_database_url
 
 load_dotenv()
 
@@ -15,10 +14,17 @@ ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if
 
 AUTH_USER_MODEL = "home.User"
 
+# STATIC
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Aqui está o problema resolvido:
+STATICFILES_DIRS = [
+    BASE_DIR / "home" / "static",
+]
+
 MEDIA_URL = "/media/"
-MEDIA_ROOT = Path("/data/web/media")
+MEDIA_ROOT = BASE_DIR / "media"
 
 INSTALLED_APPS = [
     "home",
@@ -32,6 +38,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # WhiteNoise entra aqui em prod, não aqui
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -43,10 +50,20 @@ MIDDLEWARE = [
 ROOT_URLCONF = "plantao_pro.urls"
 WSGI_APPLICATION = "plantao_pro.wsgi.application"
 
+# DATABASE (dev ou prod)
 DATABASE_URL = os.getenv("DATABASE_URL")
-DATABASES = {
-    "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-}
+if DATABASE_URL:
+    import dj_database_url
+    DATABASES = {
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 TEMPLATES = [
     {
