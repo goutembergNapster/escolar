@@ -12,10 +12,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterUniqueTogether(
-            name='nota',
-            unique_together=set(),
-        ),
+        # migrations.AlterUniqueTogether(
+        #     name='nota',
+        #     unique_together=set(),
+        # ),
         migrations.AddField(
             model_name='aluno',
             name='bolsa_familia',
