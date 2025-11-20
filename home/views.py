@@ -1370,7 +1370,7 @@ def login_view(request):
     else:
         form = AuthenticationForm()
 
-    return render(request, 'home/templates/pages/login.html', {'form': form})
+    return render(request, 'pages/login.html', {'form': form})
 
 
 def logout_view(request):
