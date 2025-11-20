@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
 
+AUTH_USER_MODEL = "home.User"
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "changeme")
