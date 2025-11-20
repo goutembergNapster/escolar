@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    {% include 'plantaopro/partials/_head.html' %}
+    {% include 'partials/_head.html' %}
     <style>
         .content {
             max-width: 900px;
@@ -58,7 +58,7 @@
     </style>
 </head>
 <body>
-{% include 'plantaopro/partials/_nav.html' %}
+{% include 'partials/_nav.html' %}
 <div class="content">
     <h2>Lançamento de Notas</h2>
 
@@ -123,7 +123,7 @@
         <p>Selecione uma turma e uma disciplina para lançar as notas.</p>
     {% endif %}
 </div>
-{% include 'plantaopro/partials/_footer.html' %}
+{% include 'partials/_footer.html' %}
 <script>
     function salvarNotas() {
         const form = document.getElementById('notasForm');

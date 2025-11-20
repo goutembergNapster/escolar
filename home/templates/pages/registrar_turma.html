@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    {% include 'plantaopro/partials/_head.html' %}
+    {% include 'partials/_head.html' %}
     <style>
         .form-row {
             display: flex;
@@ -74,7 +74,7 @@
     </style>
 </head>
 <body>
-{% include 'plantaopro/partials/_nav.html' %}
+{% include 'partials/_nav.html' %}
 <section class="form-container">
     <div class="container">
         <div class="header-bar">Criar Turma</div>
@@ -165,8 +165,8 @@
     </div>
 </section>
 
-{% include 'plantaopro/partials/_footer.html' %}
-<script src="{% static 'plantaopro/js/formulario_turma_dinamico.js' %}"></script>
+{% include 'partials/_footer.html' %}
+<script src="{% static 'js/formulario_turma_dinamico.js' %}"></script>
 <script>
 function atualizarCampoDisciplina() {
     const tipo = document.getElementById('tipoPessoa').value;

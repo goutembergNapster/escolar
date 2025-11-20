@@ -105,13 +105,13 @@ User = get_user_model()
 def index(request):
     return render(
         request,
-        'plantaopro/pages/index.html'
+        'pages/index.html'
     )
 
 
 def cadastro_escola(request):
     form = EscolaForm()
-    return render(request, 'plantaopro/pages/cadastrar_escola.html', {'form': form})
+    return render(request, 'pages/cadastrar_escola.html', {'form': form})
 
 
 def cadastrar_escola_banco(request):
@@ -168,7 +168,7 @@ def cadastro_aluno(request):
         'turmas': turmas,
         'niveis_modalidades': niveis_modalidades,
     }
-    return render(request, 'plantaopro/pages/registrar_aluno.html', context)
+    return render(request, 'pages/registrar_aluno.html', context)
 
 @login_required
 @role_required(['diretor', 'coordenador'])
@@ -177,7 +177,7 @@ def cadastro_funcionarios(request):
     context = {
         'cadastro_funcionario': cadastro_funcionario 
     }
-    return render(request, 'plantaopro/pages/registrar_funcionarios.html', context)
+    return render(request, 'pages/registrar_funcionarios.html', context)
 
 @login_required
 @role_required(['diretor', 'coordenador'])
@@ -188,7 +188,7 @@ def cadastro_turma(request):
     context = {
         'disciplinas': disciplinas
     }
-    return render(request, 'plantaopro/pages/registrar_turma.html', context)
+    return render(request, 'pages/registrar_turma.html', context)
 
 
 @login_required
@@ -200,7 +200,7 @@ def cadastro_professor(request):
         'cadastro_professor': escolas,
         'disciplinas': disciplinas,
     }
-    return render(request, 'plantaopro/pages/registrar_professor.html', context)
+    return render(request, 'pages/registrar_professor.html', context)
 
 @csrf_exempt
 @require_POST
@@ -347,7 +347,7 @@ def listar_professores(request):
 
     todas_disciplinas = Disciplina.objects.filter(escola=request.user.escola).order_by('nome')
 
-    return render(request, 'plantaopro/pages/listar_professores.html', {
+    return render(request, 'pages/listar_professores.html', {
         'professores': professores,
         'todas_disciplinas': todas_disciplinas,  # <- agora está no contexto
     })
@@ -831,7 +831,7 @@ def cadastrar_aluno(request):
     turmas = Turma.objects.filter(escola=request.user.escola).order_by('nome')
     niveis_modalidades = ['Infantil', 'Fundamental I', 'Fundamental II']
 
-    return render(request, 'plantaopro/pages/registrar_aluno.html', {
+    return render(request, 'pages/registrar_aluno.html', {
         'matricula': request.session['matricula_gerada'],
         'turmas': turmas,
         'niveis_modalidades': niveis_modalidades,
@@ -1011,7 +1011,7 @@ def listar_alunos(request):
     context = {
         'alunos_json': json.dumps(lista, cls=DjangoJSONEncoder, ensure_ascii=False)
     }
-    return render(request, 'plantaopro/pages/listar_alunos.html', context)
+    return render(request, 'pages/listar_alunos.html', context)
 
 
 @csrf_exempt  # ou use um decorator de CSRF seguro se for AJAX autenticado
@@ -1131,7 +1131,7 @@ def formulario_criar_turma(request):
     escola = request.user.escola
     disciplinas = Disciplina.objects.filter(escola=escola).order_by('nome')
 
-    return render(request, 'plantaopro/pages/criar_turma.html', {
+    return render(request, 'pages/criar_turma.html', {
         'disciplinas': disciplinas
     })
 
@@ -1253,7 +1253,7 @@ def impressao_dados(request):
         'turma_id': turma_id,
         'professor_id': professor_id,
     }
-    return render(request, 'plantaopro/pages/print.html', context)
+    return render(request, 'pages/print.html', context)
 
 
 @csrf_exempt  # necessário para o uso com fetch (a menos que use CSRF token no cabeçalho)
@@ -1348,7 +1348,7 @@ def registrar_notas(request):
         'disciplina_id': disciplina_id or '',
         'notas': notas_dict
     }
-    return render(request, 'plantaopro/pages/registrar_notas.html', context)
+    return render(request, 'pages/registrar_notas.html', context)
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -1511,12 +1511,12 @@ def importar_alunos(request):
 
         return redirect('importar_alunos')
 
-    return render(request, 'plantaopro/pages/importar_alunos.html')
+    return render(request, 'pages/importar_alunos.html')
 
 @login_required
 def verificar_senha_temporaria(request):
     if request.user.senha_temporaria:
-        return render(request, 'plantaopro/pages/trocar_senha.html')
+        return render(request, 'pages/trocar_senha.html')
     return redirect('index')
 
 @csrf_exempt
@@ -1552,7 +1552,7 @@ def listar_turmas_para_boletim(request):
     if turma_id:
         alunos = Aluno.objects.filter(turmas__id=turma_id, escola=request.user.escola)
 
-    return render(request, 'plantaopro/pages/listar_turmas_boletim.html', {
+    return render(request, 'pages/listar_turmas_boletim.html', {
         'turmas': turmas,
         'alunos': alunos,
         'turma_id': turma_id
@@ -1595,7 +1595,7 @@ def visualizar_boletim(request, aluno_id):
         if notas_validas:
             dados["media"] = round(sum(notas_validas) / len(notas_validas), 2)
 
-    return render(request, 'plantaopro/pages/boletim.html', {
+    return render(request, 'pages/boletim.html', {
         'aluno': aluno,
         'boletim': dict(boletim)
     })
@@ -1633,12 +1633,12 @@ def cadastrar_disciplina(request):
 def pagina_cadastrar_disciplina(request):
     return render(
         request,
-        'plantaopro/pages/cadastrar_disciplinas.html'
+        'pages/cadastrar_disciplinas.html'
     )
 
 @login_required
 def usuario_sem_escola(request):
-    return render(request, 'plantaopro/pages/erro_sem_escola.html')
+    return render(request, 'pages/erro_sem_escola.html')
 
 @login_required
 def visualizar_escola(request):
@@ -1648,7 +1648,7 @@ def visualizar_escola(request):
         'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
         'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
     ]
-    return render(request, 'plantaopro/pages/escola_detalhes.html', {
+    return render(request, 'pages/escola_detalhes.html', {
         'escola': escola,
         'estados': estados
     })
@@ -1783,7 +1783,7 @@ def diario_classe(request):
         # Diretor ou coordenador
         contexto['turmas'] = TurmaDisciplina.objects.select_related('turma', 'disciplina').all()
 
-    return render(request, 'plantaopro/pages/diario_classe.html', contexto)
+    return render(request, 'pages/diario_classe.html', contexto)
 
 
 @require_POST
@@ -1886,7 +1886,7 @@ def visualizar_chamada(request):
             disciplinas = list({td.disciplina for td in turmas_vinculadas})  # evita duplicatas
 
         except Docente.DoesNotExist:
-            return render(request, 'plantaopro/pages/visualizar_diario.html', {
+            return render(request, 'pages/visualizar_diario.html', {
                 'erro': 'Usuário sem vínculo com docente.'
             })
     else:
@@ -1907,7 +1907,7 @@ def visualizar_chamada(request):
         'disciplinas': disciplinas,
     }
 
-    return render(request, 'plantaopro/pages/visualizar_diario.html', contexto)
+    return render(request, 'pages/visualizar_diario.html', contexto)
 
 @csrf_exempt
 @require_POST
@@ -1951,7 +1951,7 @@ def listar_turmas(request):
         })
 
     context = {'turmas_json': json.dumps(turmas, cls=DjangoJSONEncoder, ensure_ascii=False)}
-    return render(request, 'plantaopro/pages/listar_turmas.html', context)
+    return render(request, 'pages/listar_turmas.html', context)
 
 
 def _coerce_for_field(value, field: models.Field):
@@ -2126,7 +2126,7 @@ def aluno_requerimento_pdf(request, pk):
         "autoriz": autoriz,
         "hoje_extenso": _data_por_extenso(localdate()),
     }
-    return render(request, "plantaopro/pages/aluno_ficha_impressao.html", ctx)
+    return render(request, "pages/aluno_ficha_impressao.html", ctx)
 
 
 def create_admin_temp(request):
