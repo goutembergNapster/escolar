@@ -50,9 +50,5 @@ TEMPLATES = [{
 
 WSGI_APPLICATION = "plantao_pro.wsgi.application"
 
-# ⚠️ ESSA PARTE FICA SOMENTE NO BASE.PY
-STATIC_URL = "/static/"
-STATICFILES_DIRS = [
-    BASE_DIR / "home" / "static",
-]
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
