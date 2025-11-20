@@ -1,25 +1,16 @@
-# IGNORE GERAL
+# --- IGNORAR PYTHON ---
 *.pyc
 __pycache__/
-media/
-local_settings.py
 *.log
-*.pot
+local_settings.py
 
-# NÃO IGNORAR static (importante)
-#!static/
-
-# Evitar ignorar static do projeto
+# --- NAO IGNORAR STATIC ---
 !/home/static/
 !/static/
 
-# Itens comuns de build
-build/
-dist/
-.eggs/
-*.egg-info/
-.vscode/
-.idea/
+# --- IGNORAR OUTROS ---
 .DS_Store
+.idea/
+.vscode/
 .env
-docker-compose.yml
+media/
