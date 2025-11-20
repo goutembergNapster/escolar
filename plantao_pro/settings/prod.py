@@ -15,3 +15,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# 👉 IMPORTANTE: garante que o collectstatic ache seus arquivos locais
+STATICFILES_DIRS = [
+    BASE_DIR / "home" / "static",
+]

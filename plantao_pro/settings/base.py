@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import dj_database_url
 
 AUTH_USER_MODEL = "home.User"
 
@@ -52,3 +53,9 @@ WSGI_APPLICATION = "plantao_pro.wsgi.application"
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+DATABASES = {
+    "default": dj_database_url.parse(
+        os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
+    )
+}

@@ -1,0 +1,280 @@
+/* === Layout geral === */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.content-wrapper {
+    max-width: 1120px;
+    margin: 0 auto;
+    margin-top: 130px; /* mesma ideia: altura da navbar + espaçamento */
+    padding: 0 10px 150px;
+    box-sizing: border-box;
+}
+
+.header-bar {
+    background-color: #6c757d; /* Cinza elegante */
+    color: #ffffff; /* Texto branco */
+    padding: 12px 20px;
+    font-size: 1.6rem;
+    font-weight: 600;
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    position: fixed;
+    top: 60px;
+    z-index: 999;
+    width: 100%;
+    max-width: 1110px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* === Abas === */
+.tab-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 45px;
+    padding: 20px 0;
+}
+
+.tab-buttons button {
+    background-color: #cccdcf;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: 500;
+    cursor: pointer;
+    flex: 1;
+}
+
+/* === Formulários === */
+.form-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    flex: 1;
+}
+
+.form-group.short-field {
+    flex: 1.25;
+    min-width: 150px;
+}
+
+label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+    color: #444;
+    font-weight: normal;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #f89952;
+    font-size: 0.95rem;
+    background-color: #fff;
+    color: #333;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #f6821f;
+    outline: none;
+    box-shadow: 0 0 0 0.15rem rgba(248, 137, 82, 0.25);
+}
+
+/* === Botões === */
+.form-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.form-footer button {
+    padding: 10px 25px;
+    border-radius: 5px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #f89952;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #e28032;
+}
+
+.btn-secondary {
+    background-color: #e0e0e0;
+    color: #000;
+}
+
+.btn-secondary:hover {
+    background-color: #d4d4d4;
+}
+
+/* === Títulos internos === */
+h3 {
+    font-size: 1.2rem;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+/* === Rodapé fixo === */
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #f89952;
+    z-index: 0;
+}
+/* === Agrupamento input + botão (como CPF + Buscar) === */
+.input-group-cnpj {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.input-group-cnpj input {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px 0 0 8px;
+    border: 1px solid #f89952;
+    font-size: 0.95rem;
+}
+
+.input-group-cnpj button {
+    padding: 8px 16px;
+    border-radius: 0 8px 8px 0;
+    background-color: #f89952;
+    color: #fff;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.input-group-cnpj button:hover {
+    background-color: #f17e2b;
+}
+
+/* === Botões finais uniformes === */
+.form-footer,
+.botoes-final {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.botoes-final button,
+.form-footer button {
+    padding: 10px 25px;
+    border-radius: 5px;
+    border: none;
+    font-weight: bold;
+}
+
+#submitButton {
+    background-color: #f89952;
+    color: white;
+}
+
+#resetButton, #alterarButton {
+    background-color: #e0e0e0;
+}
+
+#cancelButton {
+    background-color: #ffdddd;
+    color: #000;
+}
+
+#Professor
+
+h5 {
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 1.5rem;
+    margin-top: 30px;
+    color: #333;
+}
+
+textarea {
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 12px;
+    border: 1px solid #f6821f !important;
+    font-size: 1rem;
+    color: #333;
+    background-color: #fff;
+    resize: vertical;
+}
+
+.input-group-cpf {
+    display: flex;
+    gap: 10px;
+}
+
+.input-group-cpf input {
+    flex: 1;
+}
+
+.input-group-cpf .btn {
+    padding: 6px 16px;
+    font-size: 0.90rem;
+    min-width: auto;
+    height: 100%;
+    white-space: nowrap;
+    border-radius: 12px;
+    border: 1px solid #f6821f;
+    background-color: #e0e0e0;
+    color: #333;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.tab-buttons {
+    padding-top: 0;
+    margin-top: 0 !important;
+}
+.header-bar {
+    margin-bottom: 0 !important;
+}
+
+
+
+
+/* Como usar depois:
+Salve o arquivo como:
+static/css/identidade.css
+
+No <head> de suas páginas:
+
+django
+Copiar
+Editar
+<link rel="stylesheet" href="{% static 'css/identidade.css' %}">
+Remova os <style> internos para manter o HTML limpo.
+
+ */
