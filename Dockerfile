@@ -1,29 +1,28 @@
+# Usando Python slim
 FROM python:3.11-slim
 
-ENV PYTHONUNBUFFERED=1
-
+# Diretório da aplicação
 WORKDIR /app
 
-# Instala dependências necessárias para psycopg2, Pillow e outros
-RUN apt-get update \
-    && apt-get install -y build-essential libpq-dev gcc \
-    && rm -rf /var/lib/apt/lists/*
+# Dependências do sistema
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && apt-get clean
 
+# Copia requirements
 COPY requirements.txt .
+
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copia projeto
 COPY . .
 
-# NÃO roda collectstatic no build (somente no runtime)
-# Render roda isso automaticamente se você usar entrypoint.
-
-# Entrypoint separado para fazer:
-# - migrações
-# - collectstatic
-# - rodar gunicorn
+# Copia entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+# Expondo a porta
+EXPOSE 8000
 
-CMD ["gunicorn", "plantao_pro.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["/entrypoint.sh", "gunicorn", "plantao_pro.wsgi:application", "--bind", "0.0.0.0:8000"]

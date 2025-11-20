@@ -1,31 +1,16 @@
 from .base import *
-import dj_database_url
 import os
+import dj_database_url
 
 DEBUG = False
-ALLOWED_HOSTS = ["*", ".onrender.com"]
 
-# Database do Render
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True,
+        default=os.environ.get("DATABASE_URL")
     )
 }
 
-# Static
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [ BASE_DIR / "home" / "static" ]
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.onrender.com",
+]
 
-# Media
-MEDIA_URL = "/media/"
-MEDIA_ROOT = "/data/web/media"
-
-# WhiteNoise: inserir depois de SecurityMiddleware
-#MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
-
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-#STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"

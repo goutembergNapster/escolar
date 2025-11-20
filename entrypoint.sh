@@ -1,23 +1,23 @@
 #!/bin/bash
 set -e
 
-echo "=== APAGANDO QUALQUER STATICFILES ANTIGO (NUKE MODE) ==="
+echo "=== Nuke 1: Apagando staticfiles COMPLETO ==="
 rm -rf /app/staticfiles
 mkdir -p /app/staticfiles
 
-echo "=== APAGANDO MANIFEST ANTIGO DO WHITENOISE (SE EXISTIR) ==="
+echo "=== Nuke 2: Apagando staticfiles.json perdido ==="
 find /app -name "staticfiles.json" -delete || true
 find /tmp -name "staticfiles.json" -delete || true
 
-echo "=== APAGANDO CACHE DO PYTHON/DJANGO ==="
-find /app -name "__pycache__" -exec rm -rf {} +
-find /app -name "*.pyc" -delete
+echo "=== Nuke 3: Limpando cache Python ==="
+find /app -name "__pycache__" -exec rm -rf {} + || true
+find /app -name "*.pyc" -delete || true
 
-echo "=== RODANDO MIGRATIONS ==="
+echo "=== Rodando migrations ==="
 python manage.py migrate --noinput --settings=plantao_pro.settings.prod
 
-echo "=== RODANDO COLLECTSTATIC ==="
+echo "=== Gerando staticfiles NOVO (do zero) ==="
 python manage.py collectstatic --clear --noinput --settings=plantao_pro.settings.prod
 
-echo "=== INICIANDO SERVIDOR ==="
+echo "=== Iniciando servidor ==="
 exec "$@"
