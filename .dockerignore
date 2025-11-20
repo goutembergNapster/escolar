@@ -1,55 +1,25 @@
-# ================================
-# Arquivos Python
-# ================================
-__pycache__/
+# IGNORE GERAL
 *.pyc
-*.pyo
-*.pyd
-
-# ================================
-# Ambientes virtuais
-# ================================
-venv/
-env/
-.venv/
-
-# ================================
-# Configurações locais
-# ================================
-.env
-*.env
+__pycache__/
+media/
 local_settings.py
-
-# ================================
-# Logs / Cache / Builds
-# ================================
 *.log
 *.pot
-*.pyc
+
+# NÃO IGNORAR static (importante)
+#!static/
+
+# Evitar ignorar static do projeto
+!/home/static/
+!/static/
+
+# Itens comuns de build
 build/
 dist/
 .eggs/
 *.egg-info/
-pip-log.txt
-
-# ================================
-# Django
-# ================================
-# NÃO ignore a pasta home/static !!!
-# NÃO ignore nenhuma pasta static dentro dos apps !!!
-# Apenas ignore o diretório GERADO pelo collectstatic:
-staticfiles/
-
-# MEDIA (fora do container)
-media/
-
-# ================================
-# IDEs
-# ================================
-.idea/
 .vscode/
-
-# ================================
-# Sistema operacional
-# ================================
+.idea/
 .DS_Store
+.env
+docker-compose.yml
