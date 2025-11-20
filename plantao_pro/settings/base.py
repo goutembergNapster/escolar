@@ -1,6 +1,9 @@
 from pathlib import Path
 import os
 
+
+AUTH_USER_MODEL = "home.User"
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "changeme")
@@ -10,6 +13,7 @@ DEBUG = False
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
+    
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -53,7 +57,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_DIRS = [
-    BASE_DIR / "home" / "static",
+    BASE_DIR / "static",
 ]
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
