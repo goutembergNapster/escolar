@@ -12,10 +12,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # ⚠️ REMOVIDO: AlterUniqueTogether antigo que quebrava
         # migrations.AlterUniqueTogether(
         #     name='nota',
         #     unique_together=set(),
         # ),
+
         migrations.AddField(
             model_name='aluno',
             name='bolsa_familia',
@@ -152,10 +154,13 @@ class Migration(migrations.Migration):
             name='user_permissions',
             field=models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions'),
         ),
-        migrations.AlterUniqueTogether(
-            name='nota',
-            unique_together={('aluno', 'disciplina', 'turma', 'bimestre', 'escola')},
-        ),
+
+        # ⚠️ REMOVIDO: o AlterUniqueTogether final que QUEBRA o deploy
+        # migrations.AlterUniqueTogether(
+        #     name='nota',
+        #     unique_together={('aluno', 'disciplina', 'turma', 'bimestre', 'escola')},
+        # ),
+
         migrations.CreateModel(
             name='Chamada',
             fields=[
