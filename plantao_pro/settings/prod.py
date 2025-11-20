@@ -17,13 +17,14 @@ DATABASES = {
 # Static
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [ BASE_DIR / "home" / "static" ]
 
 # Media
 MEDIA_URL = "/media/"
 MEDIA_ROOT = "/data/web/media"
 
 # WhiteNoise: inserir depois de SecurityMiddleware
-MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+#MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
