@@ -2,71 +2,133 @@
 {% load dict_utils %}
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
+ <head>
   {% include 'partials/_head.html' %}
-</head>
-<body>
-{% include 'partials/_nav.html' %}
+ </head>
+ <body>
+  {% include 'partials/_nav.html' %}
 {% block content %}
-<div class="container mt-4" style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-  <div class="text-center mb-4">
-    <img src="{% static 'home/images/logo.svg' %}" alt="Logo da Escola" height="80">
-    <h3 class="mt-3">Boletim Escolar</h3>
-  </div>
-
-  <div class="mb-4">
-    <strong>Nome do Aluno:</strong> {{ aluno.nome }}<br>
-    <strong>CPF:</strong> {{ aluno.cpf }}<br>
-    <strong>Turma:</strong> {{ aluno.turmas.all.0.nome|default:"-" }}<br>
-    <strong>Ano de Ingresso:</strong> {{ aluno.ano_ingresso|default:"-" }}<br>
-  </div>
-
-  <table class="table table-bordered text-center">
+  <div class="container mt-4" style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+   <div class="text-center mb-4">
+    <img alt="Logo da Escola" height="80" src="{% static 'home/images/logo.svg' %}"/>
+    <h3 class="mt-3">
+     Boletim Escolar
+    </h3>
+   </div>
+   <div class="mb-4">
+    <strong>
+     Nome do Aluno:
+    </strong>
+    {{ aluno.nome }}
+    <br/>
+    <strong>
+     CPF:
+    </strong>
+    {{ aluno.cpf }}
+    <br/>
+    <strong>
+     Turma:
+    </strong>
+    {{ aluno.turmas.all.0.nome|default:"-" }}
+    <br/>
+    <strong>
+     Ano de Ingresso:
+    </strong>
+    {{ aluno.ano_ingresso|default:"-" }}
+    <br/>
+   </div>
+   <table class="table table-bordered text-center">
     <thead class="bg-light text-dark">
-      <tr>
-        <th rowspan="2">Disciplina</th>
-        <th colspan="4">Unidades</th>
-        <th rowspan="2">Média Anual</th>
-        <th rowspan="2">Recuperação</th>
-        <th rowspan="2">Média Final</th>
-        <th rowspan="2">Observações</th>
-      </tr>
-      <tr>
-        <th>1ª</th>
-        <th>2ª</th>
-        <th>3ª</th>
-        <th>4ª</th>
-      </tr>
+     <tr>
+      <th rowspan="2">
+       Disciplina
+      </th>
+      <th colspan="4">
+       Unidades
+      </th>
+      <th rowspan="2">
+       Média Anual
+      </th>
+      <th rowspan="2">
+       Recuperação
+      </th>
+      <th rowspan="2">
+       Média Final
+      </th>
+      <th rowspan="2">
+       Observações
+      </th>
+     </tr>
+     <tr>
+      <th>
+       1ª
+      </th>
+      <th>
+       2ª
+      </th>
+      <th>
+       3ª
+      </th>
+      <th>
+       4ª
+      </th>
+     </tr>
     </thead>
     <tbody>
-      {% for disciplina, dados in boletim.items %}
-      <tr>
-        <td>{{ disciplina }}</td>
-        <td>{{ dados|dict_get:"1"|default:"-" }}</td>
-        <td>{{ dados|dict_get:"2"|default:"-" }}</td>
-        <td>{{ dados|dict_get:"3"|default:"-" }}</td>
-        <td>{{ dados|dict_get:"4"|default:"-" }}</td>
-        <td>{{ dados.media|default:"-" }}</td>  {# Média Anual #}
-        <td>–</td>  {# Recuperação pode ser ajustada depois se houver campo #}
-        <td>{{ dados.media|default:"-" }}</td>  {# Média Final = igual à Anual por enquanto #}
-        <td>{{ dados.obs|default:"-" }}</td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="9" class="text-center">Nenhuma nota registrada.</td>
-      </tr>
-      {% endfor %}
+     {% for disciplina, dados in boletim.items %}
+     <tr>
+      <td>
+       {{ disciplina }}
+      </td>
+      <td>
+       {{ dados|dict_get:"1"|default:"-" }}
+      </td>
+      <td>
+       {{ dados|dict_get:"2"|default:"-" }}
+      </td>
+      <td>
+       {{ dados|dict_get:"3"|default:"-" }}
+      </td>
+      <td>
+       {{ dados|dict_get:"4"|default:"-" }}
+      </td>
+      <td>
+       {{ dados.media|default:"-" }}
+      </td>
+      {# Média Anual #}
+      <td>
+       –
+      </td>
+      {# Recuperação pode ser ajustada depois se houver campo #}
+      <td>
+       {{ dados.media|default:"-" }}
+      </td>
+      {# Média Final = igual à Anual por enquanto #}
+      <td>
+       {{ dados.obs|default:"-" }}
+      </td>
+     </tr>
+     {% empty %}
+     <tr>
+      <td class="text-center" colspan="9">
+       Nenhuma nota registrada.
+      </td>
+     </tr>
+     {% endfor %}
     </tbody>
-  </table>
-
-  <div class="d-flex justify-content-between mt-4">
-    <a href="{% url 'listar_turmas_boletim' %}" class="btn btn-secondary">Voltar</a>
-    <button class="btn btn-outline-primary" onclick="window.print()">Imprimir</button>
+   </table>
+   <div class="d-flex justify-content-between mt-4">
+    <a class="btn btn-secondary" href="{% url 'listar_turmas_boletim' %}">
+     Voltar
+    </a>
+    <button class="btn btn-outline-primary" onclick="window.print()">
+     Imprimir
+    </button>
+   </div>
   </div>
-</div>
-{% endblock %}
-<div>
-      {% include 'partials/_footer.html' %}
-    </div>
-</body>
+  {% endblock %}
+  <div>
+   {% include 'partials/_footer.html' %}
+  </div>
+ </body>
 </html>

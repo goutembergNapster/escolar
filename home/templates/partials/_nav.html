@@ -1,8 +1,7 @@
 {% load static %}
 {% load custom_tags %}
-
 <style>
-  .navbar-custom { background-color: #ffffff; }
+ .navbar-custom { background-color: #ffffff; }
   .navbar-nav .nav-item:hover { background-color: #fab982; border-radius: 5px; transition: background-color 0.3s ease; }
   .navbar-nav .nav-item .nav-link.active { color: #212529 !important; background-color: transparent !important; }
   .nav-item.dropdown:hover { background-color: #fab982; border-radius: 5px; }
@@ -11,144 +10,183 @@
   .dropdown-item:hover { background-color: #fab982; color: #000; border-radius: 5px; }
   .nav-disabled { pointer-events: none; opacity: 0.5; cursor: not-allowed; }
 </style>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+<link crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" rel="stylesheet"/>
 <nav class="navbar navbar-expand-lg navbar-light navbar-custom fixed-top">
-  <div class="container">
-    <a class="navbar-brand" href="{% url 'index' %}" style="position: relative;">
-      <img src="{% static 'home/images/logo.svg' %}" alt="Logo"
-           style="height: 60px; position: absolute; top: -30px; left: -110px;">
-    </a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
-            aria-controls="navbarResponsive" aria-expanded="false" aria-label="Alternar navegação">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="navbarResponsive">
-      <ul class="navbar-nav ml-auto">
-
-        {% if user.is_authenticated and escola_vinculada %}
-          <li class="nav-item">
-            <span class="nav-link text-primary">
-              <i class="fas fa-school mr-1"></i> {{ escola_vinculada.nome }}
-            </span>
-          </li>
-        {% endif %}
-
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'index' %}">
-            <i class="fas fa-home mr-1"></i> Página Inicial
-          </a>
-        </li>
-
-        {% if user|has_role:'diretor,coordenador,professor' %}
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="gestaoAcademicaDropdown" role="button" data-toggle="dropdown"
-             aria-haspopup="true" aria-expanded="false">
-            <i class="fas fa-graduation-cap mr-1"></i> Gestão Acadêmica
-          </a>
-          <div class="dropdown-menu" aria-labelledby="gestaoAcademicaDropdown">
-            {% if user|has_role:'diretor,coordenador' %}
-              <a class="dropdown-item" href="{% url 'cadastro_professor' %}">
-                <i class="fas fa-user-plus mr-1"></i> Cadastrar Professor
-              </a>
-              <a class="dropdown-item" href="{% url 'listar_professores' %}">
-                <i class="fas fa-list mr-1"></i> Listar Professores
-              </a>
-              <a class="dropdown-item" href="{% url 'cadastro_aluno' %}">
-                <i class="fas fa-user-graduate mr-1"></i> Cadastrar Aluno
-              </a>
-              <a class="dropdown-item" href="{% url 'listar_aluno' %}">
-                <i class="fas fa-list-ul mr-1"></i> Listar Alunos
-              </a>
-            {% endif %}
-
-            {% if user|has_role:'professor,diretor,coordenador' %}
-              <a class="dropdown-item" href="{% url 'registrar_notas' %}">
-                <i class="fas fa-pen-alt mr-1"></i> Lançar Notas
-              </a>
-            {% endif %}
-
-            {% if user|has_role:'diretor,coordenador' %}
-              <a class="dropdown-item" href="{% url 'listar_turmas_boletim' %}">
-                <i class="fas fa-file-alt mr-1"></i> Ver Boletim
-              </a>
-              <a class="dropdown-item" href="{% url 'pagina_cadastrar_disciplina' %}">
-                <i class="fas fa-clipboard-list mr-1"></i> Cadastrar Disciplinas
-              </a>
-            {% endif %}
+ <div class="container">
+  <a class="navbar-brand" href="{% url 'index' %}" style="position: relative;">
+   <img alt="Logo" src="{% static 'home/images/logo.svg' %}" style="height: 60px; position: absolute; top: -30px; left: -110px;"/>
+  </a>
+  <button aria-controls="navbarResponsive" aria-expanded="false" aria-label="Alternar navegação" class="navbar-toggler" data-target="#navbarResponsive" data-toggle="collapse" type="button">
+   <span class="navbar-toggler-icon">
+   </span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarResponsive">
+   <ul class="navbar-nav ml-auto">
+    {% if user.is_authenticated and escola_vinculada %}
+    <li class="nav-item">
+     <span class="nav-link text-primary">
+      <i class="fas fa-school mr-1">
+      </i>
+      {{ escola_vinculada.nome }}
+     </span>
+    </li>
+    {% endif %}
+    <li class="nav-item">
+     <a class="nav-link" href="{% url 'index' %}">
+      <i class="fas fa-home mr-1">
+      </i>
+      Página Inicial
+     </a>
+    </li>
+    {% if user|has_role:'diretor,coordenador,professor' %}
+    <li class="nav-item dropdown">
+     <a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="gestaoAcademicaDropdown" role="button">
+      <i class="fas fa-graduation-cap mr-1">
+      </i>
+      Gestão Acadêmica
+     </a>
+     <div aria-labelledby="gestaoAcademicaDropdown" class="dropdown-menu">
+      {% if user|has_role:'diretor,coordenador' %}
+      <a class="dropdown-item" href="{% url 'cadastro_professor' %}">
+       <i class="fas fa-user-plus mr-1">
+       </i>
+       Cadastrar Professor
+      </a>
+      <a class="dropdown-item" href="{% url 'listar_professores' %}">
+       <i class="fas fa-list mr-1">
+       </i>
+       Listar Professores
+      </a>
+      <a class="dropdown-item" href="{% url 'cadastro_aluno' %}">
+       <i class="fas fa-user-graduate mr-1">
+       </i>
+       Cadastrar Aluno
+      </a>
+      <a class="dropdown-item" href="{% url 'listar_aluno' %}">
+       <i class="fas fa-list-ul mr-1">
+       </i>
+       Listar Alunos
+      </a>
+      {% endif %}
 
             {% if user|has_role:'professor,diretor,coordenador' %}
-              <a class="dropdown-item" href="{% url 'diario_classe' %}">
-                <i class="fas fa-book mr-1"></i> Diário de Classe
-              </a>
-              <a class="dropdown-item" href="{% url 'visualizar_chamada' %}">
-                <i class="fas fa-eye mr-1"></i> Visualizar Presenças
-              </a>
-            {% endif %}
-          </div>
-        </li>
-        {% endif %}
+      <a class="dropdown-item" href="{% url 'registrar_notas' %}">
+       <i class="fas fa-pen-alt mr-1">
+       </i>
+       Lançar Notas
+      </a>
+      {% endif %}
+
+            {% if user|has_role:'diretor,coordenador' %}
+      <a class="dropdown-item" href="{% url 'listar_turmas_boletim' %}">
+       <i class="fas fa-file-alt mr-1">
+       </i>
+       Ver Boletim
+      </a>
+      <a class="dropdown-item" href="{% url 'pagina_cadastrar_disciplina' %}">
+       <i class="fas fa-clipboard-list mr-1">
+       </i>
+       Cadastrar Disciplinas
+      </a>
+      {% endif %}
+
+            {% if user|has_role:'professor,diretor,coordenador' %}
+      <a class="dropdown-item" href="{% url 'diario_classe' %}">
+       <i class="fas fa-book mr-1">
+       </i>
+       Diário de Classe
+      </a>
+      <a class="dropdown-item" href="{% url 'visualizar_chamada' %}">
+       <i class="fas fa-eye mr-1">
+       </i>
+       Visualizar Presenças
+      </a>
+      {% endif %}
+     </div>
+    </li>
+    {% endif %}
 
         {% if user|has_role:'diretor,coordenador' %}
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="gestaoGeralDropdown" role="button" data-toggle="dropdown"
-             aria-haspopup="true" aria-expanded="false">
-            <i class="fas fa-cogs mr-1"></i> Gestão Geral
-          </a>
-          <div class="dropdown-menu" aria-labelledby="gestaoGeralDropdown">
-            {% if request.user.is_superuser or request.user.escola %}
-              <a class="dropdown-item" href="{% url 'minha_escola' %}">
-                <i class="fas fa-school mr-1"></i> Minha Escola
-              </a>
-            {% endif %}
-
-            <!-- BLOCO TURMAS -->
-            <div class="dropdown-divider"></div>
-            <h6 class="dropdown-header"><i class="fas fa-users mr-1"></i> Turmas</h6>
-            <a class="dropdown-item" href="{% url 'cadastro_turma' %}">
-              <i class="fas fa-plus-circle mr-1"></i> Criar
-            </a>
-            <a class="dropdown-item" href="{% url 'listar_turmas' %}">
-              <i class="fas fa-list mr-1"></i> Listar
-            </a>
-
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="{% url 'cadastro_funcionarios' %}">
-              <i class="fas fa-briefcase mr-1"></i> Funcionários
-            </a>
-            <a class="dropdown-item" href="{% url 'imprimir_relatorios' %}">
-              <i class="fas fa-print mr-1"></i> Impressão de Relatórios
-            </a>
-          </div>
-        </li>
-        {% endif %}
+    <li class="nav-item dropdown">
+     <a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="gestaoGeralDropdown" role="button">
+      <i class="fas fa-cogs mr-1">
+      </i>
+      Gestão Geral
+     </a>
+     <div aria-labelledby="gestaoGeralDropdown" class="dropdown-menu">
+      {% if request.user.is_superuser or request.user.escola %}
+      <a class="dropdown-item" href="{% url 'minha_escola' %}">
+       <i class="fas fa-school mr-1">
+       </i>
+       Minha Escola
+      </a>
+      {% endif %}
+      <!-- BLOCO TURMAS -->
+      <div class="dropdown-divider">
+      </div>
+      <h6 class="dropdown-header">
+       <i class="fas fa-users mr-1">
+       </i>
+       Turmas
+      </h6>
+      <a class="dropdown-item" href="{% url 'cadastro_turma' %}">
+       <i class="fas fa-plus-circle mr-1">
+       </i>
+       Criar
+      </a>
+      <a class="dropdown-item" href="{% url 'listar_turmas' %}">
+       <i class="fas fa-list mr-1">
+       </i>
+       Listar
+      </a>
+      <div class="dropdown-divider">
+      </div>
+      <a class="dropdown-item" href="{% url 'cadastro_funcionarios' %}">
+       <i class="fas fa-briefcase mr-1">
+       </i>
+       Funcionários
+      </a>
+      <a class="dropdown-item" href="{% url 'imprimir_relatorios' %}">
+       <i class="fas fa-print mr-1">
+       </i>
+       Impressão de Relatórios
+      </a>
+     </div>
+    </li>
+    {% endif %}
 
         {% if user.is_authenticated %}
-          <li class="nav-item">
-            <span class="nav-link text-dark">
-              <i class="fas fa-user-circle mr-1"></i> Olá, {{ user.first_name }}👋
-            </span>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-danger" href="{% url 'logout' %}">
-              <i class="fas fa-sign-out-alt mr-1"></i> Sair
-            </a>
-          </li>
-        {% else %}
-          <li class="nav-item">
-            <a class="nav-link text-success" href="{% url 'login' %}">
-              <i class="fas fa-sign-in-alt mr-1"></i> Login
-            </a>
-          </li>
-        {% endif %}
-      </ul>
-    </div>
+    <li class="nav-item">
+     <span class="nav-link text-dark">
+      <i class="fas fa-user-circle mr-1">
+      </i>
+      Olá, {{ user.first_name }}👋
+     </span>
+    </li>
+    <li class="nav-item">
+     <a class="nav-link text-danger" href="{% url 'logout' %}">
+      <i class="fas fa-sign-out-alt mr-1">
+      </i>
+      Sair
+     </a>
+    </li>
+    {% else %}
+    <li class="nav-item">
+     <a class="nav-link text-success" href="{% url 'login' %}">
+      <i class="fas fa-sign-in-alt mr-1">
+      </i>
+      Login
+     </a>
+    </li>
+    {% endif %}
+   </ul>
   </div>
+ </div>
 </nav>
-
 <!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+<script crossorigin="anonymous" src="https://code.jquery.com/jquery-3.5.1.slim.min.js">
+</script>
+<script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js">
+</script>
+<script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js">
+</script>

@@ -1,100 +1,207 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-{% include 'partials/_head.html' %}
-<body>
-    {% include 'partials/_nav.html' %}
-    <section class="content-wrapper" style="margin-top: 15px;">
-        <div class="header-bar">Cadastrar Escola</div>
-        <form id="schoolForm">
-            {% csrf_token %}
-            <div class="form-row">
-                <div class="form-group short-field">
-                    <label for="schoolCnpj">CNPJ</label>
-                    <div class="input-group-cnpj">
-                        <input type="text" id="schoolCnpj" name="cnpj" placeholder="00.000.000/0000-00" required oninput="this.value = mascaraCnpj(this.value)" maxlength="18">
-                        <button type="button" onclick="buscarCnpj()">Buscar</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="schoolName">Nome da Escola</label>
-                    <input type="text" id="schoolName" name="nome" placeholder="Nome da Escola" class="disabled-field" readonly>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group short-field">
-                    <label for="schoolEmail">E-mail</label>
-                    <input type="email" id="schoolEmail" name="email" placeholder="email@escola.com.br" class="disabled-field" readonly>
-                </div>
-                <div class="form-group short-field">
-                    <label for="schoolPhone">Telefone</label>
-                    <input type="text" id="schoolPhone" name="telefone" placeholder="(xx) xxxx-xxxx" class="disabled-field" readonly>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="schoolCep">CEP</label>
-                    <input type="text" id="schoolCep" name="cep" placeholder="00000-000" class="disabled-field" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="schoolStreet">Logradouro</label>
-                    <input type="text" id="schoolStreet" name="endereco" placeholder="Rua / Avenida" class="disabled-field" readonly>
-                </div>
-                <div class="form-group short-field">
-                    <label for="schoolNumber">Número</label>
-                    <input type="text" id="schoolNumber" name="numero" class="disabled-field" readonly>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group short-field">
-                    <label for="schoolComplement">Complemento</label>
-                    <input type="text" id="schoolComplement" name="complemento" class="disabled-field" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="schoolNeighborhood">Bairro</label>
-                    <input type="text" id="schoolNeighborhood" name="bairro" class="disabled-field" readonly>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="schoolCity">Cidade</label>
-                    <input type="text" id="schoolCity" name="cidade" class="disabled-field" readonly>
-                </div>
-                <div class="form-group short-field">
-                    <label for="schoolState">Estado</label>
-                    <select id="schoolState" name="estado" class="disabled-field" disabled>
-                        <option value="">Escolher...</option>
-                        <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
-                        <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
-                        <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
-                        <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
-                        <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
-                        <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
-                        <option>SP</option><option>SE</option><option>TO</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="schoolWebsite">Site</label>
-                    <input type="url" id="schoolWebsite" name="site" placeholder="www.escola.com.br" class="disabled-field" readonly>
-                </div>
-            </div>
-
-            <div class="form-footer">
-                <button type="button" class="btn btn-secondary" id="resetButton" onclick="resetForm()">Limpar</button>
-                <button type="button" class="btn btn-secondary" id="alterarButton" onclick="enableFields()" disabled>Alterar</button>
-                <button type="button" class="btn btn-primary" id="submitButton">Cadastrar Escola</button>
-                <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'index' %}'" id="cancelButton">Cancelar</button>
-            </div>
-        </form>
-    </section>
-
-    <footer>
-        {% include 'partials/_footer.html' %}
-    </footer>
-    <script>
-        const fields = [
+ {% include 'partials/_head.html' %}
+ <body>
+  {% include 'partials/_nav.html' %}
+  <section class="content-wrapper" style="margin-top: 15px;">
+   <div class="header-bar">
+    Cadastrar Escola
+   </div>
+   <form id="schoolForm">
+    {% csrf_token %}
+    <div class="form-row">
+     <div class="form-group short-field">
+      <label for="schoolCnpj">
+       CNPJ
+      </label>
+      <div class="input-group-cnpj">
+       <input id="schoolCnpj" maxlength="18" name="cnpj" oninput="this.value = mascaraCnpj(this.value)" placeholder="00.000.000/0000-00" required="" type="text"/>
+       <button onclick="buscarCnpj()" type="button">
+        Buscar
+       </button>
+      </div>
+     </div>
+     <div class="form-group">
+      <label for="schoolName">
+       Nome da Escola
+      </label>
+      <input class="disabled-field" id="schoolName" name="nome" placeholder="Nome da Escola" readonly="" type="text"/>
+     </div>
+    </div>
+    <div class="form-row">
+     <div class="form-group short-field">
+      <label for="schoolEmail">
+       E-mail
+      </label>
+      <input class="disabled-field" id="schoolEmail" name="email" placeholder="email@escola.com.br" readonly="" type="email"/>
+     </div>
+     <div class="form-group short-field">
+      <label for="schoolPhone">
+       Telefone
+      </label>
+      <input class="disabled-field" id="schoolPhone" name="telefone" placeholder="(xx) xxxx-xxxx" readonly="" type="text"/>
+     </div>
+    </div>
+    <div class="form-row">
+     <div class="form-group">
+      <label for="schoolCep">
+       CEP
+      </label>
+      <input class="disabled-field" id="schoolCep" name="cep" placeholder="00000-000" readonly="" type="text"/>
+     </div>
+     <div class="form-group">
+      <label for="schoolStreet">
+       Logradouro
+      </label>
+      <input class="disabled-field" id="schoolStreet" name="endereco" placeholder="Rua / Avenida" readonly="" type="text"/>
+     </div>
+     <div class="form-group short-field">
+      <label for="schoolNumber">
+       Número
+      </label>
+      <input class="disabled-field" id="schoolNumber" name="numero" readonly="" type="text"/>
+     </div>
+    </div>
+    <div class="form-row">
+     <div class="form-group short-field">
+      <label for="schoolComplement">
+       Complemento
+      </label>
+      <input class="disabled-field" id="schoolComplement" name="complemento" readonly="" type="text"/>
+     </div>
+     <div class="form-group">
+      <label for="schoolNeighborhood">
+       Bairro
+      </label>
+      <input class="disabled-field" id="schoolNeighborhood" name="bairro" readonly="" type="text"/>
+     </div>
+    </div>
+    <div class="form-row">
+     <div class="form-group">
+      <label for="schoolCity">
+       Cidade
+      </label>
+      <input class="disabled-field" id="schoolCity" name="cidade" readonly="" type="text"/>
+     </div>
+     <div class="form-group short-field">
+      <label for="schoolState">
+       Estado
+      </label>
+      <select class="disabled-field" disabled="" id="schoolState" name="estado">
+       <option value="">
+        Escolher...
+       </option>
+       <option>
+        AC
+       </option>
+       <option>
+        AL
+       </option>
+       <option>
+        AP
+       </option>
+       <option>
+        AM
+       </option>
+       <option>
+        BA
+       </option>
+       <option>
+        CE
+       </option>
+       <option>
+        DF
+       </option>
+       <option>
+        ES
+       </option>
+       <option>
+        GO
+       </option>
+       <option>
+        MA
+       </option>
+       <option>
+        MT
+       </option>
+       <option>
+        MS
+       </option>
+       <option>
+        MG
+       </option>
+       <option>
+        PA
+       </option>
+       <option>
+        PB
+       </option>
+       <option>
+        PR
+       </option>
+       <option>
+        PE
+       </option>
+       <option>
+        PI
+       </option>
+       <option>
+        RJ
+       </option>
+       <option>
+        RN
+       </option>
+       <option>
+        RS
+       </option>
+       <option>
+        RO
+       </option>
+       <option>
+        RR
+       </option>
+       <option>
+        SC
+       </option>
+       <option>
+        SP
+       </option>
+       <option>
+        SE
+       </option>
+       <option>
+        TO
+       </option>
+      </select>
+     </div>
+     <div class="form-group">
+      <label for="schoolWebsite">
+       Site
+      </label>
+      <input class="disabled-field" id="schoolWebsite" name="site" placeholder="www.escola.com.br" readonly="" type="url"/>
+     </div>
+    </div>
+    <div class="form-footer">
+     <button class="btn btn-secondary" id="resetButton" onclick="resetForm()" type="button">
+      Limpar
+     </button>
+     <button class="btn btn-secondary" disabled="" id="alterarButton" onclick="enableFields()" type="button">
+      Alterar
+     </button>
+     <button class="btn btn-primary" id="submitButton" type="button">
+      Cadastrar Escola
+     </button>
+     <button class="btn btn-secondary" id="cancelButton" onclick="window.location.href='{% url 'index' %}'" type="button">
+      Cancelar
+     </button>
+    </div>
+   </form>
+  </section>
+  <footer>
+   {% include 'partials/_footer.html' %}
+  </footer>
+  <script>
+   const fields = [
             'schoolName', 'schoolEmail', 'schoolPhone', 'schoolStreet',
             'schoolNumber', 'schoolComplement', 'schoolNeighborhood',
             'schoolCity', 'schoolState', 'schoolWebsite', 'schoolCep', 'schoolCnpj'
@@ -277,7 +384,6 @@
                 console.error("🚨 Erro na requisição:", error);
             });
         });
-    </script>
-    
-</body>
+  </script>
+ </body>
 </html>

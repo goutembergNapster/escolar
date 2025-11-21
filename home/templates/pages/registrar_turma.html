@@ -1,10 +1,10 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    {% include 'partials/_head.html' %}
-    <style>
-        .form-row {
+ <head>
+  {% include 'partials/_head.html' %}
+  <style>
+   .form-row {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
@@ -71,104 +71,142 @@
             color: #d00;
             font-weight: bold;
         }
-    </style>
-</head>
-<body>
-{% include 'partials/_nav.html' %}
-<section class="form-container">
-    <div class="container">
-        <div class="header-bar">Criar Turma</div>
-
-         <section class="content-wrapper" style="margin-top: 15px;">
-            <form method="post" id="turmaForm">
-                {% csrf_token %}
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="nomeTurma">Nome da Turma</label>
-                        <input type="text" id="nomeTurma" name="nome" placeholder="Ex: 5º Ano A" required>
-                    </div>
-                    <div class="form-group short-field">
-                        <label for="turnoTurma">Turno</label>
-                        <select id="turnoTurma" name="turno" required>
-                            <option value="">Selecione</option>
-                            <option>Manhã</option>
-                            <option>Tarde</option>
-                            <option>Noite</option>
-                        </select>
-                    </div>
-                    <div class="form-group short-field">
-                        <label for="anoTurma">Ano</label>
-                        <input type="number" id="anoTurma" name="ano" min="1900" max="2100" required>
-                    </div>
-                    <div class="form-group short-field">
-                        <label for="salaTurma">Sala</label>
-                        <input type="text" id="salaTurma" name="sala" placeholder="Ex: 202" required>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group" style="width: 100%">
-                        <label for="descricaoTurma">Descrição (opcional)</label>
-                        <textarea id="descricaoTurma" name="descricao" rows="3" style="width: 100%;"></textarea>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group short-field">
-                        <label for="tipoPessoa">Tipo</label>
-                        <select id="tipoPessoa" onchange="atualizarCampoDisciplina()">
-                            <option value="professor">Professor</option>
-                            <option value="aluno">Aluno</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="flex: 2; position: relative;">
-                        <label for="buscaPessoa">Buscar Aluno ou Professor</label>
-                        <input type="text" id="buscaPessoa" placeholder="Digite o nome" autocomplete="off">
-                        <ul id="sugestoes"></ul>
-                    </div>
-                    <div class="form-group short-field">
-                        <label for="disciplinaSelecionada">Disciplina</label>
-                        <select id="disciplinaSelecionada" name="disciplina_id">
-                            <option value="">Selecione a disciplina</option>
-                            {% for disciplina in disciplinas %}
-                                <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group short-field">
-                        <label style="color: transparent;">Add</label>
-                        <button type="button" class="btn btn-primary" onclick="adicionarPessoa()">Adicionar</button>
-                    </div>
-                </div>
-
-                <!-- Novo campo visual da turma montada -->
-                <div class="form-row">
-    <div class="form-group" style="width: 100%">
-        <label>Turma Montada</label>
-
+  </style>
+ </head>
+ <body>
+  {% include 'partials/_nav.html' %}
+  <section class="form-container">
+   <div class="container">
+    <div class="header-bar">
+     Criar Turma
+    </div>
+    <section class="content-wrapper" style="margin-top: 15px;">
+     <form id="turmaForm" method="post">
+      {% csrf_token %}
+      <div class="form-row">
+       <div class="form-group">
+        <label for="nomeTurma">
+         Nome da Turma
+        </label>
+        <input id="nomeTurma" name="nome" placeholder="Ex: 5º Ano A" required="" type="text"/>
+       </div>
+       <div class="form-group short-field">
+        <label for="turnoTurma">
+         Turno
+        </label>
+        <select id="turnoTurma" name="turno" required="">
+         <option value="">
+          Selecione
+         </option>
+         <option>
+          Manhã
+         </option>
+         <option>
+          Tarde
+         </option>
+         <option>
+          Noite
+         </option>
+        </select>
+       </div>
+       <div class="form-group short-field">
+        <label for="anoTurma">
+         Ano
+        </label>
+        <input id="anoTurma" max="2100" min="1900" name="ano" required="" type="number"/>
+       </div>
+       <div class="form-group short-field">
+        <label for="salaTurma">
+         Sala
+        </label>
+        <input id="salaTurma" name="sala" placeholder="Ex: 202" required="" type="text"/>
+       </div>
+      </div>
+      <div class="form-row">
+       <div class="form-group" style="width: 100%">
+        <label for="descricaoTurma">
+         Descrição (opcional)
+        </label>
+        <textarea id="descricaoTurma" name="descricao" rows="3" style="width: 100%;"></textarea>
+       </div>
+      </div>
+      <div class="form-row">
+       <div class="form-group short-field">
+        <label for="tipoPessoa">
+         Tipo
+        </label>
+        <select id="tipoPessoa" onchange="atualizarCampoDisciplina()">
+         <option value="professor">
+          Professor
+         </option>
+         <option value="aluno">
+          Aluno
+         </option>
+        </select>
+       </div>
+       <div class="form-group" style="flex: 2; position: relative;">
+        <label for="buscaPessoa">
+         Buscar Aluno ou Professor
+        </label>
+        <input autocomplete="off" id="buscaPessoa" placeholder="Digite o nome" type="text"/>
+        <ul id="sugestoes">
+        </ul>
+       </div>
+       <div class="form-group short-field">
+        <label for="disciplinaSelecionada">
+         Disciplina
+        </label>
+        <select id="disciplinaSelecionada" name="disciplina_id">
+         <option value="">
+          Selecione a disciplina
+         </option>
+         {% for disciplina in disciplinas %}
+         <option value="{{ disciplina.id }}">
+          {{ disciplina.nome }}
+         </option>
+         {% endfor %}
+        </select>
+       </div>
+       <div class="form-group short-field">
+        <label style="color: transparent;">
+         Add
+        </label>
+        <button class="btn btn-primary" onclick="adicionarPessoa()" type="button">
+         Adicionar
+        </button>
+       </div>
+      </div>
+      <!-- Novo campo visual da turma montada -->
+      <div class="form-row">
+       <div class="form-group" style="width: 100%">
+        <label>
+         Turma Montada
+        </label>
         <!-- Substituímos o textarea por uma div visualmente idêntica -->
-        <div id="turmaMontadaTags" 
-             style="width: 100%; background-color: #f9f9f9; height: 180px; padding: 10px; border: 1px solid #fab982; 
-                    border-radius: 4px; overflow-y: auto; white-space: pre-wrap; cursor: default;"></div>
-
-        <input type="hidden" name="professor_id" id="professor_id">
-        <input type="hidden" name="alunos_ids" id="alunos_ids">
-    </div>
-</div>
-                <div class="form-footer">
-                    <button type="submit" class="btn btn-primary">Salvar Turma</button>
-                    <button type="reset" class="btn btn-secondary">Cancelar</button>
-                </div>
-            </form>
+        <div id="turmaMontadaTags" style="width: 100%; background-color: #f9f9f9; height: 180px; padding: 10px; border: 1px solid #fab982; 
+                    border-radius: 4px; overflow-y: auto; white-space: pre-wrap; cursor: default;">
         </div>
-    </div>
-</section>
-
-{% include 'partials/_footer.html' %}
-<script src="{% static 'js/formulario_turma_dinamico.js' %}"></script>
-<script>
-function atualizarCampoDisciplina() {
+        <input id="professor_id" name="professor_id" type="hidden"/>
+        <input id="alunos_ids" name="alunos_ids" type="hidden"/>
+       </div>
+      </div>
+      <div class="form-footer">
+       <button class="btn btn-primary" type="submit">
+        Salvar Turma
+       </button>
+       <button class="btn btn-secondary" type="reset">
+        Cancelar
+       </button>
+      </div>
+     </form>
+    </section>
+   </div>
+  </section>
+  {% include 'partials/_footer.html' %}
+  <script src="{% static 'js/formulario_turma_dinamico.js' %}">
+  </script>
+  <script>
+   function atualizarCampoDisciplina() {
     const tipo = document.getElementById('tipoPessoa').value;
     const selectDisciplina = document.getElementById('disciplinaSelecionada');
     selectDisciplina.disabled = tipo !== 'professor';
@@ -177,7 +215,6 @@ function atualizarCampoDisciplina() {
     }
 }
 document.addEventListener('DOMContentLoaded', atualizarCampoDisciplina);
-</script>
-</body>
+  </script>
+ </body>
 </html>
-

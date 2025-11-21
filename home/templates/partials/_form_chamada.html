@@ -1,43 +1,53 @@
 <form id="formChamada">
-  <input type="hidden" id="turmaId" value="{{ turma.id }}">
-  <input type="hidden" id="disciplinaId" value="{{ disciplina.id }}">
-
-  <div class="form-group mb-3">
-    <label for="dataChamada">Data</label>
-    <input type="date" class="form-control" id="dataChamada" name="data" required value="{{ today|default:'' }}">
-  </div>
-
-  <table class="table table-bordered table-hover table-striped">
-    <thead class="table-light">
-      <tr>
-        <th>Nome do Aluno</th>
-        <th>Presença</th>
-        <th>Observações</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for aluno in alunos %}
-      <tr>
-        <td>{{ aluno.nome }}</td>
-        <td>
-          <div class="form-check form-switch">
-            <input class="form-check-input presenca" type="checkbox" data-id="{{ aluno.id }}" checked>
-            <label class="form-check-label">Presente</label>
-          </div>
-        </td>
-        <td>
-          <input type="text" class="form-control observacao" data-id="{{ aluno.id }}" placeholder="Observações">
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <button type="submit" class="btn btn-primary">Salvar Chamada</button>
+ <input id="turmaId" type="hidden" value="{{ turma.id }}"/>
+ <input id="disciplinaId" type="hidden" value="{{ disciplina.id }}"/>
+ <div class="form-group mb-3">
+  <label for="dataChamada">
+   Data
+  </label>
+  <input class="form-control" id="dataChamada" name="data" required="" type="date" value="{{ today|default:'' }}"/>
+ </div>
+ <table class="table table-bordered table-hover table-striped">
+  <thead class="table-light">
+   <tr>
+    <th>
+     Nome do Aluno
+    </th>
+    <th>
+     Presença
+    </th>
+    <th>
+     Observações
+    </th>
+   </tr>
+  </thead>
+  <tbody>
+   {% for aluno in alunos %}
+   <tr>
+    <td>
+     {{ aluno.nome }}
+    </td>
+    <td>
+     <div class="form-check form-switch">
+      <input checked="" class="form-check-input presenca" data-id="{{ aluno.id }}" type="checkbox"/>
+      <label class="form-check-label">
+       Presente
+      </label>
+     </div>
+    </td>
+    <td>
+     <input class="form-control observacao" data-id="{{ aluno.id }}" placeholder="Observações" type="text"/>
+    </td>
+   </tr>
+   {% endfor %}
+  </tbody>
+ </table>
+ <button class="btn btn-primary" type="submit">
+  Salvar Chamada
+ </button>
 </form>
-
 <script>
-  document.getElementById('formChamada')?.addEventListener('submit', function (e) {
+ document.getElementById('formChamada')?.addEventListener('submit', function (e) {
     e.preventDefault();
 
     const turmaId = document.getElementById('turmaId').value;

@@ -1,142 +1,194 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    {% include 'partials/_head.html' %}
-</head>
-<body>
-<div class="flex-wrapper">
-    {% include 'partials/_nav.html' %}
-
-    <section class="form-container">
-        <div class="container">
-        <div class="header-bar">Cadastrar Professor</div>
+ <head>
+  {% include 'partials/_head.html' %}
+ </head>
+ <body>
+  <div class="flex-wrapper">
+   {% include 'partials/_nav.html' %}
+   <section class="form-container">
+    <div class="container">
+     <div class="header-bar">
+      Cadastrar Professor
+     </div>
     </div>
-
-        <div class="content-wrapper" style="padding-top: 0; margin-top: 0;">
-            <form method="post" action="cadastrar_professor/" id="professorForm">
-                {% csrf_token %}
-
-                <h3>Informações Pessoais</h3>
-                <div class="form-row">
-                    <div class="form-group short-field">
-                        <label for="doctorCpf">CPF</label>
-                        <div class="input-group-cpf">
-                            <input type="text" id="doctorCpf" name="doctorCpf" placeholder="000.000.000-00" required oninput="mascaraCpf(this)">
-                            <button type="button" class="btn" onclick="buscarCpf()">Buscar</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="doctorName">Nome Completo</label>
-                        <input type="text" id="doctorName" name="doctorName" required>
-                    </div>
-                    <div class="form-group short-field">
-                        <label for="birthdate">Data de Nascimento</label>
-                        <input type="date" id="birthdate" name="birthdate" required>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="email">E-mail</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Telefone</label>
-                        <input type="tel" id="phone" name="phone" required>
-                    </div>
-                    <div class="form-group short-field">
-                        <label for="cep">CEP</label>
-                        <input type="text" id="cep" name="cep" required>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="address">Logradouro</label>
-                        <input type="text" id="address" name="address" required>
-                    </div>
-                    <div class="form-group short-field">
-                        <label for="number">Número</label>
-                        <input type="text" id="number" name="number" required>
-                    </div>
-                    <div class="form-group short-field">
-                        <label for="complement">Complemento</label>
-                        <input type="text" id="complement" name="complement">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="bairro">Bairro</label>
-                        <input type="text" id="bairro" name="bairro" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="city">Cidade</label>
-                        <input type="text" id="city" name="city" required>
-                    </div>
-                    <div class="form-group short-field">
-                        <label for="state">Estado</label>
-                        <input type="text" id="state" name="state" required>
-                    </div>
-                </div>
-
-                <h3>Dados Profissionais</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="cargo">Cargo</label>
-                        <select id="cargo" name="cargo" required>
-                            <option value="professor">Professor</option>
-                            <option value="diretor">Diretor</option>
-                            <option value="coordenador">Coordenador</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="formacao">Formação</label>
-                        <input type="text" id="formacao" name="formacao" required>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="experiencia">Experiência</label>
-                        <textarea id="experiencia" name="experiencia" required></textarea>
-                    </div>
-                    <div class="form-group short-field">
-                        <label for="sexo">Sexo</label>
-                        <select id="sexo" name="sexo">
-                            <option value="masc">Masculino</option>
-                            <option value="femi">Feminino</option>
-                        </select>
-                    </div>
-                    <div class="form-group short-field">
-                        <label for="ativo">Ativo</label>
-                        <select id="ativo" name="ativo">
-                            <option value="true">Sim</option>
-                            <option value="false">Não</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                      <label for="senha_temporaria">Senha Temporária</label>
-                      <input type="text" id="senha_temporaria" class="form-control" readonly style="background-color: #f1f1f1;">
-                    </div>
-                </div>
-                <div class="form-footer">
-                    <button type="submit" class="btn btn-primary" id="submitButton">Cadastrar</button>
-                    <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'index' %}'">Cancelar</button>
-                </div>
-            </form>
+    <div class="content-wrapper" style="padding-top: 0; margin-top: 0;">
+     <form action="cadastrar_professor/" id="professorForm" method="post">
+      {% csrf_token %}
+      <h3>
+       Informações Pessoais
+      </h3>
+      <div class="form-row">
+       <div class="form-group short-field">
+        <label for="doctorCpf">
+         CPF
+        </label>
+        <div class="input-group-cpf">
+         <input id="doctorCpf" name="doctorCpf" oninput="mascaraCpf(this)" placeholder="000.000.000-00" required="" type="text"/>
+         <button class="btn" onclick="buscarCpf()" type="button">
+          Buscar
+         </button>
         </div>
-    </section>
-
-    <footer>
-        {% include 'partials/_footer.html' %}
-    </footer>
-</div>
-
-<script>
-    // Todas as funções JS continuam funcionais com o campo disciplinas removido
+       </div>
+       <div class="form-group">
+        <label for="doctorName">
+         Nome Completo
+        </label>
+        <input id="doctorName" name="doctorName" required="" type="text"/>
+       </div>
+       <div class="form-group short-field">
+        <label for="birthdate">
+         Data de Nascimento
+        </label>
+        <input id="birthdate" name="birthdate" required="" type="date"/>
+       </div>
+      </div>
+      <div class="form-row">
+       <div class="form-group">
+        <label for="email">
+         E-mail
+        </label>
+        <input id="email" name="email" required="" type="email"/>
+       </div>
+       <div class="form-group">
+        <label for="phone">
+         Telefone
+        </label>
+        <input id="phone" name="phone" required="" type="tel"/>
+       </div>
+       <div class="form-group short-field">
+        <label for="cep">
+         CEP
+        </label>
+        <input id="cep" name="cep" required="" type="text"/>
+       </div>
+      </div>
+      <div class="form-row">
+       <div class="form-group">
+        <label for="address">
+         Logradouro
+        </label>
+        <input id="address" name="address" required="" type="text"/>
+       </div>
+       <div class="form-group short-field">
+        <label for="number">
+         Número
+        </label>
+        <input id="number" name="number" required="" type="text"/>
+       </div>
+       <div class="form-group short-field">
+        <label for="complement">
+         Complemento
+        </label>
+        <input id="complement" name="complement" type="text"/>
+       </div>
+      </div>
+      <div class="form-row">
+       <div class="form-group">
+        <label for="bairro">
+         Bairro
+        </label>
+        <input id="bairro" name="bairro" required="" type="text"/>
+       </div>
+       <div class="form-group">
+        <label for="city">
+         Cidade
+        </label>
+        <input id="city" name="city" required="" type="text"/>
+       </div>
+       <div class="form-group short-field">
+        <label for="state">
+         Estado
+        </label>
+        <input id="state" name="state" required="" type="text"/>
+       </div>
+      </div>
+      <h3>
+       Dados Profissionais
+      </h3>
+      <div class="form-row">
+       <div class="form-group">
+        <label for="cargo">
+         Cargo
+        </label>
+        <select id="cargo" name="cargo" required="">
+         <option value="professor">
+          Professor
+         </option>
+         <option value="diretor">
+          Diretor
+         </option>
+         <option value="coordenador">
+          Coordenador
+         </option>
+        </select>
+       </div>
+       <div class="form-group">
+        <label for="formacao">
+         Formação
+        </label>
+        <input id="formacao" name="formacao" required="" type="text"/>
+       </div>
+      </div>
+      <div class="form-row">
+       <div class="form-group">
+        <label for="experiencia">
+         Experiência
+        </label>
+        <textarea id="experiencia" name="experiencia" required=""></textarea>
+       </div>
+       <div class="form-group short-field">
+        <label for="sexo">
+         Sexo
+        </label>
+        <select id="sexo" name="sexo">
+         <option value="masc">
+          Masculino
+         </option>
+         <option value="femi">
+          Feminino
+         </option>
+        </select>
+       </div>
+       <div class="form-group short-field">
+        <label for="ativo">
+         Ativo
+        </label>
+        <select id="ativo" name="ativo">
+         <option value="true">
+          Sim
+         </option>
+         <option value="false">
+          Não
+         </option>
+        </select>
+       </div>
+      </div>
+      <div class="form-row">
+       <div class="form-group">
+        <label for="senha_temporaria">
+         Senha Temporária
+        </label>
+        <input class="form-control" id="senha_temporaria" readonly="" style="background-color: #f1f1f1;" type="text"/>
+       </div>
+      </div>
+      <div class="form-footer">
+       <button class="btn btn-primary" id="submitButton" type="submit">
+        Cadastrar
+       </button>
+       <button class="btn btn-secondary" onclick="window.location.href='{% url 'index' %}'" type="button">
+        Cancelar
+       </button>
+      </div>
+     </form>
+    </div>
+   </section>
+   <footer>
+    {% include 'partials/_footer.html' %}
+   </footer>
+  </div>
+  <script>
+   // Todas as funções JS continuam funcionais com o campo disciplinas removido
     // Apenas foram removidas as referências a 'disciplinas'
 
     function gerarSenhaTemporaria(tamanho = 8) {
@@ -233,6 +285,6 @@
             console.error("🚨 Erro na requisição:", error);
         });
     });
-</script>
-</body>
+  </script>
+ </body>
 </html>

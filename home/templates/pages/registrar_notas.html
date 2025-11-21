@@ -2,10 +2,10 @@
 {% load custom_tags %}
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    {% include 'partials/_head.html' %}
-    <style>
-        .content {
+ <head>
+  {% include 'partials/_head.html' %}
+  <style>
+   .content {
             max-width: 900px;
             margin: 20px auto;
         }
@@ -55,77 +55,92 @@
             cursor: pointer;
             margin-top: 15px;
         }
-    </style>
-</head>
-<body>
-{% include 'partials/_nav.html' %}
-<div class="content">
-    <h2>Lançamento de Notas</h2>
-
-    <form method="GET" class="form-top">
-        <label for="turma">Turma:</label>
-        <select id="turma" name="turma" onchange="this.form.submit()">
-            <option value="">Selecione uma turma</option>
-            {% for t in turmas %}
-                <option value="{{ t.id }}" {% if request.GET.turma == t.id|stringformat:"s" %}selected{% endif %}>
-                    {{ t.nome }} - {{ t.turno }}
-                </option>
-            {% endfor %}
-        </select>
-
-        {% if disciplinas %}
-        <label for="disciplina">Disciplina:</label>
-        <select id="disciplina" name="disciplina" onchange="this.form.submit()">
-            <option value="">Selecione uma disciplina</option>
-            {% for d in disciplinas %}
-                <option value="{{ d.id }}" {% if request.GET.disciplina == d.id|stringformat:"s" %}selected{% endif %}>
-                    {{ d.nome }}
-                </option>
-            {% endfor %}
-        </select>
-        {% endif %}
-    </form>
-
-    {% if alunos %}
-        <form id="notasForm">
-            <input type="hidden" name="turma_id" value="{{ turma_id }}">
-            <input type="hidden" name="disciplina_id" value="{{ disciplina_id }}">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Aluno</th>
-                        <th>Notas</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for aluno in alunos %}
-                    <tr>
-                        <td>{{ aluno.nome }}</td>
-                        <td class="input-notas">
-                            <input type="number" name="nota1_{{ aluno.id }}" step="0.1" min="0" max="10"
-                                value="{{ notas|get_item:aluno.id|get_item:'nota1'|default_if_none:'' }}">
-                            <input type="number" name="nota2_{{ aluno.id }}" step="0.1" min="0" max="10"
-                                value="{{ notas|get_item:aluno.id|get_item:'nota2'|default_if_none:'' }}">
-                            <input type="number" name="nota3_{{ aluno.id }}" step="0.1" min="0" max="10"
-                                value="{{ notas|get_item:aluno.id|get_item:'nota3'|default_if_none:'' }}">
-                            <input type="number" name="nota4_{{ aluno.id }}" step="0.1" min="0" max="10"
-                                value="{{ notas|get_item:aluno.id|get_item:'nota4'|default_if_none:'' }}">
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <button type="button" class="btn-salvar" onclick="salvarNotas()">Salvar Notas</button>
-        </form>
-    {% elif turma_id and disciplina_id %}
-        <p>Não há alunos cadastrados nesta turma.</p>
-    {% else %}
-        <p>Selecione uma turma e uma disciplina para lançar as notas.</p>
+  </style>
+ </head>
+ <body>
+  {% include 'partials/_nav.html' %}
+  <div class="content">
+   <h2>
+    Lançamento de Notas
+   </h2>
+   <form class="form-top" method="GET">
+    <label for="turma">
+     Turma:
+    </label>
+    <select id="turma" name="turma" onchange="this.form.submit()">
+     <option value="">
+      Selecione uma turma
+     </option>
+     {% for t in turmas %}
+     <option %}="" %}selected{%="" endif="" if="" request.get.turma='t.id|stringformat:"s"' value="{{ t.id }}" {%="">
+      {{ t.nome }} - {{ t.turno }}
+     </option>
+     {% endfor %}
+    </select>
+    {% if disciplinas %}
+    <label for="disciplina">
+     Disciplina:
+    </label>
+    <select id="disciplina" name="disciplina" onchange="this.form.submit()">
+     <option value="">
+      Selecione uma disciplina
+     </option>
+     {% for d in disciplinas %}
+     <option %}="" %}selected{%="" endif="" if="" request.get.disciplina='d.id|stringformat:"s"' value="{{ d.id }}" {%="">
+      {{ d.nome }}
+     </option>
+     {% endfor %}
+    </select>
     {% endif %}
-</div>
-{% include 'partials/_footer.html' %}
-<script>
-    function salvarNotas() {
+   </form>
+   {% if alunos %}
+   <form id="notasForm">
+    <input name="turma_id" type="hidden" value="{{ turma_id }}"/>
+    <input name="disciplina_id" type="hidden" value="{{ disciplina_id }}"/>
+    <table>
+     <thead>
+      <tr>
+       <th>
+        Aluno
+       </th>
+       <th>
+        Notas
+       </th>
+      </tr>
+     </thead>
+     <tbody>
+      {% for aluno in alunos %}
+      <tr>
+       <td>
+        {{ aluno.nome }}
+       </td>
+       <td class="input-notas">
+        <input max="10" min="0" name="nota1_{{ aluno.id }}" step="0.1" type="number" value="{{ notas|get_item:aluno.id|get_item:'nota1'|default_if_none:'' }}"/>
+        <input max="10" min="0" name="nota2_{{ aluno.id }}" step="0.1" type="number" value="{{ notas|get_item:aluno.id|get_item:'nota2'|default_if_none:'' }}"/>
+        <input max="10" min="0" name="nota3_{{ aluno.id }}" step="0.1" type="number" value="{{ notas|get_item:aluno.id|get_item:'nota3'|default_if_none:'' }}"/>
+        <input max="10" min="0" name="nota4_{{ aluno.id }}" step="0.1" type="number" value="{{ notas|get_item:aluno.id|get_item:'nota4'|default_if_none:'' }}"/>
+       </td>
+      </tr>
+      {% endfor %}
+     </tbody>
+    </table>
+    <button class="btn-salvar" onclick="salvarNotas()" type="button">
+     Salvar Notas
+    </button>
+   </form>
+   {% elif turma_id and disciplina_id %}
+   <p>
+    Não há alunos cadastrados nesta turma.
+   </p>
+   {% else %}
+   <p>
+    Selecione uma turma e uma disciplina para lançar as notas.
+   </p>
+   {% endif %}
+  </div>
+  {% include 'partials/_footer.html' %}
+  <script>
+   function salvarNotas() {
         const form = document.getElementById('notasForm');
         const turmaId = form.querySelector('input[name="turma_id"]').value;
         const disciplinaId = form.querySelector('input[name="disciplina_id"]').value;
@@ -166,6 +181,6 @@
             alert("Erro inesperado ao salvar.");
         });
     }
-</script>
-</body>
+  </script>
+ </body>
 </html>

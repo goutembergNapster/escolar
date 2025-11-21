@@ -1,8 +1,8 @@
 <html>
-<head>
-    {% include 'partials/_head.html' %}
-    <style>
-        * {
+ <head>
+  {% include 'partials/_head.html' %}
+  <style>
+   * {
             font-size: 15px;
         }
 
@@ -86,129 +86,250 @@
                 page-break-inside: avoid;
             }
         }
-    </style>
-</head>
-<body>
-<div class="flex-wrapper">
-    {% include 'partials/_nav.html' %}
-
-    <div class="content">
-        <!-- FILTROS E BOTÕES -->
-        <form method="GET" class="filter-form">
-            <label for="tipo">Tipo de Impressão:</label>
-            <select id="tipo" name="tipo" onchange="this.form.submit()">
-                <option value="turmas" {% if tipo == 'turmas' %}selected{% endif %}>Turmas</option>
-                <option value="alunos" {% if tipo == 'alunos' %}selected{% endif %}>Alunos</option>
-                <option value="professores" {% if tipo == 'professores' %}selected{% endif %}>Professores</option>
-                <option value="funcionarios" {% if tipo == 'funcionarios' %}selected{% endif %}>Funcionários</option>
-            </select>
-
-            {% if tipo == 'alunos' %}
-                <label for="turma">Turma:</label>
-                <select id="turma" name="turma" onchange="this.form.submit()">
-                    <option value="">Todas</option>
-                    {% for t in turmas_disponiveis %}
-                        <option value="{{ t.id }}" {% if turma_id == t.id|stringformat:"s" %}selected{% endif %}>
-                            {{ t.nome }}
-                        </option>
-                    {% endfor %}
-                </select>
-
-                <label for="professor">Professor:</label>
-                <select id="professor" name="professor" onchange="this.form.submit()">
-                    <option value="">Todos</option>
-                    {% for p in professores_disponiveis %}
-                        <option value="{{ p.id }}" {% if professor_id == p.id|stringformat:"s" %}selected{% endif %}>
-                            {{ p.nome }}
-                        </option>
-                    {% endfor %}
-                </select>
-            {% endif %}
-
-            <button type="button" onclick="window.print()">🖨️ Imprimir</button>
-        </form>
-
-        <!-- ÁREA DE PRÉ-VISUALIZAÇÃO DA IMPRESSÃO -->
-        <div class="print-preview">
-            <div class="print-header">ESCOLA PEQUENO APRENDIZ</div>
-
-            {% if tipo == 'turmas' %}
-                <table>
-                    <thead>
-                        <tr><th>Turma</th><th>Sala</th><th>Turno</th><th>Ano</th><th>Professor</th><th>Qtd. Alunos</th></tr>
-                    </thead>
-                    <tbody>
-                    {% for turma in dados %}
-                        <tr>
-                            <td>{{ turma.nome }}</td>
-                            <td>{{ turma.sala }}</td>
-                            <td>{{ turma.turno }}</td>
-                            <td>{{ turma.ano }}</td>
-                            <td>{{ turma.professor }}</td>
-                            <td>{{ turma.qtd_alunos }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-
-            {% elif tipo == 'alunos' %}
-                <table>
-                    <thead>
-                        <tr><th>Nome</th><th>CPF</th><th>Turma</th><th>Telefone</th><th>Responsável</th></tr>
-                    </thead>
-                    <tbody>
-                    {% for aluno in dados %}
-                        <tr>
-                            <td>{{ aluno.nome }}</td>
-                            <td>{{ aluno.cpf }}</td>
-                            <td>{{ aluno.turma }}</td>
-                            <td>{{ aluno.telefone }}</td>
-                            <td>{{ aluno.responsavel }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-
-            {% elif tipo == 'professores' %}
-                <table>
-                    <thead>
-                        <tr><th>Nome</th><th>CPF</th><th>Disciplinas</th><th>Email</th><th>Cargo</th></tr>
-                    </thead>
-                    <tbody>
-                    {% for prof in dados %}
-                        <tr>
-                            <td>{{ prof.nome }}</td>
-                            <td>{{ prof.cpf }}</td>
-                            <td>{{ prof.disciplinas }}</td>
-                            <td>{{ prof.email }}</td>
-                            <td>{{ prof.cargo }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-
-            {% elif tipo == 'funcionarios' %}
-                <table>
-                    <thead>
-                        <tr><th>Nome</th><th>CPF</th><th>Cargo</th><th>Telefone</th><th>Email</th></tr>
-                    </thead>
-                    <tbody>
-                    {% for func in dados %}
-                        <tr>
-                            <td>{{ func.nome }}</td>
-                            <td>{{ func.cpf }}</td>
-                            <td>{{ func.cargo }}</td>
-                            <td>{{ func.telefone }}</td>
-                            <td>{{ func.email }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            {% endif %}
-        </div>
+  </style>
+ </head>
+ <body>
+  <div class="flex-wrapper">
+   {% include 'partials/_nav.html' %}
+   <div class="content">
+    <!-- FILTROS E BOTÕES -->
+    <form class="filter-form" method="GET">
+     <label for="tipo">
+      Tipo de Impressão:
+     </label>
+     <select id="tipo" name="tipo" onchange="this.form.submit()">
+      <option %}="" %}selected{%="" endif="" if="" tipo="turmas" value="turmas" {%="">
+       Turmas
+      </option>
+      <option %}="" %}selected{%="" endif="" if="" tipo="alunos" value="alunos" {%="">
+       Alunos
+      </option>
+      <option %}="" %}selected{%="" endif="" if="" tipo="professores" value="professores" {%="">
+       Professores
+      </option>
+      <option %}="" %}selected{%="" endif="" if="" tipo="funcionarios" value="funcionarios" {%="">
+       Funcionários
+      </option>
+     </select>
+     {% if tipo == 'alunos' %}
+     <label for="turma">
+      Turma:
+     </label>
+     <select id="turma" name="turma" onchange="this.form.submit()">
+      <option value="">
+       Todas
+      </option>
+      {% for t in turmas_disponiveis %}
+      <option %}="" %}selected{%="" endif="" if="" turma_id='t.id|stringformat:"s"' value="{{ t.id }}" {%="">
+       {{ t.nome }}
+      </option>
+      {% endfor %}
+     </select>
+     <label for="professor">
+      Professor:
+     </label>
+     <select id="professor" name="professor" onchange="this.form.submit()">
+      <option value="">
+       Todos
+      </option>
+      {% for p in professores_disponiveis %}
+      <option %}="" %}selected{%="" endif="" if="" professor_id='p.id|stringformat:"s"' value="{{ p.id }}" {%="">
+       {{ p.nome }}
+      </option>
+      {% endfor %}
+     </select>
+     {% endif %}
+     <button onclick="window.print()" type="button">
+      🖨️ Imprimir
+     </button>
+    </form>
+    <!-- ÁREA DE PRÉ-VISUALIZAÇÃO DA IMPRESSÃO -->
+    <div class="print-preview">
+     <div class="print-header">
+      ESCOLA PEQUENO APRENDIZ
+     </div>
+     {% if tipo == 'turmas' %}
+     <table>
+      <thead>
+       <tr>
+        <th>
+         Turma
+        </th>
+        <th>
+         Sala
+        </th>
+        <th>
+         Turno
+        </th>
+        <th>
+         Ano
+        </th>
+        <th>
+         Professor
+        </th>
+        <th>
+         Qtd. Alunos
+        </th>
+       </tr>
+      </thead>
+      <tbody>
+       {% for turma in dados %}
+       <tr>
+        <td>
+         {{ turma.nome }}
+        </td>
+        <td>
+         {{ turma.sala }}
+        </td>
+        <td>
+         {{ turma.turno }}
+        </td>
+        <td>
+         {{ turma.ano }}
+        </td>
+        <td>
+         {{ turma.professor }}
+        </td>
+        <td>
+         {{ turma.qtd_alunos }}
+        </td>
+       </tr>
+       {% endfor %}
+      </tbody>
+     </table>
+     {% elif tipo == 'alunos' %}
+     <table>
+      <thead>
+       <tr>
+        <th>
+         Nome
+        </th>
+        <th>
+         CPF
+        </th>
+        <th>
+         Turma
+        </th>
+        <th>
+         Telefone
+        </th>
+        <th>
+         Responsável
+        </th>
+       </tr>
+      </thead>
+      <tbody>
+       {% for aluno in dados %}
+       <tr>
+        <td>
+         {{ aluno.nome }}
+        </td>
+        <td>
+         {{ aluno.cpf }}
+        </td>
+        <td>
+         {{ aluno.turma }}
+        </td>
+        <td>
+         {{ aluno.telefone }}
+        </td>
+        <td>
+         {{ aluno.responsavel }}
+        </td>
+       </tr>
+       {% endfor %}
+      </tbody>
+     </table>
+     {% elif tipo == 'professores' %}
+     <table>
+      <thead>
+       <tr>
+        <th>
+         Nome
+        </th>
+        <th>
+         CPF
+        </th>
+        <th>
+         Disciplinas
+        </th>
+        <th>
+         Email
+        </th>
+        <th>
+         Cargo
+        </th>
+       </tr>
+      </thead>
+      <tbody>
+       {% for prof in dados %}
+       <tr>
+        <td>
+         {{ prof.nome }}
+        </td>
+        <td>
+         {{ prof.cpf }}
+        </td>
+        <td>
+         {{ prof.disciplinas }}
+        </td>
+        <td>
+         {{ prof.email }}
+        </td>
+        <td>
+         {{ prof.cargo }}
+        </td>
+       </tr>
+       {% endfor %}
+      </tbody>
+     </table>
+     {% elif tipo == 'funcionarios' %}
+     <table>
+      <thead>
+       <tr>
+        <th>
+         Nome
+        </th>
+        <th>
+         CPF
+        </th>
+        <th>
+         Cargo
+        </th>
+        <th>
+         Telefone
+        </th>
+        <th>
+         Email
+        </th>
+       </tr>
+      </thead>
+      <tbody>
+       {% for func in dados %}
+       <tr>
+        <td>
+         {{ func.nome }}
+        </td>
+        <td>
+         {{ func.cpf }}
+        </td>
+        <td>
+         {{ func.cargo }}
+        </td>
+        <td>
+         {{ func.telefone }}
+        </td>
+        <td>
+         {{ func.email }}
+        </td>
+       </tr>
+       {% endfor %}
+      </tbody>
+     </table>
+     {% endif %}
     </div>
-
-    {% include 'partials/_footer.html' %}
-</div>
-</body>
+   </div>
+   {% include 'partials/_footer.html' %}
+  </div>
+ </body>
 </html>

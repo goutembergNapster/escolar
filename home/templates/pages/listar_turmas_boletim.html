@@ -1,52 +1,62 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
+ <head>
   {% include 'partials/_head.html' %}
-</head>
-<body>
-{% include 'partials/_nav.html' %}
-<div class="container mt-5">
-  <h3 class="mb-4">Selecionar Turma e Aluno</h3>
-
-  <form method="get" class="form-inline mb-3">
-    <label class="mr-2" for="turma">Turma:</label>
-    <select name="turma" id="turma" class="form-control mr-2">
-      <option value="">-- Selecione --</option>
-      {% for turma in turmas %}
-        <option value="{{ turma.id }}" {% if turma.id|stringformat:'s' == turma_id %}selected{% endif %}>
-          {{ turma.nome }}
-        </option>
-      {% endfor %}
+ </head>
+ <body>
+  {% include 'partials/_nav.html' %}
+  <div class="container mt-5">
+   <h3 class="mb-4">
+    Selecionar Turma e Aluno
+   </h3>
+   <form class="form-inline mb-3" method="get">
+    <label class="mr-2" for="turma">
+     Turma:
+    </label>
+    <select class="form-control mr-2" id="turma" name="turma">
+     <option value="">
+      -- Selecione --
+     </option>
+     {% for turma in turmas %}
+     <option %}="" %}selected{%="" endif="" if="" turma.id|stringformat:'s'="turma_id" value="{{ turma.id }}" {%="">
+      {{ turma.nome }}
+     </option>
+     {% endfor %}
     </select>
-    <button type="submit" class="btn btn-primary">Filtrar</button>
-  </form>
-
-  {% if alunos %}
-  <table class="table table-bordered">
+    <button class="btn btn-primary" type="submit">
+     Filtrar
+    </button>
+   </form>
+   {% if alunos %}
+   <table class="table table-bordered">
     <thead>
-      <tr>
-        <th>Nome do Aluno</th>
-        <th>Ações</th>
-      </tr>
+     <tr>
+      <th>
+       Nome do Aluno
+      </th>
+      <th>
+       Ações
+      </th>
+     </tr>
     </thead>
     <tbody>
-      {% for aluno in alunos %}
-      <tr>
-        <td>{{ aluno.nome }}</td>
-        <td>
-          <a href="{% url 'visualizar_boletim' aluno.id %}?turma={{ turma_id }}" class="btn btn-sm btn-info">
-            Visualizar Boletim
-          </a>
-        </td>
-      </tr>
-      {% endfor %}
+     {% for aluno in alunos %}
+     <tr>
+      <td>
+       {{ aluno.nome }}
+      </td>
+      <td>
+       <a class="btn btn-sm btn-info" href="{% url 'visualizar_boletim' aluno.id %}?turma={{ turma_id }}">
+        Visualizar Boletim
+       </a>
+      </td>
+     </tr>
+     {% endfor %}
     </tbody>
-  </table>
-  {% endif %}
-</div>
-<div>
-      {% include 'partials/_footer.html' %}
-    </div>
-</body>
+   </table>
+   {% endif %}
+  </div>
+  {% include 'partials/_footer.html' %}
+ </body>
 </html>

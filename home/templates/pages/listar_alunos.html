@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    {% include 'partials/_head.html' %}
-    <style>
-        body, html { height: 100%; margin: 0; }
+ <head>
+  {% include 'partials/_head.html' %}
+  <style>
+   body, html { height: 100%; margin: 0; }
         .flex-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
         .content { flex: 1; padding-bottom: 2rem; }
         .form-row { display: flex; flex-wrap: wrap; }
@@ -65,190 +65,397 @@
         /* Safari às vezes renderiza mais baixo; garante altura */
         @supports (-webkit-touch-callout: none) {
         .date-range input[type="date"] { min-height: 38px; }
-
-    </style>
-</head>
-<body>
-    {% include 'partials/_nav.html' %}
-
-    <section class="py-5">
-        <div class="container">
-            <div class="titulo-pagina">Listar Alunos</div>
-
-            <!-- CONTROLES -->
-            <div class="list-controls">
-                <input type="text" id="filtroAluno" class="form-control" placeholder="🔍 Buscar por nome, CPF, matrícula, responsável...">
-
-                <select id="filtroStatus" class="custom-select">
-                    <option value="">Status: todos</option>
-                    <option value="ativo">Ativos</option>
-                    <option value="inativo">Inativos</option>
-                </select>
-
-                <select id="filtroTurma" class="custom-select">
-                    <option value="">Turma: todas</option>
-                </select>
-
-                <button type="button" id="toggleAdvanced" class="btn btn-secondary btn-sm">Filtros avançados</button>
-
-                <select id="pageSize" class="custom-select">
-                    <option value="10">Exibir: 10</option>
-                    <option value="25" selected>Exibir: 25</option>
-                    <option value="50">Exibir: 50</option>
-                    <option value="100">Exibir: 100</option>
-                </select>
-
-                <button type="button" id="clearFilters" class="btn btn-secondary btn-sm">Limpar filtros</button>
-            </div>
-
-            <!-- CHIPS -->
-            <div id="chips" class="chips"></div>
-
-            <!-- AVANÇADOS -->
-            <div class="advanced" id="advancedBlock">
-                <div class="advanced-grid">
-                    <select id="filtroTurno" class="custom-select">
-                        <option value="">Turno: todos</option>
-                    </select>
-                    <select id="filtroSexo" class="custom-select">
-                        <option value="">Sexo: todos</option>
-                        <option value="Masculino">Masculino</option>
-                        <option value="Feminino">Feminino</option>
-                        <option value="Outro">Outro</option>
-                    </select>
-                    <select id="filtroNecessidade" class="custom-select">
-                        <option value="">Necessidade especial: todas</option>
-                        <option value="sim">Sim</option>
-                        <option value="nao">Não</option>
-                    </select>
-                    <select id="filtroTransporte" class="custom-select">
-                        <option value="">Transporte escolar: todos</option>
-                        <option value="sim">Sim</option>
-                        <option value="nao">Não</option>
-                    </select>
-
-                    <select id="filtroAutorizacaoSaida" class="custom-select">
-                        <option value="">Aut. sair sozinho: todas</option>
-                        <option value="sim">Sim</option>
-                        <option value="nao">Não</option>
-                    </select>
-
-                    <input type="text" id="filtroBairro" class="form-control" placeholder="Bairro">
-                    <input type="text" id="filtroCidade" class="form-control" placeholder="Cidade">
-
-                    <div>
-                    <label style="font-size:.85rem; color:#333; margin-bottom:2px;">Nascimento (de/até)</label>
-                    <div class="date-range">
-                    <input type="date" id="nascDe" class="form-control" inputmode="none">
-                    <input type="date" id="nascAte" class="form-control" inputmode="none">
-                </div>
-                </div>
-                </div>
-            </div>
-
-            <table class="table table-bordered table-hover table-striped" id="tabelaAlunos">
-                <thead class="thead-dark">
-                    <tr>
-                        <th data-sort="matricula">Matrícula <span class="sort-indicator"></span></th>
-                        <th data-sort="turma">Turma <span class="sort-indicator"></span></th>
-                        <th data-sort="nome">Nome <span class="sort-indicator"></span></th>
-                        <th data-sort="responsavel_nome">Nome Responsável <span class="sort-indicator"></span></th>
-                        <th data-sort="responsavel_telefone">Telefone Resposável <span class="sort-indicator"></span></th>
-                        <th data-sort="possui_necessidade_especial">Necessidade Especial <span class="sort-indicator"></span></th>
-                        <th data-sort="ativo">Status <span class="sort-indicator"></span></th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelaAlunosBody">
-                    <script id="alunos-data" type="application/json">{{ alunos_json|safe }}</script>
-                </tbody>
-            </table>
-
-            <div class="pagination-bar">
-                <div class="results-info" id="resultsInfo">Mostrando 0–0 de 0</div>
-                <nav>
-                    <ul class="pagination">
-                        <li class="page-item"><button class="page-link btn-page" id="firstPage" title="Primeira">&laquo;</button></li>
-                        <li class="page-item"><button class="page-link btn-page" id="prevPage" title="Anterior">&lsaquo;</button></li>
-                        <li class="page-item disabled"><span class="page-link" id="pageIndicator">1 / 1</span></li>
-                        <li class="page-item"><button class="page-link btn-page" id="nextPage" title="Próxima">&rsaquo;</button></li>
-                        <li class="page-item"><button class="page-link btn-page" id="lastPage" title="Última">&raquo;</button></li>
-                    </ul>
-                </nav>
-            </div>
-        </div>
-    </section>
-
-    {% include 'partials/_footer.html' %}
-
-    <!-- Modal de edição -->
-    <div class="modal fade" id="editarAlunoModal" tabindex="-1" role="dialog" aria-labelledby="editarAlunoModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <form id="editarAlunoForm">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Editar Aluno</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <ul class="nav nav-tabs" role="tablist">
-                            <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#dadosAluno" role="tab">Dados do Aluno</a></li>
-                            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#dadosResponsavel" role="tab">Responsável</a></li>
-                            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#dadosSaude" role="tab">Saúde</a></li>
-                            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#dadosTransporte" role="tab">Transporte</a></li>
-                            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#dadosAutorizacoes" role="tab">Autorizações</a></li>
-                        </ul>
-
-                        <div class="tab-content p-3">
-                            <div class="tab-pane fade show active" id="dadosAluno" role="tabpanel">
-                                <input type="hidden" id="alunoId">
-                                <div class="form-group"><label for="editNome">Nome</label><input type="text" class="form-control" id="editNome" required></div>
-                                <div class="form-group"><label for="editEmail">Email</label><input type="email" class="form-control" id="editEmail"></div>
-                                <div class="form-group"><label for="editTelefone">Telefone</label><input type="text" class="form-control" id="editTelefone"></div>
-                            </div>
-
-                            <div class="tab-pane fade" id="dadosResponsavel" role="tabpanel">
-                                <div class="form-group"><label for="editResponsavelNome">Nome do Responsável</label><input type="text" class="form-control" id="editResponsavelNome"></div>
-                                <div class="form-group"><label for="editResponsavelCpf">CPF do Responsável</label><input type="text" class="form-control" id="editResponsavelCpf"></div>
-                                <div class="form-group"><label for="editResponsavelParentesco">Parentesco</label><input type="text" class="form-control" id="editResponsavelParentesco"></div>
-                                <div class="form-group"><label for="editResponsavelTelefone">Telefone</label><input type="text" class="form-control" id="editResponsavelTelefone"></div>
-                                <div class="form-group"><label for="editResponsavelEmail">Email</label><input type="email" class="form-control" id="editResponsavelEmail"></div>
-                            </div>
-
-                            <div class="tab-pane fade" id="dadosSaude" role="tabpanel">
-                                <div class="form-group"><label><input type="checkbox" id="editPossuiNecessidadeEspecial"> Possui Necessidade Especial</label></div>
-                                <div class="form-group"><label for="editDescricaoNecessidade">Descrição</label><textarea class="form-control" id="editDescricaoNecessidade"></textarea></div>
-                                <div class="form-group"><label><input type="checkbox" id="editUsaMedicacao"> Usa Medicação</label></div>
-                                <div class="form-group"><label for="editQuaisMedicacoes">Quais?</label><input type="text" class="form-control" id="editQuaisMedicacoes"></div>
-                                <div class="form-group"><label><input type="checkbox" id="editPossuiAlergia"> Possui Alergia</label></div>
-                                <div class="form-group"><label for="editDescricaoAlergia">Descrição da Alergia</label><textarea class="form-control" id="editDescricaoAlergia"></textarea></div>
-                            </div>
-
-                            <div class="tab-pane fade" id="dadosTransporte" role="tabpanel">
-                                <div class="form-group"><label><input type="checkbox" id="editUsaTransporte"> Usa Transporte Escolar</label></div>
-                                <div class="form-group"><label for="editTrajeto">Trajeto</label><input type="text" class="form-control" id="editTrajeto"></div>
-                            </div>
-
-                            <div class="tab-pane fade" id="dadosAutorizacoes" role="tabpanel">
-                                <div class="form-group"><label><input type="checkbox" id="editAutorizacaoSaida"> Autoriza Saída Sozinho</label></div>
-                                <div class="form-group"><label><input type="checkbox" id="editAutorizacaoFotos"> Autoriza Fotos/Evento</label></div>
-                                <div class="form-group"><label for="editPessoaAutorizada">Pessoa Autorizada a Buscar</label><input type="text" class="form-control" id="editPessoaAutorizada"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Salvar</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+  </style>
+ </head>
+ <body>
+  {% include 'partials/_nav.html' %}
+  <section class="py-5">
+   <div class="container">
+    <div class="titulo-pagina">
+     Listar Alunos
     </div>
-
-    <script>
-        // ====== EDITAR (inalterado) ======
+    <!-- CONTROLES -->
+    <div class="list-controls">
+     <input class="form-control" id="filtroAluno" placeholder="🔍 Buscar por nome, CPF, matrícula, responsável..." type="text"/>
+     <select class="custom-select" id="filtroStatus">
+      <option value="">
+       Status: todos
+      </option>
+      <option value="ativo">
+       Ativos
+      </option>
+      <option value="inativo">
+       Inativos
+      </option>
+     </select>
+     <select class="custom-select" id="filtroTurma">
+      <option value="">
+       Turma: todas
+      </option>
+     </select>
+     <button class="btn btn-secondary btn-sm" id="toggleAdvanced" type="button">
+      Filtros avançados
+     </button>
+     <select class="custom-select" id="pageSize">
+      <option value="10">
+       Exibir: 10
+      </option>
+      <option selected="" value="25">
+       Exibir: 25
+      </option>
+      <option value="50">
+       Exibir: 50
+      </option>
+      <option value="100">
+       Exibir: 100
+      </option>
+     </select>
+     <button class="btn btn-secondary btn-sm" id="clearFilters" type="button">
+      Limpar filtros
+     </button>
+    </div>
+    <!-- CHIPS -->
+    <div class="chips" id="chips">
+    </div>
+    <!-- AVANÇADOS -->
+    <div class="advanced" id="advancedBlock">
+     <div class="advanced-grid">
+      <select class="custom-select" id="filtroTurno">
+       <option value="">
+        Turno: todos
+       </option>
+      </select>
+      <select class="custom-select" id="filtroSexo">
+       <option value="">
+        Sexo: todos
+       </option>
+       <option value="Masculino">
+        Masculino
+       </option>
+       <option value="Feminino">
+        Feminino
+       </option>
+       <option value="Outro">
+        Outro
+       </option>
+      </select>
+      <select class="custom-select" id="filtroNecessidade">
+       <option value="">
+        Necessidade especial: todas
+       </option>
+       <option value="sim">
+        Sim
+       </option>
+       <option value="nao">
+        Não
+       </option>
+      </select>
+      <select class="custom-select" id="filtroTransporte">
+       <option value="">
+        Transporte escolar: todos
+       </option>
+       <option value="sim">
+        Sim
+       </option>
+       <option value="nao">
+        Não
+       </option>
+      </select>
+      <select class="custom-select" id="filtroAutorizacaoSaida">
+       <option value="">
+        Aut. sair sozinho: todas
+       </option>
+       <option value="sim">
+        Sim
+       </option>
+       <option value="nao">
+        Não
+       </option>
+      </select>
+      <input class="form-control" id="filtroBairro" placeholder="Bairro" type="text"/>
+      <input class="form-control" id="filtroCidade" placeholder="Cidade" type="text"/>
+      <div>
+       <label style="font-size:.85rem; color:#333; margin-bottom:2px;">
+        Nascimento (de/até)
+       </label>
+       <div class="date-range">
+        <input class="form-control" id="nascDe" inputmode="none" type="date"/>
+        <input class="form-control" id="nascAte" inputmode="none" type="date"/>
+       </div>
+      </div>
+     </div>
+    </div>
+    <table class="table table-bordered table-hover table-striped" id="tabelaAlunos">
+     <thead class="thead-dark">
+      <tr>
+       <th data-sort="matricula">
+        Matrícula
+        <span class="sort-indicator">
+        </span>
+       </th>
+       <th data-sort="turma">
+        Turma
+        <span class="sort-indicator">
+        </span>
+       </th>
+       <th data-sort="nome">
+        Nome
+        <span class="sort-indicator">
+        </span>
+       </th>
+       <th data-sort="responsavel_nome">
+        Nome Responsável
+        <span class="sort-indicator">
+        </span>
+       </th>
+       <th data-sort="responsavel_telefone">
+        Telefone Resposável
+        <span class="sort-indicator">
+        </span>
+       </th>
+       <th data-sort="possui_necessidade_especial">
+        Necessidade Especial
+        <span class="sort-indicator">
+        </span>
+       </th>
+       <th data-sort="ativo">
+        Status
+        <span class="sort-indicator">
+        </span>
+       </th>
+       <th>
+        Ações
+       </th>
+      </tr>
+     </thead>
+     <tbody id="tabelaAlunosBody">
+      <script id="alunos-data" type="application/json">
+       {{ alunos_json|safe }}
+      </script>
+     </tbody>
+    </table>
+    <div class="pagination-bar">
+     <div class="results-info" id="resultsInfo">
+      Mostrando 0–0 de 0
+     </div>
+     <nav>
+      <ul class="pagination">
+       <li class="page-item">
+        <button class="page-link btn-page" id="firstPage" title="Primeira">
+         «
+        </button>
+       </li>
+       <li class="page-item">
+        <button class="page-link btn-page" id="prevPage" title="Anterior">
+         ‹
+        </button>
+       </li>
+       <li class="page-item disabled">
+        <span class="page-link" id="pageIndicator">
+         1 / 1
+        </span>
+       </li>
+       <li class="page-item">
+        <button class="page-link btn-page" id="nextPage" title="Próxima">
+         ›
+        </button>
+       </li>
+       <li class="page-item">
+        <button class="page-link btn-page" id="lastPage" title="Última">
+         »
+        </button>
+       </li>
+      </ul>
+     </nav>
+    </div>
+   </div>
+  </section>
+  {% include 'partials/_footer.html' %}
+  <!-- Modal de edição -->
+  <div aria-hidden="true" aria-labelledby="editarAlunoModalLabel" class="modal fade" id="editarAlunoModal" role="dialog" tabindex="-1">
+   <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+     <form id="editarAlunoForm">
+      <div class="modal-header">
+       <h5 class="modal-title">
+        Editar Aluno
+       </h5>
+       <button aria-label="Fechar" class="close" data-dismiss="modal" type="button">
+        <span aria-hidden="true">
+         ×
+        </span>
+       </button>
+      </div>
+      <div class="modal-body">
+       <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+         <a class="nav-link active" data-toggle="tab" href="#dadosAluno" role="tab">
+          Dados do Aluno
+         </a>
+        </li>
+        <li class="nav-item">
+         <a class="nav-link" data-toggle="tab" href="#dadosResponsavel" role="tab">
+          Responsável
+         </a>
+        </li>
+        <li class="nav-item">
+         <a class="nav-link" data-toggle="tab" href="#dadosSaude" role="tab">
+          Saúde
+         </a>
+        </li>
+        <li class="nav-item">
+         <a class="nav-link" data-toggle="tab" href="#dadosTransporte" role="tab">
+          Transporte
+         </a>
+        </li>
+        <li class="nav-item">
+         <a class="nav-link" data-toggle="tab" href="#dadosAutorizacoes" role="tab">
+          Autorizações
+         </a>
+        </li>
+       </ul>
+       <div class="tab-content p-3">
+        <div class="tab-pane fade show active" id="dadosAluno" role="tabpanel">
+         <input id="alunoId" type="hidden"/>
+         <div class="form-group">
+          <label for="editNome">
+           Nome
+          </label>
+          <input class="form-control" id="editNome" required="" type="text"/>
+         </div>
+         <div class="form-group">
+          <label for="editEmail">
+           Email
+          </label>
+          <input class="form-control" id="editEmail" type="email"/>
+         </div>
+         <div class="form-group">
+          <label for="editTelefone">
+           Telefone
+          </label>
+          <input class="form-control" id="editTelefone" type="text"/>
+         </div>
+        </div>
+        <div class="tab-pane fade" id="dadosResponsavel" role="tabpanel">
+         <div class="form-group">
+          <label for="editResponsavelNome">
+           Nome do Responsável
+          </label>
+          <input class="form-control" id="editResponsavelNome" type="text"/>
+         </div>
+         <div class="form-group">
+          <label for="editResponsavelCpf">
+           CPF do Responsável
+          </label>
+          <input class="form-control" id="editResponsavelCpf" type="text"/>
+         </div>
+         <div class="form-group">
+          <label for="editResponsavelParentesco">
+           Parentesco
+          </label>
+          <input class="form-control" id="editResponsavelParentesco" type="text"/>
+         </div>
+         <div class="form-group">
+          <label for="editResponsavelTelefone">
+           Telefone
+          </label>
+          <input class="form-control" id="editResponsavelTelefone" type="text"/>
+         </div>
+         <div class="form-group">
+          <label for="editResponsavelEmail">
+           Email
+          </label>
+          <input class="form-control" id="editResponsavelEmail" type="email"/>
+         </div>
+        </div>
+        <div class="tab-pane fade" id="dadosSaude" role="tabpanel">
+         <div class="form-group">
+          <label>
+           <input id="editPossuiNecessidadeEspecial" type="checkbox"/>
+           Possui Necessidade Especial
+          </label>
+         </div>
+         <div class="form-group">
+          <label for="editDescricaoNecessidade">
+           Descrição
+          </label>
+          <textarea class="form-control" id="editDescricaoNecessidade"></textarea>
+         </div>
+         <div class="form-group">
+          <label>
+           <input id="editUsaMedicacao" type="checkbox"/>
+           Usa Medicação
+          </label>
+         </div>
+         <div class="form-group">
+          <label for="editQuaisMedicacoes">
+           Quais?
+          </label>
+          <input class="form-control" id="editQuaisMedicacoes" type="text"/>
+         </div>
+         <div class="form-group">
+          <label>
+           <input id="editPossuiAlergia" type="checkbox"/>
+           Possui Alergia
+          </label>
+         </div>
+         <div class="form-group">
+          <label for="editDescricaoAlergia">
+           Descrição da Alergia
+          </label>
+          <textarea class="form-control" id="editDescricaoAlergia"></textarea>
+         </div>
+        </div>
+        <div class="tab-pane fade" id="dadosTransporte" role="tabpanel">
+         <div class="form-group">
+          <label>
+           <input id="editUsaTransporte" type="checkbox"/>
+           Usa Transporte Escolar
+          </label>
+         </div>
+         <div class="form-group">
+          <label for="editTrajeto">
+           Trajeto
+          </label>
+          <input class="form-control" id="editTrajeto" type="text"/>
+         </div>
+        </div>
+        <div class="tab-pane fade" id="dadosAutorizacoes" role="tabpanel">
+         <div class="form-group">
+          <label>
+           <input id="editAutorizacaoSaida" type="checkbox"/>
+           Autoriza Saída Sozinho
+          </label>
+         </div>
+         <div class="form-group">
+          <label>
+           <input id="editAutorizacaoFotos" type="checkbox"/>
+           Autoriza Fotos/Evento
+          </label>
+         </div>
+         <div class="form-group">
+          <label for="editPessoaAutorizada">
+           Pessoa Autorizada a Buscar
+          </label>
+          <input class="form-control" id="editPessoaAutorizada" type="text"/>
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="modal-footer">
+       <button class="btn btn-primary" type="submit">
+        Salvar
+       </button>
+       <button class="btn btn-secondary" data-dismiss="modal" type="button">
+        Cancelar
+       </button>
+      </div>
+     </form>
+    </div>
+   </div>
+  </div>
+  <script>
+   // ====== EDITAR (inalterado) ======
         function abrirModalEditarCompleto(aluno) {
             document.getElementById('alunoId').value = aluno.id;
             document.getElementById('editNome').value = aluno.nome;
@@ -693,10 +900,9 @@ function inDateRange(value, de, ate) {
             if (aluno) abrirModalEditarCompleto(aluno);
             else alert('Aluno não encontrado!');
         }
-    </script>
-
-    <div>
-        {% include 'partials/_footer.html' %}
-    </div>
-</body>
+  </script>
+  <div>
+   {% include 'partials/_footer.html' %}
+  </div>
+ </body>
 </html>

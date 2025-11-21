@@ -1,16 +1,16 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Escolinha - Nova Senha</title>
-
-  <link rel="stylesheet" href="{% static 'home/css/bootstrap.min.css' %}">
-  <link rel="stylesheet" href="{% static 'home/css/identidade.css' %}"> 
-
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Escolinha - Nova Senha
+  </title>
+  <link href="{% static 'home/css/bootstrap.min.css' %}" rel="stylesheet"/>
+  <link href="{% static 'home/css/identidade.css' %}" rel="stylesheet"/>
   <style>
-    body {
+   body {
       background: linear-gradient(135deg, #fff0e6, #fefefe);
     }
 
@@ -96,32 +96,37 @@
       color: #155724;
     }
   </style>
-</head>
-<body>
-
-<div class="login-wrapper">
-  <div class="login-card">
-    <h2 class="login-title">Nova Senha</h2>
-
-    <div id="alerta"></div>
-
+ </head>
+ <body>
+  <div class="login-wrapper">
+   <div class="login-card">
+    <h2 class="login-title">
+     Nova Senha
+    </h2>
+    <div id="alerta">
+    </div>
     <form id="trocarSenhaForm">
-      {% csrf_token %}
-      <div class="form-group mb-3">
-        <label for="nova_senha">Digite sua nova senha</label>
-        <input type="password" id="nova_senha" name="nova_senha" class="form-control-custom" required>
-      </div>
-      <div class="form-group mb-3">
-        <label for="nova_senha_confirmar">Confirme sua nova senha</label>
-        <input type="password" id="nova_senha_confirmar" name="nova_senha_confirmar" class="form-control-custom" required>
-      </div>
-      <button type="submit" class="btn-login">Atualizar Senha</button>
+     {% csrf_token %}
+     <div class="form-group mb-3">
+      <label for="nova_senha">
+       Digite sua nova senha
+      </label>
+      <input class="form-control-custom" id="nova_senha" name="nova_senha" required="" type="password"/>
+     </div>
+     <div class="form-group mb-3">
+      <label for="nova_senha_confirmar">
+       Confirme sua nova senha
+      </label>
+      <input class="form-control-custom" id="nova_senha_confirmar" name="nova_senha_confirmar" required="" type="password"/>
+     </div>
+     <button class="btn-login" type="submit">
+      Atualizar Senha
+     </button>
     </form>
+   </div>
   </div>
-</div>
-
-<script>
-  document.getElementById("trocarSenhaForm").addEventListener("submit", function (event) {
+  <script>
+   document.getElementById("trocarSenhaForm").addEventListener("submit", function (event) {
     event.preventDefault();
 
     const novaSenha = document.getElementById("nova_senha").value;
@@ -156,6 +161,6 @@
         console.error("Erro:", error);
       });
   });
-</script>
-</body>
+  </script>
+ </body>
 </html>

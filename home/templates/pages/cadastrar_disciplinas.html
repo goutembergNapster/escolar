@@ -1,55 +1,68 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
+ <head>
   {% include 'partials/_head.html' %}
-</head>
-<body>
+ </head>
+ <body>
   <div class="flex-wrapper">
-    {% include 'partials/_nav.html' %}
-
-    <section class="form-container">
-      <div class="container">
-        <div class="header-bar">Cadastrar Disciplina</div>
-        <!-- FORMULÁRIO -->
-        <section class="content-wrapper" style="margin-top: 15px; margin-bottom: 0;">
-          <form id="formDisciplina">
-            {% csrf_token %}
-            <div class="form-row">
-              <div class="form-group">
-                <label for="nome">Nome da Disciplina</label>
-                <input type="text" id="nome" name="nome" required class="form-control">
-              </div>
-            </div>
-            <div class="form-footer">
-              <button type="submit" class="btn btn-primary">Cadastrar</button>
-              <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'index' %}'">Cancelar</button>
-            </div>
-          </form>
-        </section>
-        <!-- CRUD DISCIPLINAS COM SECTION PRÓPRIA -->
-        <section class="content-wrapper" style="margin-top: -100px;">
-          <h4 style="margin-bottom: 15px;">Disciplinas Cadastradas</h4>
-          <table class="table" id="tabelaDisciplinas">
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th style="width: 150px;">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Disciplinas serão carregadas via JS -->
-            </tbody>
-          </table>
-        </section>
-      </div>
-    </section>
-    <footer>
-      {% include 'partials/_footer.html' %}
-    </footer>
+   {% include 'partials/_nav.html' %}
+   <section class="form-container">
+    <div class="container">
+     <div class="header-bar">
+      Cadastrar Disciplina
+     </div>
+     <!-- FORMULÁRIO -->
+     <section class="content-wrapper" style="margin-top: 15px; margin-bottom: 0;">
+      <form id="formDisciplina">
+       {% csrf_token %}
+       <div class="form-row">
+        <div class="form-group">
+         <label for="nome">
+          Nome da Disciplina
+         </label>
+         <input class="form-control" id="nome" name="nome" required="" type="text"/>
+        </div>
+       </div>
+       <div class="form-footer">
+        <button class="btn btn-primary" type="submit">
+         Cadastrar
+        </button>
+        <button class="btn btn-secondary" onclick="window.location.href='{% url 'index' %}'" type="button">
+         Cancelar
+        </button>
+       </div>
+      </form>
+     </section>
+     <!-- CRUD DISCIPLINAS COM SECTION PRÓPRIA -->
+     <section class="content-wrapper" style="margin-top: -100px;">
+      <h4 style="margin-bottom: 15px;">
+       Disciplinas Cadastradas
+      </h4>
+      <table class="table" id="tabelaDisciplinas">
+       <thead>
+        <tr>
+         <th>
+          Nome
+         </th>
+         <th style="width: 150px;">
+          Ações
+         </th>
+        </tr>
+       </thead>
+       <tbody>
+        <!-- Disciplinas serão carregadas via JS -->
+       </tbody>
+      </table>
+     </section>
+    </div>
+   </section>
+   <footer>
+    {% include 'partials/_footer.html' %}
+   </footer>
   </div>
   <script>
-    // CADASTRO EXISTENTE
+   // CADASTRO EXISTENTE
     document.getElementById('formDisciplina').addEventListener('submit', function(event) {
       event.preventDefault();
       const nome = document.getElementById('nome').value.trim();
@@ -164,5 +177,5 @@
     }
     carregarDisciplinas();
   </script>
-</body>
+ </body>
 </html>

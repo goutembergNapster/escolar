@@ -1,54 +1,59 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
+ <head>
   {% include 'partials/_head.html' %}
-</head>
-<body>
-<div class="flex-wrapper">
-  {% include 'partials/_nav.html' %}
-
-  <section class="form-container">
+ </head>
+ <body>
+  <div class="flex-wrapper">
+   {% include 'partials/_nav.html' %}
+   <section class="form-container">
     <div class="container">
-      <div class="header-bar">Importar Alunos por Planilha</div>
+     <div class="header-bar">
+      Importar Alunos por Planilha
+     </div>
     </div>
-
     <div class="content-wrapper" style="padding-top: 0; margin-top: 0;">
-      <form method="post" enctype="multipart/form-data" action="{% url 'importar_alunos' %}">
-        {% csrf_token %}
+     <form action="{% url 'importar_alunos' %}" enctype="multipart/form-data" method="post">
+      {% csrf_token %}
         {% if messages %}
           {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-          {% endfor %}
-        {% endif %}
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="arquivo">Selecione o arquivo .xlsx</label>
-            <input type="file" name="arquivo" id="arquivo" class="form-control" accept=".xlsx" required>
-          </div>
-        </div>
-
-        <div class="form-footer">
-          <button type="submit" class="btn btn-primary">Importar</button>
-          <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'index' %}'">Cancelar</button>
-        </div>
-      </form>
-
-      <hr>
-
-      <div class="mt-4">
-        <h5>Modelo de planilha esperado:</h5>
-        <a href="{% static 'planilhas/modelo_importacao_alunos.xlsx' %}" class="btn btn-sm btn-outline-primary" download>
-          Baixar modelo
-        </a>
+      <div class="alert alert-{{ message.tags }}">
+       {{ message }}
       </div>
+      {% endfor %}
+        {% endif %}
+      <div class="form-row">
+       <div class="form-group">
+        <label for="arquivo">
+         Selecione o arquivo .xlsx
+        </label>
+        <input accept=".xlsx" class="form-control" id="arquivo" name="arquivo" required="" type="file"/>
+       </div>
+      </div>
+      <div class="form-footer">
+       <button class="btn btn-primary" type="submit">
+        Importar
+       </button>
+       <button class="btn btn-secondary" onclick="window.location.href='{% url 'index' %}'" type="button">
+        Cancelar
+       </button>
+      </div>
+     </form>
+     <hr/>
+     <div class="mt-4">
+      <h5>
+       Modelo de planilha esperado:
+      </h5>
+      <a class="btn btn-sm btn-outline-primary" download="" href="{% static 'planilhas/modelo_importacao_alunos.xlsx' %}">
+       Baixar modelo
+      </a>
+     </div>
     </div>
-  </section>
-
-  <footer>
+   </section>
+   <footer>
     {% include 'partials/_footer.html' %}
-  </footer>
-</div>
-</body>
+   </footer>
+  </div>
+ </body>
 </html>

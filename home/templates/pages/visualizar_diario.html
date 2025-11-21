@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    {% include 'partials/_head.html' %}
-    <style>
-        .header-bar {
+ <head>
+  {% include 'partials/_head.html' %}
+  <style>
+   .header-bar {
             background-color: #fab982;
             padding: 10px 20px;
             font-size: 1.4em;
@@ -48,82 +48,118 @@
             margin-top: 20px;
             font-style: italic;
         }
-    </style>
-</head>
-<body>
-    {% include 'partials/_nav.html' %}
-    <section class="content-wrapper" style="margin-top: 15px;">
-        <div class="header-bar">Visualizar Presenças</div>
-
-        <form method="get" class="filter-bar">
-            <select name="turma">
-                <option value="">Todas as turmas</option>
-                {% for turma in turmas %}
-                    <option value="{{ turma.id }}" {% if request.GET.turma == turma.id|stringformat:"s" %}selected{% endif %}>
-                        {{ turma.nome }}
-                    </option>
-                {% endfor %}
-            </select>
-
-            <select name="disciplina">
-                <option value="">Todas as disciplinas</option>
-                {% for disciplina in disciplinas %}
-                    <option value="{{ disciplina.id }}" {% if request.GET.disciplina == disciplina.id|stringformat:"s" %}selected{% endif %}>
-                        {{ disciplina.nome }}
-                    </option>
-                {% endfor %}
-            </select>
-
-            <input type="date" name="data" value="{{ request.GET.data }}">
-            <button type="submit" class="btn btn-primary">Filtrar</button>
-        </form>
-
-        {% if registros %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Aluno</th>
-                        <th>Turma</th>
-                        <th>Disciplina</th>
-                        <th>Data</th>
-                        <th>Presente</th>
-                        <th>Observação</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for presenca in registros %}
-                        <tr data-registro-id="{{ presenca.id }}">
-                            <td>{{ presenca.aluno.nome }}</td>
-                            <td>{{ presenca.chamada.turma.nome }}</td>
-                            <td>{{ presenca.chamada.disciplina.nome }}</td>
-                            <td>{{ presenca.chamada.data|date:"d/m/Y" }}</td>
-                            <td>
-                                <select class="presente-select" disabled>
-                                    <option value="True" {% if presenca.presente %}selected{% endif %}>Sim</option>
-                                    <option value="False" {% if not presenca.presente %}selected{% endif %}>Não</option>
-                                </select>
-                            </td>
-                            <td><input type="text" class="observacao-input" value="{{ presenca.observacao }}" disabled></td>
-                            <td>
-                                <button class="btn btn-sm btn-secondary editar-btn" type="button">Editar</button>
-                                <button class="btn btn-sm btn-success salvar-btn" type="button" style="display: none;">Salvar</button>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p class="no-results">Nenhuma presença registrada.</p>
-        {% endif %}
-    </section>
-
-    <footer>
-        {% include 'partials/_footer.html' %}
-    </footer>
-
-    <script>
-        document.querySelectorAll('.editar-btn').forEach(button => {
+  </style>
+ </head>
+ <body>
+  {% include 'partials/_nav.html' %}
+  <section class="content-wrapper" style="margin-top: 15px;">
+   <div class="header-bar">
+    Visualizar Presenças
+   </div>
+   <form class="filter-bar" method="get">
+    <select name="turma">
+     <option value="">
+      Todas as turmas
+     </option>
+     {% for turma in turmas %}
+     <option %}="" %}selected{%="" endif="" if="" request.get.turma='turma.id|stringformat:"s"' value="{{ turma.id }}" {%="">
+      {{ turma.nome }}
+     </option>
+     {% endfor %}
+    </select>
+    <select name="disciplina">
+     <option value="">
+      Todas as disciplinas
+     </option>
+     {% for disciplina in disciplinas %}
+     <option %}="" %}selected{%="" endif="" if="" request.get.disciplina='disciplina.id|stringformat:"s"' value="{{ disciplina.id }}" {%="">
+      {{ disciplina.nome }}
+     </option>
+     {% endfor %}
+    </select>
+    <input name="data" type="date" value="{{ request.GET.data }}"/>
+    <button class="btn btn-primary" type="submit">
+     Filtrar
+    </button>
+   </form>
+   {% if registros %}
+   <table>
+    <thead>
+     <tr>
+      <th>
+       Aluno
+      </th>
+      <th>
+       Turma
+      </th>
+      <th>
+       Disciplina
+      </th>
+      <th>
+       Data
+      </th>
+      <th>
+       Presente
+      </th>
+      <th>
+       Observação
+      </th>
+      <th>
+       Ações
+      </th>
+     </tr>
+    </thead>
+    <tbody>
+     {% for presenca in registros %}
+     <tr data-registro-id="{{ presenca.id }}">
+      <td>
+       {{ presenca.aluno.nome }}
+      </td>
+      <td>
+       {{ presenca.chamada.turma.nome }}
+      </td>
+      <td>
+       {{ presenca.chamada.disciplina.nome }}
+      </td>
+      <td>
+       {{ presenca.chamada.data|date:"d/m/Y" }}
+      </td>
+      <td>
+       <select class="presente-select" disabled="">
+        <option %}="" %}selected{%="" endif="" if="" presenca.presente="" value="True" {%="">
+         Sim
+        </option>
+        <option %}="" %}selected{%="" endif="" if="" not="" presenca.presente="" value="False" {%="">
+         Não
+        </option>
+       </select>
+      </td>
+      <td>
+       <input class="observacao-input" disabled="" type="text" value="{{ presenca.observacao }}"/>
+      </td>
+      <td>
+       <button class="btn btn-sm btn-secondary editar-btn" type="button">
+        Editar
+       </button>
+       <button class="btn btn-sm btn-success salvar-btn" style="display: none;" type="button">
+        Salvar
+       </button>
+      </td>
+     </tr>
+     {% endfor %}
+    </tbody>
+   </table>
+   {% else %}
+   <p class="no-results">
+    Nenhuma presença registrada.
+   </p>
+   {% endif %}
+  </section>
+  <footer>
+   {% include 'partials/_footer.html' %}
+  </footer>
+  <script>
+   document.querySelectorAll('.editar-btn').forEach(button => {
             button.addEventListener('click', function () {
                 const row = this.closest('tr');
                 row.querySelector('.presente-select').disabled = false;
@@ -166,6 +202,6 @@
                 });
             });
         });
-    </script>
-</body>
+  </script>
+ </body>
 </html>

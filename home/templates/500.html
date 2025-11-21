@@ -1,10 +1,10 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
+ <head>
   {% include 'partials/_head.html' %}
   <style>
-    .error-container {
+   .error-container {
       text-align: center;
       padding: 100px 20px;
     }
@@ -18,19 +18,22 @@
       margin-bottom: 30px;
     }
   </style>
-</head>
-<body>
+ </head>
+ <body>
   {% include 'partials/_nav.html' %}
-
   <div class="error-container">
-    <div class="error-code">500</div>
-    <div class="error-message">
-      Ocorreu um erro interno no sistema.<br>
-      Nossa equipe já foi notificada e está cuidando disso!
-    </div>
-    <a href="{% url 'index' %}" class="btn btn-primary">Voltar para a página inicial</a>
+   <div class="error-code">
+    500
+   </div>
+   <div class="error-message">
+    Ocorreu um erro interno no sistema.
+    <br/>
+    Nossa equipe já foi notificada e está cuidando disso!
+   </div>
+   <a class="btn btn-primary" href="{% url 'index' %}">
+    Voltar para a página inicial
+   </a>
   </div>
-
   {% include 'partials/_footer.html' %}
-</body>
+ </body>
 </html>

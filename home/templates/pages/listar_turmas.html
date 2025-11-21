@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
+ <head>
   {% include 'partials/_head.html' %}
   <style>
-    .titulo-pagina { background:#fab982;color:#000;font-weight:bold;font-size:1.5rem;
+   .titulo-pagina { background:#fab982;color:#000;font-weight:bold;font-size:1.5rem;
       padding:1rem 1.5rem;border-radius:5px;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-bottom:1.5rem;text-align:left; }
     .table thead.thead-dark th { background:#fab982;color:#000;border-color:#fab982;cursor:pointer; }
     .table-hover tbody tr:hover { background:#fff4eb; }
@@ -18,444 +18,190 @@
     .btn-info:hover{background:#f9a85c!important;border-color:#f9a85c!important}
     .sort-indicator{font-size:.8rem;margin-left:.25rem}
   </style>
-</head>
-<body>
+ </head>
+ <body>
   {% include 'partials/_nav.html' %}
-
   <section class="py-5">
-    <div class="container">
-      <div class="titulo-pagina">Listar Turmas</div>
-
-      <div class="list-controls">
-        <input type="text" id="q" class="form-control" placeholder="🔍 Buscar por nome, sala, ano, turno...">
-        <select id="fTurno" class="custom-select">
-          <option value="">Turno: todos</option>
-        </select>
-        <select id="fAno" class="custom-select">
-          <option value="">Ano letivo: todos</option>
-        </select>
-        <select id="pageSize" class="custom-select">
-          <option value="10">Exibir: 10</option>
-          <option value="25" selected>Exibir: 25</option>
-          <option value="50">Exibir: 50</option>
-          <option value="100">Exibir: 100</option>
-        </select>
-        <button type="button" id="clearFilters" class="btn btn-secondary btn-sm">Limpar filtros</button>
-        <a href="{% url 'cadastro_turma' %}" class="btn btn-info btn-sm">+ Criar turma</a>
-
-        <!-- Exportar / Imprimir -->
-        <button type="button" id="btnExportTurmas" class="btn btn-secondary btn-sm">Exportar CSV</button>
-        <button type="button" id="btnPrintTurmas" class="btn btn-secondary btn-sm">Imprimir lista</button>
-      </div>
-
-      <div id="chips" class="chips"></div>
-
-      <table class="table table-bordered table-hover table-striped" id="tabelaTurmas">
-        <thead class="thead-dark">
-          <tr>
-            <th data-sort="nome">Nome <span class="sort-indicator"></span></th>
-            <th data-sort="sala">Sala <span class="sort-indicator"></span></th>
-            <th data-sort="ano">Ano <span class="sort-indicator"></span></th>
-            <th data-sort="turno">Turno <span class="sort-indicator"></span></th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="tbody">
-          <script id="turmas-data" type="application/json">{{ turmas_json|safe }}</script>
-        </tbody>
-      </table>
-
-      <div class="pagination-bar">
-        <div class="results-info" id="resultsInfo">Mostrando 0–0 de 0</div>
-        <nav>
-          <ul class="pagination">
-            <li class="page-item"><button class="page-link" id="firstPage">&laquo;</button></li>
-            <li class="page-item"><button class="page-link" id="prevPage">&lsaquo;</button></li>
-            <li class="page-item disabled"><span class="page-link" id="pageIndicator">1 / 1</span></li>
-            <li class="page-item"><button class="page-link" id="nextPage">&rsaquo;</button></li>
-            <li class="page-item"><button class="page-link" id="lastPage">&raquo;</button></li>
-          </ul>
-        </nav>
-      </div>
+   <div class="container">
+    <div class="titulo-pagina">
+     Listar Turmas
     </div>
+    <div class="list-controls">
+     <input class="form-control" id="q" placeholder="🔍 Buscar por nome, sala, ano, turno..." type="text"/>
+     <select class="custom-select" id="fTurno">
+      <option value="">
+       Turno: todos
+      </option>
+     </select>
+     <select class="custom-select" id="fAno">
+      <option value="">
+       Ano letivo: todos
+      </option>
+     </select>
+     <select class="custom-select" id="pageSize">
+      <option value="10">
+       Exibir: 10
+      </option>
+      <option selected="" value="25">
+       Exibir: 25
+      </option>
+      <option value="50">
+       Exibir: 50
+      </option>
+      <option value="100">
+       Exibir: 100
+      </option>
+     </select>
+     <button class="btn btn-secondary btn-sm" id="clearFilters" type="button">
+      Limpar filtros
+     </button>
+     <a class="btn btn-info btn-sm" href="{% url 'cadastro_turma' %}">
+      + Criar turma
+     </a>
+     <!-- Exportar / Imprimir -->
+     <button class="btn btn-secondary btn-sm" id="btnExportTurmas" type="button">
+      Exportar CSV
+     </button>
+     <button class="btn btn-secondary btn-sm" id="btnPrintTurmas" type="button">
+      Imprimir lista
+     </button>
+    </div>
+    <div class="chips" id="chips">
+    </div>
+    <table class="table table-bordered table-hover table-striped" id="tabelaTurmas">
+     <thead class="thead-dark">
+      <tr>
+       <th data-sort="nome">
+        Nome
+        <span class="sort-indicator">
+        </span>
+       </th>
+       <th data-sort="sala">
+        Sala
+        <span class="sort-indicator">
+        </span>
+       </th>
+       <th data-sort="ano">
+        Ano
+        <span class="sort-indicator">
+        </span>
+       </th>
+       <th data-sort="turno">
+        Turno
+        <span class="sort-indicator">
+        </span>
+       </th>
+       <th>
+        Ações
+       </th>
+      </tr>
+     </thead>
+     <tbody id="tbody">
+      <script id="turmas-data" type="application/json">
+       {{ turmas_json|safe }}
+      </script>
+     </tbody>
+    </table>
+    <div class="pagination-bar">
+     <div class="results-info" id="resultsInfo">
+      Mostrando 0–0 de 0
+     </div>
+     <nav>
+      <ul class="pagination">
+       <li class="page-item">
+        <button class="page-link" id="firstPage">
+         «
+        </button>
+       </li>
+       <li class="page-item">
+        <button class="page-link" id="prevPage">
+         ‹
+        </button>
+       </li>
+       <li class="page-item disabled">
+        <span class="page-link" id="pageIndicator">
+         1 / 1
+        </span>
+       </li>
+       <li class="page-item">
+        <button class="page-link" id="nextPage">
+         ›
+        </button>
+       </li>
+       <li class="page-item">
+        <button class="page-link" id="lastPage">
+         »
+        </button>
+       </li>
+      </ul>
+     </nav>
+    </div>
+   </div>
   </section>
-
   {% include 'partials/_footer.html' %}
-
   <!-- Modal Editar -->
-  <div class="modal fade" id="editarTurmaModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <form id="formEditarTurma">
-          <div class="modal-header" style="background:#fab982;border-bottom:none;">
-            <h5 class="modal-title" style="color:#000;">Editar Turma</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span>&times;</span></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" id="turmaId">
-            <div class="form-row">
-              <div class="form-group col-md-5">
-                <label>Nome</label>
-                <input type="text" id="eNome" class="form-control" required>
-              </div>
-              <div class="form-group col-md-3">
-                <label>Sala</label>
-                <input type="text" id="eSala" class="form-control">
-              </div>
-              <div class="form-group col-md-2">
-                <label>Ano</label>
-                <input type="number" id="eAno" class="form-control" inputmode="numeric" min="0">
-              </div>
-              <div class="form-group col-md-2">
-                <label>Turno</label>
-                <input type="text" id="eTurno" class="form-control" placeholder="Manhã/Tarde/Noite">
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Descrição</label>
-              <textarea id="eDescricao" class="form-control" rows="3"></textarea>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-primary" id="btnSalvarEditar" type="submit">Salvar</button>
-            <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
-          </div>
-        </form>
+  <div aria-hidden="true" class="modal fade" id="editarTurmaModal" role="dialog" tabindex="-1">
+   <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+     <form id="formEditarTurma">
+      <div class="modal-header" style="background:#fab982;border-bottom:none;">
+       <h5 class="modal-title" style="color:#000;">
+        Editar Turma
+       </h5>
+       <button aria-label="Fechar" class="close" data-dismiss="modal" type="button">
+        <span>
+         ×
+        </span>
+       </button>
       </div>
+      <div class="modal-body">
+       <input id="turmaId" type="hidden"/>
+       <div class="form-row">
+        <div class="form-group col-md-5">
+         <label>
+          Nome
+         </label>
+         <input class="form-control" id="eNome" required="" type="text"/>
+        </div>
+        <div class="form-group col-md-3">
+         <label>
+          Sala
+         </label>
+         <input class="form-control" id="eSala" type="text"/>
+        </div>
+        <div class="form-group col-md-2">
+         <label>
+          Ano
+         </label>
+         <input class="form-control" id="eAno" inputmode="numeric" min="0" type="number"/>
+        </div>
+        <div class="form-group col-md-2">
+         <label>
+          Turno
+         </label>
+         <input class="form-control" id="eTurno" placeholder="Manhã/Tarde/Noite" type="text"/>
+        </div>
+       </div>
+       <div class="form-group">
+        <label>
+         Descrição
+        </label>
+        <textarea class="form-control" id="eDescricao" rows="3"></textarea>
+       </div>
+      </div>
+      <div class="modal-footer">
+       <button class="btn btn-primary" id="btnSalvarEditar" type="submit">
+        Salvar
+       </button>
+       <button class="btn btn-secondary" data-dismiss="modal" type="button">
+        Cancelar
+       </button>
+      </div>
+     </form>
     </div>
+   </div>
   </div>
-
   <script>
-    // ===== Data & helpers =====
-    const turmas = JSON.parse(document.getElementById('turmas-data').textContent);
-
-    const distinct = arr => [...new Set(arr.filter(v => v !== null && v !== undefined && String(v).trim() !== ''))];
-    const normaliza = s => (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-
-    // Preenche Turno e Ano
-    (function fillFilters(){
-      const fTurno = document.getElementById('fTurno');
-      const turnos = distinct(turmas.map(t => t.turno || ''));
-      fTurno.innerHTML = '<option value="">Turno: todos</option>' + turnos.map(t => `<option value="${t}">${t}</option>`).join('');
-
-      const fAno = document.getElementById('fAno');
-      const anos = distinct(turmas.map(t => t.ano ?? '')).sort((a,b)=> (Number(a)||0)-(Number(b)||0));
-      fAno.innerHTML = '<option value="">Ano letivo: todos</option>' + anos.map(a => `<option value="${a}">${a}</option>`).join('');
-    })();
-
-    // ===== Estado de UI =====
-    let q = '', fTurno = '', fAno = '';
-    let pageSize = parseInt(document.getElementById('pageSize').value,10) || 25;
-    let currentPage = 1, sortKey = 'nome', sortDir = 'asc';
-
-    const tbody = document.getElementById('tbody');
-    const resultsInfo = document.getElementById('resultsInfo');
-    const pageIndicator = document.getElementById('pageIndicator');
-
-    function filtraOrdena() {
-      let lista = turmas.filter(t => {
-        if (fTurno && (t.turno || '') !== fTurno) return false;
-        if (fAno && String(t.ano) !== String(fAno)) return false;
-        if (q) {
-          const campos = [t.nome, t.sala, t.turno, t.ano, t.descricao];
-          if (!campos.some(c => normaliza(c).includes(normaliza(q)))) return false;
-        }
-        return true;
-      });
-
-      // ordenação com cuidado para números
-      lista = lista.sort((a,b) => {
-        const av = a[sortKey], bv = b[sortKey];
-        if (sortKey === 'ano') {
-          const na = Number(av) || 0, nb = Number(bv) || 0;
-          return sortDir === 'asc' ? (na - nb) : (nb - na);
-        }
-        const sa = normaliza(av), sb = normaliza(bv);
-        const cmp = (sa < sb) ? -1 : (sa > sb ? 1 : 0);
-        return sortDir === 'asc' ? cmp : -cmp;
-      });
-
-      return lista;
-    }
-
-    function render(p=1){
-      const lista = filtraOrdena();
-      const total = lista.length;
-      const totalPages = Math.max(1, Math.ceil(total/pageSize));
-      currentPage = Math.min(Math.max(1,p), totalPages);
-
-      const start = (currentPage-1)*pageSize;
-      const end = Math.min(start + pageSize, total);
-      const pageSlice = lista.slice(start, end);
-
-      tbody.innerHTML = '';
-      pageSlice.forEach(t => {
-        const row = `
-          <tr>
-            <td>${t.nome || ''}</td>
-            <td>${t.sala || ''}</td>
-            <td>${t.ano ?? ''}</td>
-            <td>${t.turno || ''}</td>
-            <td>
-              <div class="d-flex">
-                <button class="btn btn-sm btn-info mr-2" onclick='abrirEditar(${t.id})'>Editar</button>
-                <button class="btn btn-sm btn-secondary" onclick='confirmExcluir(${t.id})'>Excluir</button>
-              </div>
-            </td>
-          </tr>
-        `;
-        tbody.insertAdjacentHTML('beforeend', row);
-      });
-
-      resultsInfo.textContent = total ? `Mostrando ${start+1}–${end} de ${total}` : 'Nenhum resultado';
-      pageIndicator.textContent = `${currentPage} / ${totalPages}`;
-      document.getElementById('firstPage').disabled = currentPage===1;
-      document.getElementById('prevPage').disabled = currentPage===1;
-      document.getElementById('nextPage').disabled = currentPage===totalPages;
-      document.getElementById('lastPage').disabled = currentPage===totalPages;
-      renderChips();
-      renderSortIndicators();
-    }
-
-    function renderChips(){
-      const chips = document.getElementById('chips');
-      chips.innerHTML = '';
-      const add = (label,clear) => {
-        const el = document.createElement('span');
-        el.className='chip';
-        el.innerHTML = `${label} <button>×</button>`;
-        el.querySelector('button').addEventListener('click', clear);
-        chips.appendChild(el);
-      };
-      if (q) add(`Busca: "${q}"`, () => { document.getElementById('q').value=''; q=''; render(1); });
-      if (fTurno) add(`Turno: ${fTurno}`, () => { document.getElementById('fTurno').value=''; fTurno=''; render(1); });
-      if (fAno) add(`Ano: ${fAno}`, () => { document.getElementById('fAno').value=''; fAno=''; render(1); });
-    }
-
-    function renderSortIndicators(){
-      document.querySelectorAll('#tabelaTurmas thead th .sort-indicator').forEach(el => el.textContent='');
-      const th = document.querySelector(`#tabelaTurmas thead th[data-sort="${sortKey}"] .sort-indicator`);
-      if (th) th.textContent = sortDir==='asc' ? '▲' : '▼';
-    }
-
-    // listeners
-    let debounce = null;
-    document.getElementById('q').addEventListener('input', function(){
-      const val = this.value; clearTimeout(debounce);
-      debounce = setTimeout(() => { q = val; render(1); }, 250);
-    });
-    document.getElementById('fTurno').addEventListener('change', function(){ fTurno=this.value; render(1); });
-    document.getElementById('fAno').addEventListener('change', function(){ fAno=this.value; render(1); });
-    document.getElementById('pageSize').addEventListener('change', function(){ pageSize=parseInt(this.value,10)||25; render(1); });
-
-    document.getElementById('firstPage').addEventListener('click', () => render(1));
-    document.getElementById('prevPage').addEventListener('click', () => render(currentPage-1));
-    document.getElementById('nextPage').addEventListener('click', () => render(currentPage+1));
-    document.getElementById('lastPage').addEventListener('click', () => {
-      const totalPages = Math.max(1, Math.ceil(filtraOrdena().length/pageSize));
-      render(totalPages);
-    });
-
-    document.querySelectorAll('#tabelaTurmas thead th[data-sort]').forEach(th=>{
-      th.addEventListener('click', ()=>{
-        const key = th.getAttribute('data-sort');
-        if (sortKey===key) sortDir = (sortDir==='asc'?'desc':'asc');
-        else { sortKey=key; sortDir='asc'; }
-        render(currentPage);
-      });
-    });
-
-    document.getElementById('clearFilters').addEventListener('click', ()=>{
-      document.getElementById('q').value='';
-      document.getElementById('fTurno').value='';
-      document.getElementById('fAno').value='';
-      q=fTurno=fAno='';
-      sortKey='nome'; sortDir='asc';
-      render(1);
-    });
-
-    // ===== Editar / Excluir =====
-    function abrirEditar(id){
-      const t = turmas.find(x => x.id===id);
-      if (!t) return alert('Turma não encontrada');
-      document.getElementById('turmaId').value = t.id;
-      document.getElementById('eNome').value = t.nome || '';
-      document.getElementById('eSala').value = t.sala || '';
-      document.getElementById('eAno').value = t.ano ?? '';
-      document.getElementById('eTurno').value = t.turno || '';
-      document.getElementById('eDescricao').value = t.descricao || '';
-      $('#editarTurmaModal').modal('show');
-    }
-
-    function parseIntOrNull(v){
-      const n = parseInt(v, 10);
-      return isNaN(n) ? null : n;
-    }
-
-    document.getElementById('formEditarTurma').addEventListener('submit', function(e){
-      e.preventDefault();
-      const btn = document.getElementById('btnSalvarEditar');
-      btn.disabled = true; btn.textContent = 'Salvando...';
-
-      const id = document.getElementById('turmaId').value;
-      const anoVal = document.getElementById('eAno').value.trim();
-
-      const payload = {
-        nome: document.getElementById('eNome').value,
-        sala: document.getElementById('eSala').value,
-        ano: (anoVal === '' ? null : parseIntOrNull(anoVal)),
-        turno: document.getElementById('eTurno').value,
-        descricao: document.getElementById('eDescricao').value,
-      };
-
-      fetch(`/turmas/${id}/editar/`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'},
-        body: JSON.stringify(payload)
-      })
-      .then(r=>r.json())
-      .then(data=>{
-        if (data.success){
-          const idx = turmas.findIndex(x => x.id == id);
-          if (idx >= 0) {
-            turmas[idx] = { ...turmas[idx], ...payload, ano: payload.ano ?? '' };
-          }
-          $('#editarTurmaModal').modal('hide');
-          render(currentPage);
-        } else {
-          alert(data.error || 'Erro ao salvar');
-        }
-      })
-      .catch(err=>{
-        console.error(err);
-        alert('Erro ao salvar');
-      })
-      .finally(()=>{
-        btn.disabled = false; btn.textContent = 'Salvar';
-      });
-    });
-
-    function confirmExcluir(id){
-      if (!confirm('Tem certeza que deseja excluir esta turma?')) return;
-      fetch(`/turmas/${id}/excluir/`, {
-        method:'POST',
-        headers:{'X-CSRFToken':'{{ csrf_token }}'}
-      }).then(r=>r.json()).then(data=>{
-        if (data.success){
-          const idx = turmas.findIndex(x => x.id == id);
-          if (idx >= 0) turmas.splice(idx,1);
-          render(currentPage);
-        } else { alert('Erro ao excluir'); }
-      });
-    }
-
-    // ===== Exportar CSV =====
-    function toCSVRow(arr) {
-      return arr.map(v => {
-        const s = (v === null || v === undefined) ? '' : String(v);
-        return `"${s.replace(/"/g, '""')}"`;
-      }).join(',');
-    }
-    function baixarArquivo(nome, conteudo, mime = 'text/csv;charset=utf-8;') {
-      const blob = new Blob([conteudo], { type: mime });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = nome;
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-    function exportarTurmasCSV() {
-      const lista = filtraOrdena();
-      const header = ['Nome','Sala','Ano','Turno','Descrição'];
-      const linhas = [toCSVRow(header)];
-      lista.forEach(t => {
-        const row = [
-          t.nome || '',
-          t.sala || '',
-          t.ano ?? '',
-          t.turno || '',
-          t.descricao || ''
-        ];
-        linhas.push(toCSVRow(row));
-      });
-      baixarArquivo(`turmas_${new Date().toISOString().slice(0,10)}.csv`, linhas.join('\n'));
-    }
-
-    // ===== Imprimir via iframe (robusto, sem pop-up) =====
-    function printWithIframe(htmlString) {
-      document.querySelectorAll('iframe.__print_iframe__').forEach(el => el.remove());
-      const iframe = document.createElement('iframe');
-      iframe.className = '__print_iframe__';
-      iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = '0';
-      document.body.appendChild(iframe);
-
-      const doc = iframe.contentWindow.document;
-      doc.open();
-      doc.write(htmlString);
-      doc.close();
-
-      iframe.onload = function () {
-        try {
-          iframe.contentWindow.focus();
-          iframe.contentWindow.print();
-        } catch(e) {
-          console.error('Falha ao imprimir:', e);
-          alert('Não consegui acionar a impressão. Veja o console para detalhes.');
-        } finally {
-          setTimeout(() => iframe.remove(), 2000);
-        }
-      };
-    }
-
-    function imprimirTabelaTurmas() {
-      const original = document.getElementById('tabelaTurmas');
-      if (!original) { alert('Tabela não encontrada.'); return; }
-
-      const tabela = original.cloneNode(true);
-      // Remove a coluna "Ações"
-      const thRow = tabela.querySelector('thead tr');
-      if (thRow && thRow.children.length) thRow.removeChild(thRow.lastElementChild);
-      tabela.querySelectorAll('tbody tr').forEach(tr => {
-        if (tr.children.length) tr.removeChild(tr.lastElementChild);
-      });
-
-      const html = `<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Turmas</title>
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 12mm; }
-    h3 { margin: 0 0 12px 0; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
-    thead th { background: #fab982; color: #000; }
-    @media print { @page { margin: 12mm; } }
-  </style>
-</head>
-<body>
-  <h3>Lista de Turmas</h3>
-  ${tabela.outerHTML}
-</body>
-</html>`;
-
-      printWithIframe(html);
-    }
-
-    // Botões
-    document.getElementById('btnExportTurmas').addEventListener('click', exportarTurmasCSV);
-    document.getElementById('btnPrintTurmas').addEventListener('click', imprimirTabelaTurmas);
-
-    // inicial
-    render(1);
   </script>
-
-  <div>{% include 'partials/_footer.html' %}</div>
-</body>
+ </body>
 </html>
