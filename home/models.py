@@ -366,3 +366,10 @@ class Nota(models.Model):
 
     def __str__(self):
         return f"Notas de {self.aluno.nome} - {self.disciplina.nome}"
+    
+class NomeTurma(models.Model):
+    nome = models.CharField(max_length=100)
+    escola = models.ForeignKey(Escola, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.nome
