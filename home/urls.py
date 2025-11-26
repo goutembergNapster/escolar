@@ -27,6 +27,12 @@ urlpatterns = [
     path('alternar_status_aluno/<int:aluno_id>/', views.alternar_status_aluno, name='alternar_status_aluno'),
     path('listar_aluno/', views.listar_alunos, name='listar_aluno'),
     path("alunos/<int:pk>/pdf/", views.aluno_requerimento_pdf, name="aluno_requerimento"),
+    path('aluno/reimprimir/', views.reimprimir_documentos_aluno, name='reimprimir_documentos_aluno'),
+    # Reimpressões
+    path("alunos/<int:pk>/comprovante/", views.comprovante_matricula_pdf, name="comprovante_matricula_pdf"),
+    path("aluno/ficha/<int:pk>/", views.ficha_cadastral_pdf, name="ficha_cadastral_pdf"),
+
+
 
 
     # Turma
@@ -90,5 +96,4 @@ urlpatterns = [
     path('diario-classe/editar-registro/<int:registro_id>/', views.editar_registro, name='editar_registro'),
 
     path("criar-admin-temp/", views.create_admin_temp, name='criar-admin-temp'),
-
 ]

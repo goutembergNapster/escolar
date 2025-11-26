@@ -48,7 +48,6 @@ from .models import (
     Turma,
     Disciplina,
     Funcionario,
-    Nota,
     TurmaDisciplina,
     Presenca,
     Chamada,
@@ -944,75 +943,88 @@ def _extrair_turma_info(aluno):
 
     return None, '', '', ''
 
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db.models import Prefetch, Q
+from django.http import JsonResponse
 
+from home.models import Aluno, Responsavel, TurmaDisciplina, Turma
+
+
+# ============================================================
+# FUNÇÃO: obter turmas do professor logado
+# ============================================================
+def turmas_do_professor(user):
+    return Turma.objects.filter(
+        disciplinas__professor=user
+    ).distinct()
+
+
+# ============================================================
+# VIEW PRINCIPAL – LISTAGEM
+# ============================================================
+@login_required
 def listar_alunos(request):
-    # Use apenas os relacionados que existem (conforme a mensagem de erro)
-    alunos_qs = (
-        Aluno.objects
-        .filter(escola=request.user.escola)
-        .select_related('escola', 'responsavel', 'saude', 'transporteescolar', 'autorizacoes')
+
+    escola = request.user.escola
+
+    alunos = Aluno.objects.filter(escola=escola).select_related(
+        "turma_principal"
+    ).prefetch_related(
+        "responsaveis"
     )
 
     lista = []
-    for aluno in alunos_qs:
-        responsavel = getattr(aluno, 'responsavel', None)
-        saude = getattr(aluno, 'saude', None)
-        transporte = getattr(aluno, 'transporteescolar', None)
-        autorizacoes = getattr(aluno, 'autorizacoes', None)
 
-        turma_id, turma_nome, turma_sigla, turma_turno = _extrair_turma_info(aluno)
-
+    for a in alunos:
         lista.append({
-            'id': aluno.id,
-            'matricula': aluno.matricula,
-            'nome': aluno.nome,
-            'cpf': aluno.cpf,
-            'email': aluno.email,
-            'telefone': aluno.telefone,
-            'ativo': aluno.ativo,
+            "id": a.id,
+            "nome": a.nome,
+            "matricula": a.matricula,
+            "ativo": a.ativo,
+            "data_nascimento": a.data_nascimento.isoformat() if a.data_nascimento else None,
+            "sexo": a.sexo,
+            "rua": a.rua,
+            "numero": a.numero,
+            "cep": a.cep,
+            "bairro": a.bairro,
+            "cidade": a.cidade,
+            "estado": a.estado,
+            "possui_necessidade_especial": a.possui_necessidade_especial,
 
-            # --- TURMA (agora sempre presente, vazio se não houver) ---
-            'turma_id': turma_id,
-            'turma_nome': turma_nome,
-            'turma_sigla': turma_sigla,
-            'turno': turma_turno,
-            'turma': {
-                'id': turma_id,
-                'nome': turma_nome,
-                'sigla': turma_sigla,
-                'turno': turma_turno,
+            # TURMA
+            "turma": {
+                "nome": a.turma_principal.nome if a.turma_principal else "",
+                "sigla": a.turma_principal.sigla if a.turma_principal else "",
             },
 
-            # --- Responsável ---
-            'responsavel_nome': responsavel.nome if responsavel else '',
-            'responsavel_cpf': responsavel.cpf if responsavel else '',
-            'responsavel_parentesco': responsavel.parentesco if responsavel else '',
-            'responsavel_telefone': responsavel.telefone if responsavel else '',
-            'responsavel_email': responsavel.email if responsavel else '',
-
-            # --- Saúde ---
-            'possui_necessidade_especial': saude.possui_necessidade_especial if saude else False,
-            'descricao_necessidade': saude.descricao_necessidade if saude else '',
-            'usa_medicacao': saude.usa_medicacao if saude else False,
-            'quais_medicacoes': saude.quais_medicacoes if saude else '',
-            'possui_alergia': saude.possui_alergia if saude else False,
-            'descricao_alergia': saude.descricao_alergia if saude else '',
-
-            # --- Transporte ---
-            'usa_transporte_escolar': transporte.usa_transporte_escolar if transporte else False,
-            'trajeto': transporte.trajeto if transporte else '',
-
-            # --- Autorizações ---
-            'autorizacao_saida_sozinho': autorizacoes.autorizacao_saida_sozinho if autorizacoes else False,
-            'autorizacao_fotos_eventos': autorizacoes.autorizacao_fotos_eventos if autorizacoes else False,
-            'pessoa_autorizada_buscar': autorizacoes.pessoa_autorizada_buscar if autorizacoes else '',
+            # RESPONSÁVEIS
+            "responsaveis": [
+                {
+                    "id": r.id,
+                    "nome": r.nome,
+                    "cpf": r.cpf,
+                    "parentesco": r.parentesco,
+                    "telefone": r.telefone,
+                    "email": r.email,
+                    "identidade": r.identidade,
+                    "escolaridade": r.escolaridade,
+                    "profissao": r.profissao,
+                }
+                for r in a.responsaveis.all()
+            ]
         })
 
-    context = {
-        'alunos_json': json.dumps(lista, cls=DjangoJSONEncoder, ensure_ascii=False)
-    }
-    return render(request, 'pages/listar_alunos.html', context)
+    turmas_usuario = []
+    if request.user.role == "professor":
+        turmas_usuario = list(
+            request.user.professor_turmas.values_list("nome", flat=True)
+        )
 
+    return render(request, "pages/listar_alunos.html", {
+        "alunos_json": json.dumps(lista, ensure_ascii=False),
+        "turmas_usuario": json.dumps(turmas_usuario, ensure_ascii=False),
+    })
 
 @csrf_exempt  # ou use um decorator de CSRF seguro se for AJAX autenticado
 @require_POST
@@ -1039,38 +1051,61 @@ def buscar_pessoa(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-@require_GET
+# =====================================
+#  AUTOCOMPLETE PESSOA (RESTRITO POR PERFIL)
+# =====================================
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+
+
+@login_required
 def autocomplete_pessoa(request):
-    nome = request.GET.get('nome', '').strip()
-    tipo = request.GET.get('tipo', '').strip()
+    termo = request.GET.get("q", "").strip().lower()
 
-    resultados = []
+    user = request.user
 
-    if not nome or tipo not in ['aluno', 'professor']:
-        return JsonResponse({'resultados': []})
+    # ----------------------------------
+    # REGRA DE PERMISSÃO
+    # ----------------------------------
+    # 1) Diretor / Coordenador / Admin → vê tudo
+    # 2) Professor → vê apenas alunos das turmas dele
+    # ----------------------------------
 
-    if tipo == 'aluno':
-        alunos = Aluno.objects.filter(nome__icontains=nome, escola=request.user.escola)[:10]
-        for aluno in alunos:
-            resultados.append({
-                'nome': aluno.nome,
-                'id': aluno.id,
-                'tipo': 'aluno'
-            })
+    qs = Aluno.objects.filter(escola=user.escola)
 
-    elif tipo == 'professor':
-        professores = Docente.objects.filter(nome__icontains=nome, escola=request.user.escola).prefetch_related('disciplinas')[:10]
-        for prof in professores:
-            nomes_disciplinas = [d.nome for d in prof.disciplinas.all()]
-            resultados.append({
-                'nome': prof.nome,
-                'id': prof.id,
-                'tipo': 'professor',
-                'disciplina': ', '.join(nomes_disciplinas) if nomes_disciplinas else 'Sem disciplina'
-            })
+    if user.role == "professor":
+        turmas_ids = list(
+            TurmaDisciplina.objects.filter(professor=user)
+            .values_list("turma_id", flat=True)
+        )
+        qs = qs.filter(turma__id__in=turmas_ids)
 
-    return JsonResponse({'resultados': resultados})
+    if not termo:
+        return JsonResponse([], safe=False)
 
+    termo_norm = termo.replace(".", "").replace("-", "").replace(" ", "")
+
+    qs = qs.filter(
+        Q(nome__icontains=termo) |
+        Q(cpf__icontains=termo_norm) |
+        Q(matricula__icontains=termo) |
+        Q(responsavel_nome__icontains=termo) |
+        Q(responsavel_telefone__icontains=termo)
+    )[:10]
+
+    resp = [{
+        "id": a.id,
+        "nome": a.nome,
+        "matricula": a.matricula,
+        "turma": a.turma.nome if a.turma else "",
+        "cpf": a.cpf,
+        "responsavel": a.responsavel_nome or "",
+        "telefone": a.responsavel_telefone or "",
+    } for a in qs]
+
+    return JsonResponse(resp, safe=False)
 
 @csrf_exempt
 def criar_turma(request):
@@ -2152,3 +2187,19 @@ def create_admin_temp(request):
 
     return HttpResponse("Superusuário criado com sucesso!")
 
+
+def reimprimir_documentos_aluno(request):
+    
+    return render(request, 'pages/reimprimir_documentos.html')
+
+
+def comprovante_matricula_pdf(request, pk):
+    aluno = get_object_or_404(Aluno, pk=pk, escola=request.user.escola)
+    return render(request, "pages/comprovante_matricula.html", {"aluno": aluno})
+
+
+def ficha_cadastral_pdf(request, pk):
+    aluno = get_object_or_404(Aluno, pk=pk, escola=request.user.escola)
+    return render(request, "pages/aluno_ficha_impressao.html", {"aluno": aluno})
+
+    

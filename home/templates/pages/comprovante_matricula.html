@@ -1,0 +1,168 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<title>Comprovante de Matrícula — {{ aluno.nome }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<style>
+    @page { size: A4; margin: 15mm; }
+
+    body {
+        font-family: "DejaVu Serif", Georgia, serif;
+        font-size: 12pt;
+        color: #000;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Botões só na tela */
+    .only-screen {
+        display: flex;
+        gap: .6rem;
+        margin: 15px 0;
+    }
+    @media print { .only-screen { display:none!important; } }
+
+    /* Marca d'água */
+    .watermark {
+        position: fixed;
+        top: 32%;
+        left: 50%;
+        width: 70%;
+        opacity: 0.08;
+        transform: translate(-50%, -32%);
+        z-index: -1;
+    }
+
+    /* Cabeçalho */
+    .header {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .school-name {
+        font-size: 16pt;
+        font-weight: 700;
+        color: #c06f1f;
+        text-transform: uppercase;
+    }
+    .school-sub {
+        font-size: 10pt;
+        margin-top: 3px;
+    }
+
+    /* Conteúdo */
+    .box {
+        border: 1px solid #fab982;
+        border-left: 4px solid #c06f1f;
+        background: #fffdf9;
+        padding: 14px;
+        margin-top: 15px;
+    }
+
+    .titulo {
+        text-align: center;
+        font-size: 14pt;
+        margin-bottom: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .item { margin-bottom: 6px; }
+    .label { font-weight: bold; }
+
+    /* Assinaturas */
+    .signrow {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 40px;
+    }
+    .sign {
+        width: 45%;
+        text-align: center;
+    }
+    .sign-line {
+        border-top: 1px solid #000;
+        margin-bottom: 5px;
+        margin-top: 35px;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- Marca d'água -->
+<img class="watermark" src="{% static 'images/marcadagua.png' %}" />
+
+<!-- Ações de tela -->
+<div class="only-screen">
+    <button onclick="window.print()">🖨️ Imprimir</button>
+    <a href="javascript:history.back()">← Voltar</a>
+</div>
+
+<!-- Cabeçalho -->
+<div class="header">
+    <div class="school-name">{{ aluno.escola.nome|default:"ESCOLA PEQUENO APRENDIZ" }}</div>
+    <div class="school-sub">
+        {% if aluno.escola %}
+            {{ aluno.escola.endereco }}{% if aluno.escola.numero %}, {{ aluno.escola.numero }}{% endif %}<br>
+            {{ aluno.escola.bairro }} — {{ aluno.escola.cidade }}/{{ aluno.escola.estado }}<br>
+            CNPJ: {{ aluno.escola.cnpj }} • E-mail: {{ aluno.escola.email }}
+        {% else %}
+            Endereço — Cidade/UF<br>
+            CNPJ: 00.000.000/0000-00 • E-mail: escola@email.com
+        {% endif %}
+    </div>
+</div>
+
+<!-- Conteúdo -->
+<div class="box">
+
+    <div class="titulo">COMPROVANTE DE MATRÍCULA</div>
+
+    <p class="item">
+        Declaramos para os devidos fins que o(a) aluno(a)
+        <strong>{{ aluno.nome }}</strong>,
+        matrícula <strong>{{ aluno.matricula }}</strong>,
+        está regularmente matriculado(a) nesta instituição.
+    </p>
+
+    <p class="item">
+        <span class="label">Série/Ano:</span> {{ aluno.serie_ano|default:"---" }}<br>
+        <span class="label">Turno:</span> {{ aluno.turno_aluno|default:"---" }}<br>
+        <span class="label">Turma:</span>
+        {% if aluno.turmas.all %}
+            {% for t in aluno.turmas.all %}
+                {{ t.nome }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        {% else %}
+            ---
+        {% endif %}
+    </p>
+
+    <p class="item">
+        <span class="label">Data de emissão:</span>
+        {% if aluno.escola %}
+            {{ aluno.escola.cidade }} — {{ aluno.escola.estado }},
+        {% else %}
+            Camocim de São Félix — PE,
+        {% endif %}
+        {{ hoje_extenso|title }}
+    </p>
+
+    <div class="signrow">
+        <div class="sign">
+            <div class="sign-line"></div>
+            Responsável
+        </div>
+        <div class="sign">
+            <div class="sign-line"></div>
+            Diretor(a)
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
