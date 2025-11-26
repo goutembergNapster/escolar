@@ -1,10 +1,12 @@
-{% load static %}
+\{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
- <head>
-  {% include 'partials/_head.html' %}
-  <style>
-   .form-row {
+
+<head>
+    {% include 'partials/_head.html' %}
+
+    <style>
+        .form-row {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
@@ -21,14 +23,7 @@
             max-width: 180px;
         }
 
-        #campoDisciplina {
-            align-items: flex-end;
-        }
-
-        #campoDisciplina select {
-            min-width: 200px;
-        }
-
+        /* Sugestões autocomplete */
         #sugestoes {
             position: absolute;
             z-index: 1000;
@@ -42,17 +37,11 @@
             overflow-y: auto;
         }
 
-        #turmaMontadaBox {
-            height: 180px;
-            overflow-y: auto;
-            background-color: #fab982;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 10px;
-        }
         #sugestoes:empty {
             display: none;
         }
+
+        /* Área visual de tags */
         .tag-item {
             display: inline-flex;
             align-items: center;
@@ -71,150 +60,219 @@
             color: #d00;
             font-weight: bold;
         }
-  </style>
- </head>
- <body>
-  {% include 'partials/_nav.html' %}
-  <section class="form-container">
-   <div class="container">
-    <div class="header-bar">
-     Criar Turma
-    </div>
-    <section class="content-wrapper" style="margin-top: 15px;">
-     <form id="turmaForm" method="post">
-      {% csrf_token %}
-      <div class="form-row">
-       <div class="form-group">
-        <label for="nomeTurma">
-         Nome da Turma
-        </label>
-        <input id="nomeTurma" name="nome" placeholder="Ex: 5º Ano A" required="" type="text"/>
-       </div>
-       <div class="form-group short-field">
-        <label for="turnoTurma">
-         Turno
-        </label>
-        <select id="turnoTurma" name="turno" required="">
-         <option value="">
-          Selecione
-         </option>
-         <option>
-          Manhã
-         </option>
-         <option>
-          Tarde
-         </option>
-         <option>
-          Noite
-         </option>
-        </select>
-       </div>
-       <div class="form-group short-field">
-        <label for="anoTurma">
-         Ano
-        </label>
-        <input id="anoTurma" max="2100" min="1900" name="ano" required="" type="number"/>
-       </div>
-       <div class="form-group short-field">
-        <label for="salaTurma">
-         Sala
-        </label>
-        <input id="salaTurma" name="sala" placeholder="Ex: 202" required="" type="text"/>
-       </div>
-      </div>
-      <div class="form-row">
-       <div class="form-group" style="width: 100%">
-        <label for="descricaoTurma">
-         Descrição (opcional)
-        </label>
-        <textarea id="descricaoTurma" name="descricao" rows="3" style="width: 100%;"></textarea>
-       </div>
-      </div>
-      <div class="form-row">
-       <div class="form-group short-field">
-        <label for="tipoPessoa">
-         Tipo
-        </label>
-        <select id="tipoPessoa" onchange="atualizarCampoDisciplina()">
-         <option value="professor">
-          Professor
-         </option>
-         <option value="aluno">
-          Aluno
-         </option>
-        </select>
-       </div>
-       <div class="form-group" style="flex: 2; position: relative;">
-        <label for="buscaPessoa">
-         Buscar Aluno ou Professor
-        </label>
-        <input autocomplete="off" id="buscaPessoa" placeholder="Digite o nome" type="text"/>
-        <ul id="sugestoes">
-        </ul>
-       </div>
-       <div class="form-group short-field">
-        <label for="disciplinaSelecionada">
-         Disciplina
-        </label>
-        <select id="disciplinaSelecionada" name="disciplina_id">
-         <option value="">
-          Selecione a disciplina
-         </option>
-         {% for disciplina in disciplinas %}
-         <option value="{{ disciplina.id }}">
-          {{ disciplina.nome }}
-         </option>
-         {% endfor %}
-        </select>
-       </div>
-       <div class="form-group short-field">
-        <label style="color: transparent;">
-         Add
-        </label>
-        <button class="btn btn-primary" onclick="adicionarPessoa()" type="button">
-         Adicionar
-        </button>
-       </div>
-      </div>
-      <!-- Novo campo visual da turma montada -->
-      <div class="form-row">
-       <div class="form-group" style="width: 100%">
-        <label>
-         Turma Montada
-        </label>
-        <!-- Substituímos o textarea por uma div visualmente idêntica -->
-        <div id="turmaMontadaTags" style="width: 100%; background-color: #f9f9f9; height: 180px; padding: 10px; border: 1px solid #fab982; 
-                    border-radius: 4px; overflow-y: auto; white-space: pre-wrap; cursor: default;">
+
+        /* Borda laranja nos selects e inputs */
+        select.form-control,
+        input.form-control,
+        textarea.form-control {
+            border: 1px solid #fab982 !important;
+        }
+
+        select.form-control:focus,
+        input.form-control:focus,
+        textarea.form-control:focus {
+            border-color: #fab982 !important;
+            box-shadow: 0 0 0 2px rgba(250, 185, 130, 0.4) !important;
+        }
+
+        /* ESTILO DE ERRO */
+        .campo-erro {
+            border-color: red !important;
+            box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.3) !important;
+        }
+
+        .mensagem-erro {
+            font-size: 12px;
+            color: red;
+            margin-top: 4px;
+        }
+
+        /* Shake animation */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+            100% { transform: translateX(0); }
+        }
+        .shake {
+            animation: shake 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+
+{% include 'partials/_nav.html' %}
+
+<section class="form-container">
+    <div class="container">
+
+        <div class="header-bar">
+            Criar Turma
         </div>
-        <input id="professor_id" name="professor_id" type="hidden"/>
-        <input id="alunos_ids" name="alunos_ids" type="hidden"/>
-       </div>
-      </div>
-      <div class="form-footer">
-       <button class="btn btn-primary" type="submit">
-        Salvar Turma
-       </button>
-       <button class="btn btn-secondary" type="reset">
-        Cancelar
-       </button>
-      </div>
-     </form>
-    </section>
-   </div>
-  </section>
-  {% include 'partials/_footer.html' %}
-  <script src="{% static 'js/formulario_turma_dinamico.js' %}">
-  </script>
-  <script>
-   function atualizarCampoDisciplina() {
-    const tipo = document.getElementById('tipoPessoa').value;
-    const selectDisciplina = document.getElementById('disciplinaSelecionada');
-    selectDisciplina.disabled = tipo !== 'professor';
-    if (tipo !== 'professor') {
-        selectDisciplina.value = '';
+
+        <section class="content-wrapper" style="margin-top: 15px;">
+            <form id="turmaForm" method="post">
+                {% csrf_token %}
+
+                <div class="form-row">
+
+                    <!-- SELECT DE NOME DA TURMA -->
+                    <div class="form-group">
+                        <label for="nomeTurmaSelect">Nome da Turma *</label>
+                        <select id="nomeTurmaSelect" name="nome" class="form-control" required>
+                            <option value="">Selecione</option>
+                            {% for item in nomes_turma %}
+                            <option value="{{ item.nome }}">{{ item.nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="mensagem-erro" id="erroNome"></div>
+                    </div>
+
+                    <div class="form-group short-field">
+                        <label for="turnoTurma">Turno *</label>
+                        <select id="turnoTurma" name="turno" class="form-control" required>
+                            <option value="">Selecione</option>
+                            <option>Manhã</option>
+                            <option>Tarde</option>
+                            <option>Noite</option>
+                        </select>
+                        <div class="mensagem-erro" id="erroTurno"></div>
+                    </div>
+
+                    <div class="form-group short-field">
+                        <label for="anoTurma">Ano *</label>
+                        <input id="anoTurma" name="ano" type="number" min="1900" max="2100" required class="form-control">
+                        <div class="mensagem-erro" id="erroAno"></div>
+                    </div>
+
+                    <div class="form-group short-field">
+                        <label for="salaTurma">Sala *</label>
+                        <input id="salaTurma" name="sala" placeholder="Ex: 202" required type="text" class="form-control">
+                        <div class="mensagem-erro" id="erroSala"></div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="width: 100%">
+                        <label for="descricaoTurma">Descrição (opcional)</label>
+                        <textarea id="descricaoTurma" name="descricao" rows="3" style="width: 100%;" class="form-control"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+
+                    <div class="form-group short-field">
+                        <label for="tipoPessoa">Tipo</label>
+                        <select id="tipoPessoa" onchange="atualizarCampoDisciplina()" class="form-control">
+                            <option value="professor">Professor</option>
+                            <option value="aluno">Aluno</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="flex: 2; position: relative;">
+                        <label for="buscaPessoa">Buscar Aluno ou Professor</label>
+                        <input id="buscaPessoa" type="text" placeholder="Digite o nome" autocomplete="off" class="form-control">
+                        <ul id="sugestoes"></ul>
+                    </div>
+
+                    <div class="form-group short-field">
+                        <label for="disciplinaSelecionada">Disciplina</label>
+                        <select id="disciplinaSelecionada" name="disciplina_id" class="form-control">
+                            <option value="">Selecione a disciplina</option>
+                            {% for disciplina in disciplinas %}
+                            <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group short-field">
+                        <label style="color: transparent;">Add</label>
+                        <button class="btn btn-primary" type="button" onclick="adicionarPessoa()">Adicionar</button>
+                    </div>
+                </div>
+
+                <!-- TAGS -->
+                <div class="form-row">
+                    <div class="form-group" style="width: 100%">
+                        <label>Turma Montada</label>
+
+                        <div id="turmaMontadaTags"
+                             style="width: 100%; background-color: #f9f9f9; height: 180px; padding: 10px;
+                             border: 1px solid #fab982; border-radius: 4px; overflow-y: auto;">
+                        </div>
+
+                        <input type="hidden" id="professor_id" name="professor_id">
+                        <input type="hidden" id="alunos_ids" name="alunos_ids">
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                    <button type="submit" class="btn btn-primary">Salvar Turma</button>
+                    <button type="reset" class="btn btn-secondary">Cancelar</button>
+                </div>
+
+            </form>
+        </section>
+    </div>
+</section>
+
+{% include 'partials/_footer.html' %}
+
+<script src="{% static 'home/js/formulario_turma_dinamico.js' %}"></script>
+
+<script>
+    function atualizarCampoDisciplina() {
+        const tipo = document.getElementById('tipoPessoa').value;
+        const selectDisciplina = document.getElementById('disciplinaSelecionada');
+
+        selectDisciplina.disabled = (tipo !== 'professor');
+        if (tipo !== 'professor') {
+            selectDisciplina.value = '';
+        }
     }
-}
-document.addEventListener('DOMContentLoaded', atualizarCampoDisciplina);
-  </script>
- </body>
+
+    document.addEventListener('DOMContentLoaded', atualizarCampoDisciplina);
+
+    // ================================
+    //     VALIDAÇÃO CUSTOMIZADA
+    // ================================
+    document.getElementById("turmaForm").addEventListener("submit", function (e) {
+        let erro = false;
+
+        const nome = document.getElementById("nomeTurmaSelect");
+        const turno = document.getElementById("turnoTurma");
+        const ano = document.getElementById("anoTurma");
+        const sala = document.getElementById("salaTurma");
+
+        const campos = [
+            { campo: nome, erroDiv: "erroNome", msg: "Selecione um nome." },
+            { campo: turno, erroDiv: "erroTurno", msg: "Selecione um turno." },
+            { campo: ano, erroDiv: "erroAno", msg: "Informe o ano." },
+            { campo: sala, erroDiv: "erroSala", msg: "Informe a sala." }
+        ];
+
+        campos.forEach(item => {
+            if (!item.campo.value.trim()) {
+                erro = true;
+                item.campo.classList.add("campo-erro", "shake");
+                document.getElementById(item.erroDiv).innerText = item.msg;
+
+                setTimeout(() => item.campo.classList.remove("shake"), 300);
+            } else {
+                item.campo.classList.remove("campo-erro");
+                document.getElementById(item.erroDiv).innerText = "";
+            }
+        });
+
+        if (erro) {
+            e.preventDefault();
+            nome.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    });
+</script>
+
+</body>
 </html>

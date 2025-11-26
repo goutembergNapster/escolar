@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const nome = inputBusca.value.trim();
         const tipo = tipoPessoa.value;
         const sugestoes = document.getElementById('sugestoes');
-        const lista = sugestoes.dataset.lista ? JSON.parse(sugestoes.dataset.lista) : [];
+        const lista = sugestoes?.dataset.lista ? JSON.parse(sugestoes.dataset.lista) : [];
+
         const pessoa = lista.find(p => p.nome === nome);
 
         if (!pessoa) {
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (tipo === 'professor') {
             const disciplinaId = disciplinaSelect.value;
             const disciplinaNome = disciplinaSelect.options[disciplinaSelect.selectedIndex]?.text;
+
             if (!disciplinaId) {
                 alert("Selecione uma disciplina.");
                 return;
@@ -42,10 +44,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert("Já há um professor atribuído. Remova-o primeiro.");
                 return;
             }
+
             turma.professor = { id: pessoa.id, nome: pessoa.nome };
             turma.disciplina_id = disciplinaId;
             turma.disciplina_nome = disciplinaNome;
             document.getElementById('professor_id').value = pessoa.id;
+
         } else {
             if (!turma.alunos.some(a => a.id === pessoa.id)) {
                 turma.alunos.push({ id: pessoa.id, nome: pessoa.nome });
@@ -61,6 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
         campoTags.innerHTML = '';
         document.getElementById('alunos_ids').value = turma.alunos.map(a => a.id).join(',');
 
+        // TAG DO PROFESSOR
         if (turma.professor) {
             const tag = criarTag(`👨‍🏫 ${turma.professor.nome} – ${turma.disciplina_nome}`, () => {
                 turma.professor = null;
@@ -72,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
             campoTags.appendChild(tag);
         }
 
+        // TAG DOS ALUNOS
         turma.alunos.forEach(aluno => {
             const tag = criarTag(`👦 ${aluno.nome}`, () => {
                 turma.alunos = turma.alunos.filter(a => a.id !== aluno.id);
@@ -89,19 +95,26 @@ document.addEventListener('DOMContentLoaded', function () {
         return div;
     }
 
-    // Autocomplete
+    // ------------------------------
+    // 🔥 AUTOCOMPLETE CORRIGIDO
+    // ------------------------------
     inputBusca.addEventListener('input', function () {
         const nome = this.value.trim();
         const tipo = tipoPessoa.value;
 
-        if (nome.length < 2) return limparSugestoes();
+        if (nome.length < 2) {
+            limparSugestoes();
+            return;
+        }
 
         fetch(`/autocomplete_pessoa/?nome=${encodeURIComponent(nome)}&tipo=${tipo}`)
             .then(res => res.json())
             .then(data => {
-                const lista = data.resultados || [];
+                // AQUI ESTÁ A CORREÇÃO ✔
+                const lista = Array.isArray(data) ? data : (data.resultados || []);
                 mostrarSugestoes(lista);
-            });
+            })
+            .catch(() => limparSugestoes());
     });
 
     function mostrarSugestoes(lista) {
@@ -109,9 +122,21 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!ul) {
             ul = document.createElement('ul');
             ul.id = 'sugestoes';
-            ul.style = 'position:absolute;z-index:1000;background:white;border:1px solid #ccc;list-style:none;padding:0;margin:0;width:100%;max-height:200px;overflow-y:auto';
+            ul.style = `
+                position:absolute;
+                z-index:1000;
+                background:white;
+                border:1px solid #ccc;
+                list-style:none;
+                padding:0;
+                margin:0;
+                width:100%;
+                max-height:200px;
+                overflow-y:auto;
+            `;
             inputBusca.parentNode.appendChild(ul);
         }
+
         ul.innerHTML = '';
         ul.dataset.lista = JSON.stringify(lista);
 
@@ -132,11 +157,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (ul) ul.innerHTML = '';
     }
 
-    // Submit
+    // Submit do formulário
     document.getElementById('turmaForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
-        const nome = document.getElementById('nomeTurma').value.trim();
+        const nome = document.getElementById('nomeTurmaSelect').value.trim();
         const turno = document.getElementById('turnoTurma').value.trim();
         const ano = document.getElementById('anoTurma').value.trim();
         const sala = document.getElementById('salaTurma').value.trim();
@@ -145,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const disciplinaId = turma.disciplina_id;
         const alunosIds = turma.alunos.map(a => a.id);
 
+        // VALIDAÇÃO COMPLETA
         if (!nome || !turno || !ano || !sala || !professorId || !disciplinaId || alunosIds.length === 0) {
             alert("Preencha todos os campos e adicione professor e alunos.");
             return;
@@ -167,16 +193,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 alunos_ids: alunosIds
             })
         })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.mensagem);
-                    window.location.reload();
-                } else {
-                    alert("Erro: " + data.mensagem);
-                }
-            })
-            .catch(() => alert("Erro ao salvar turma."));
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.mensagem);
+                window.location.reload();
+            } else {
+                alert("Erro: " + data.mensagem);
+            }
+        })
+        .catch(() => alert("Erro ao salvar turma."));
     });
 
     function getCookie(name) {

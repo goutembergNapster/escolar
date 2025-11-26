@@ -1,41 +1,53 @@
-# Standard library
+# ============================================
+# 📌 IMPORTS ORGANIZADOS E SEM DUPLICAÇÕES
+# ============================================
+
+# ---- Standard Library ----
 import json
 import re
+import locale
 from datetime import date, datetime
 from io import BytesIO
-from django.contrib.auth.hashers import make_password
-from django.conf import settings
 
-# Third-party
+# ---- Django Core ----
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import get_user_model, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.hashers import make_password
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db import transaction, models
+from django.db.models import Prefetch, Q, IntegerField
+from django.db.models.functions import Cast, Substr
+from django.http import (
+    HttpResponse,
+    JsonResponse,
+    HttpResponseBadRequest,
+)
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import get_template
+from django.utils.dateparse import parse_date
+from django.utils.timezone import localdate, timezone
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from home.models import NomeTurma
+
+# ---- Third-Party ----
 import pandas as pd
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from django.db.models import Prefetch  
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+)
 
-# Django
-from django.contrib import messages
-from django.contrib.auth import get_user_model, login, logout, update_session_auth_hash
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
-from django.core.serializers.json import DjangoJSONEncoder
-from django.db import transaction
-from django.db.models import IntegerField, Q
-from django.db.models.functions import Cast, Substr
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
-from django.template.loader import get_template
-from django.utils.dateparse import parse_date
-from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
-from django.views.decorators.http import require_GET, require_POST, require_http_methods
-from django.shortcuts import get_object_or_404, redirect, render
-from django.db import transaction, models
-from django.utils.timezone import localdate
-import locale
-import json
-
-# Local apps
+# ---- Local Apps (your models and tools) ----
 from .forms import EscolaForm
 from .models import (
     Escola,
@@ -182,11 +194,15 @@ def cadastro_funcionarios(request):
 @role_required(['diretor', 'coordenador'])
 def cadastro_turma(request):
     escola = request.user.escola
+
     disciplinas = Disciplina.objects.filter(escola=escola)
+    nomes_turma = NomeTurma.objects.filter(escola=escola)
 
     context = {
-        'disciplinas': disciplinas
+        'disciplinas': disciplinas,
+        'nomes_turma': nomes_turma  # <-- AQUI!!!
     }
+
     return render(request, 'pages/registrar_turma.html', context)
 
 
@@ -1062,103 +1078,104 @@ from django.db.models import Q
 
 @login_required
 def autocomplete_pessoa(request):
-    termo = request.GET.get("q", "").strip().lower()
+    termo = request.GET.get("nome", "").strip().lower()
+    tipo = request.GET.get("tipo", "").strip().lower()
 
     user = request.user
-
-    # ----------------------------------
-    # REGRA DE PERMISSÃO
-    # ----------------------------------
-    # 1) Diretor / Coordenador / Admin → vê tudo
-    # 2) Professor → vê apenas alunos das turmas dele
-    # ----------------------------------
-
-    qs = Aluno.objects.filter(escola=user.escola)
-
-    if user.role == "professor":
-        turmas_ids = list(
-            TurmaDisciplina.objects.filter(professor=user)
-            .values_list("turma_id", flat=True)
-        )
-        qs = qs.filter(turma__id__in=turmas_ids)
+    escola = user.escola
 
     if not termo:
         return JsonResponse([], safe=False)
 
     termo_norm = termo.replace(".", "").replace("-", "").replace(" ", "")
 
+    # ------------------------------------------------------
+    # AUTOCOMPLETE PARA PROFESSOR
+    # ------------------------------------------------------
+    if tipo == "professor":
+        qs = Docente.objects.filter(escola=escola)
+
+        qs = qs.filter(
+            Q(nome__icontains=termo) |
+            Q(cpf__icontains=termo_norm)
+        )[:10]
+
+        resp = [{
+            "id": p.id,
+            "nome": p.nome,
+            "cpf": p.cpf,
+            "tipo": "professor"
+        } for p in qs]
+
+        return JsonResponse(resp, safe=False)
+
+    # ------------------------------------------------------
+    # AUTOCOMPLETE PARA ALUNO
+    # ------------------------------------------------------
+    qs = Aluno.objects.filter(escola=escola)
+
     qs = qs.filter(
         Q(nome__icontains=termo) |
         Q(cpf__icontains=termo_norm) |
-        Q(matricula__icontains=termo) |
-        Q(responsavel_nome__icontains=termo) |
-        Q(responsavel_telefone__icontains=termo)
+        Q(matricula__icontains=termo)
     )[:10]
 
     resp = [{
         "id": a.id,
         "nome": a.nome,
         "matricula": a.matricula,
-        "turma": a.turma.nome if a.turma else "",
         "cpf": a.cpf,
-        "responsavel": a.responsavel_nome or "",
-        "telefone": a.responsavel_telefone or "",
+        "tipo": "aluno"
     } for a in qs]
 
     return JsonResponse(resp, safe=False)
 
-@csrf_exempt
+@login_required
 def criar_turma(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
+    if request.method != "POST":
+        return JsonResponse({"success": False, "mensagem": "Método inválido."})
 
-            nome = data.get('nome', '').strip()
-            turno = data.get('turno', '').strip()
-            ano = data.get('ano')
-            sala = data.get('sala', '').strip()
-            descricao = data.get('descricao', '').strip()
-            professor_id = data.get('professor_id', '')
-            disciplina_id = data.get('disciplina_id', '')
-            alunos_ids = data.get('alunos_ids', [])
+    try:
+        data = json.loads(request.body)
 
-            if not nome or not turno or not ano or not sala:
-                return JsonResponse({'success': False, 'mensagem': 'Preencha todos os campos obrigatórios.'})
+        nome = data.get("nome")
+        turno = data.get("turno")
+        ano = data.get("ano")
+        sala = data.get("sala")
+        descricao = data.get("descricao")
+        professor_id = data.get("professor_id")
+        disciplina_id = data.get("disciplina_id")
+        alunos_ids = data.get("alunos_ids", [])
 
-            # Garante que a turma pertença à escola do usuário
-            escola = request.user.escola
-            turma = Turma.objects.create(
-                nome=nome,
-                turno=turno,
-                ano=ano,
-                sala=sala,
-                descricao=descricao,
-                escola=escola
-            )
+        if not all([nome, turno, ano, sala, professor_id, disciplina_id]) or len(alunos_ids) == 0:
+            return JsonResponse({"success": False, "mensagem": "Dados incompletos."})
 
-            if professor_id and disciplina_id:
-                professor = Docente.objects.filter(id=professor_id, escola=escola).first()
-                disciplina = Disciplina.objects.filter(id=disciplina_id, escola=escola).first()
+        escola = request.user.escola
 
-                if professor and disciplina:
-                    # Cria relacionamento TurmaDisciplina
-                    TurmaDisciplina.objects.create(
-                        turma=turma,
-                        professor=professor,
-                        disciplina=disciplina,
-                        escola=escola
-                    )
+        turma = Turma.objects.create(
+            nome=nome,
+            turno=turno,
+            ano=ano,
+            sala=sala,
+            descricao=descricao,
+            escola=escola
+        )
 
-            if isinstance(alunos_ids, list):
-                alunos = Aluno.objects.filter(id__in=alunos_ids, escola=escola)
-                turma.alunos.add(*alunos)
+        TurmaDisciplina.objects.create(
+            turma=turma,
+            professor_id=professor_id,
+            disciplina_id=disciplina_id
+        )
 
-            return JsonResponse({'success': True, 'mensagem': 'Turma criada com sucesso!'})
+        for aluno_id in alunos_ids:
+            aluno = Aluno.objects.get(id=aluno_id)
+            aluno.turmas.add(turma)
 
-        except Exception as e:
-            return JsonResponse({'success': False, 'mensagem': f'Erro ao criar turma: {str(e)}'})
+        return JsonResponse({"success": True, "mensagem": "Turma criada com sucesso!"})
 
-    return JsonResponse({'success': False, 'mensagem': 'Método não permitido'}, status=405)
+    except Exception as e:
+        return JsonResponse({"success": False, "mensagem": str(e)})
+
 
 @login_required
 @role_required(['diretor', 'coordenador'])
@@ -2202,4 +2219,39 @@ def ficha_cadastral_pdf(request, pk):
     aluno = get_object_or_404(Aluno, pk=pk, escola=request.user.escola)
     return render(request, "pages/aluno_ficha_impressao.html", {"aluno": aluno})
 
-    
+def pagina_nome_turma(request):
+    return render(request, "pages/nome_turma.html")
+
+def cadastrar_nome_turma(request):
+    data = json.loads(request.body)
+    nome = data.get("nome")
+
+    if NomeTurma.objects.filter(nome=nome, escola=request.user.escola).exists():
+        return JsonResponse({"success": False, "error": "Nome já cadastrado."})
+
+    NomeTurma.objects.create(nome=nome, escola=request.user.escola)
+    return JsonResponse({"success": True})
+
+def listar_nomes_turma(request):
+    nomes = NomeTurma.objects.filter(escola=request.user.escola).values("id", "nome")
+    return JsonResponse({"nomes": list(nomes)})
+
+def editar_nome_turma(request):
+    data = json.loads(request.body)
+    id = data.get("id")
+    nome = data.get("nome")
+
+    obj = NomeTurma.objects.filter(id=id, escola=request.user.escola).first()
+    if not obj:
+        return JsonResponse({"success": False})
+
+    obj.nome = nome
+    obj.save()
+    return JsonResponse({"success": True})
+
+def excluir_nome_turma(request):
+    data = json.loads(request.body)
+    id = data.get("id")
+
+    NomeTurma.objects.filter(id=id, escola=request.user.escola).delete()
+    return JsonResponse({"success": True})
