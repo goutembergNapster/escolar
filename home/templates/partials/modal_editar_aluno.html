@@ -1,0 +1,208 @@
+<div class="modal fade" id="modalEditarAluno" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+
+            <!-- HEADER -->
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">Editar Aluno</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body">
+
+                <input type="hidden" id="editAlunoId">
+
+                <div class="row">
+
+                    <!-- COLUNA ESQUERDA -->
+                    <div class="col-md-6">
+
+                        <div class="form-group">
+                            <label>Nome completo</label>
+                            <input id="editNome" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Matrícula</label>
+                            <input id="editMatricula" class="form-control" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Data de nascimento</label>
+                            <input type="date" id="editDataNasc" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Sexo</label>
+                            <select id="editSexo" class="form-control">
+                                <option value="">Selecione…</option>
+                                <option value="M">Masculino</option>
+                                <option value="F">Feminino</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Turma</label>
+                            <select id="editTurma" class="form-control"></select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="editAtivo" class="form-control">
+                                <option value="true">Ativo</option>
+                                <option value="false">Inativo</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Possui necessidade especial?</label>
+                            <select id="editNee" class="form-control">
+                                <option value="false">Não</option>
+                                <option value="true">Sim</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- COLUNA DIREITA -->
+                    <div class="col-md-6">
+
+                        <h5 class="mt-2 mb-3">Endereço</h5>
+
+                        <div class="form-group">
+                            <label>Rua</label>
+                            <input id="editRua" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Número</label>
+                            <input id="editNumero" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>CEP</label>
+                            <input id="editCep" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Bairro</label>
+                            <input id="editBairro" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Cidade</label>
+                            <input id="editCidade" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <input id="editEstado" class="form-control">
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <!-- RESPONSÁVEIS -->
+                <div class="mt-3">
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5>Responsáveis</h5>
+                        <button id="btnAddResponsavel" type="button" class="btn btn-primary btn-sm">
+                            + Adicionar Responsável
+                        </button>
+                    </div>
+
+                    <div id="listaResponsaveis" class="mt-3"></div>
+
+                </div>
+
+                <!-- TEMPLATE OCULTO -->
+                <template id="templateResponsavel">
+                    <div class="responsavel-bloco p-3 mb-3 border rounded">
+
+                        <input type="hidden" class="respId">
+
+                        <div class="d-flex justify-content-between">
+                            <strong>Responsável</strong>
+                            <button class="btn btn-sm btn-danger btnRemoverResponsavel">Remover</button>
+                        </div>
+
+                        <div class="row mt-2">
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nome</label>
+                                    <input class="form-control respNome">
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Parentesco</label>
+                                    <input class="form-control respParentesco" placeholder="Pai, Mãe, Avó...">
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Telefone</label>
+                                    <input class="form-control respTelefone">
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>CPF</label>
+                                    <input class="form-control respCpf">
+                                </div>
+                            </div>
+
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input class="form-control respEmail">
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Identidade</label>
+                                    <input class="form-control respIdentidade">
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Escolaridade</label>
+                                    <input class="form-control respEscolaridade">
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Profissão</label>
+                                    <input class="form-control respProfissao">
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </template>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer">
+                <button class="btn btn-success" id="btnSalvarAluno">Salvar</button>
+                <button class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            </div>
+
+        </div>
+    </div>
+</div>

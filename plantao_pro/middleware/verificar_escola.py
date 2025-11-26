@@ -10,7 +10,8 @@ EXCEPT_URLS = [
     '/erro/sem-escola/',
     '/admin/',
     '/admin/login/',
-    '/static/',  # para não bloquear os arquivos estáticos
+    '/static/',  
+    '/aluno/',
 ]
 
 class VerificaEscolaMiddleware:

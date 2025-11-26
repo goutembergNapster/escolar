@@ -1,4 +1,3 @@
-version: "3.9"
 
 services:
   db:
@@ -38,11 +37,11 @@ services:
     container_name: escolinha_dev
     build:
       context: .
-    command: [ "sh", "-lc", "chmod +x /scripts/*.sh || true; /scripts/commands.sh" ]
+    command: [ "sh", "-lc", "chmod +x /scripts/*.sh || true; /scripts/dev.sh" ]
     ports:
       - "8000:8000"
     volumes:
-      - .:/escolinha
+      - .:/app
       - ./scripts:/scripts
     env_file:
       - ./dotenv_files/.env.dev

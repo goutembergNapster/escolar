@@ -5,7 +5,7 @@ from .models import User
 
 
 class UserCreationNoPasswordForm(forms.ModelForm):
-    """Form simples para criar usuário sem pedir senha."""
+    """simples para criar usuário sem pedir senha."""
 
     class Meta:
         model = User

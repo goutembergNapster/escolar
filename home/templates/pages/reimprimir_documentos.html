@@ -1,0 +1,167 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% include 'partials/_head.html' %}
+
+    <style>
+        /* Remove espaço exagerado e deixa a página toda visível */
+        .form-container {
+            padding-bottom: 120px !important;
+            margin-top: 20px;
+        }
+
+        /* Título mais próximo do topo */
+        .titulo-reimpressao {
+            margin-top: 10px !important;
+            margin-bottom: 15px !important;
+        }
+
+        /* Ajuste dos cards */
+        .custom-card {
+            border-left: 5px solid #fab982;
+            padding: 20px 25px !important;
+        }
+
+        /* Sugestões sem scroll e sem conflito visual */
+        #sugestoesAluno {
+            max-height: none !important;
+            overflow: visible !important;
+            display: none;
+            cursor: pointer;
+        }
+
+        /* Footer permanece fixo sem cobrir conteúdo */
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 99;
+        }
+    </style>
+</head>
+
+<body>
+
+{% include 'partials/_nav.html' %}
+
+<section class="form-container">
+    <div class="container">
+
+        <!-- TÍTULO -->
+        <div class="d-flex align-items-center titulo-reimpressao">
+            <h2 class="mr-3" style="color: #c06f1f; font-weight: 700;">
+                Reimprimir Documentos do Aluno
+            </h2>
+            <i class="fas fa-file-alt fa-2x" style="color: #c06f1f;"></i>
+        </div>
+
+        <!-- CARD INTRO -->
+        <div class="card shadow-sm custom-card">
+            <p class="text-muted mb-3">
+                Aqui você poderá buscar um aluno e reimprimir documentos como:
+            </p>
+
+            <ul class="mb-3">
+                <li>📄 Comprovante de Matrícula</li>
+                <li>🧾 Ficha Cadastral</li>
+            </ul>
+
+            <p class="text-secondary mb-0">
+                Utilize o campo abaixo para buscar o aluno desejado.
+            </p>
+        </div>
+
+        <!-- BUSCA -->
+        <div class="card shadow-sm mt-3 custom-card">
+            <label for="buscaAluno"><strong>Buscar Aluno</strong></label>
+            <input type="text" id="buscaAluno" class="form-control"
+                   placeholder="Digite o nome do aluno..." autocomplete="off">
+
+            <ul id="sugestoesAluno" class="list-group mt-2"></ul>
+        </div>
+
+        <!-- CARD COM DADOS -->
+        <div id="alunoCard" class="card shadow-sm mt-3 custom-card" style="display:none;">
+
+            <h4 id="alunoNome" class="mb-2"></h4>
+
+            <p class="mb-1"><strong>Matrícula:</strong> <span id="alunoMatricula"></span></p>
+            <p class="mb-1"><strong>CPF:</strong> <span id="alunoCPF"></span></p>
+            <p class="mb-1"><strong>Turma:</strong> <span id="alunoTurma"></span></p>
+            <p class="mb-2"><strong>Status:</strong> <span id="alunoStatus"></span></p>
+
+            <hr>
+
+            <div class="d-flex flex-wrap">
+
+                <a id="btnComprovante" href="#" class="btn btn-primary mr-3 mb-2">
+                    📄 Reimprimir Comprovante
+                </a>
+
+                <a id="btnFicha" href="#" class="btn btn-secondary mb-2">
+                    🧾 Reimprimir Ficha Cadastral
+                </a>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% include 'partials/_footer.html' %}
+
+<!-- JAVASCRIPT -->
+<script>
+document.getElementById('buscaAluno').addEventListener('input', async function () {
+    const termo = this.value.trim();
+
+    if (termo.length < 2) {
+        document.getElementById('sugestoesAluno').style.display = "none";
+        return;
+    }
+
+    const response = await fetch(`/autocomplete_pessoa/?term=${encodeURIComponent(termo)}`);
+    const data = await response.json();
+
+    const lista = document.getElementById('sugestoesAluno');
+    lista.innerHTML = "";
+
+    const alunos = data.filter(p => p.tipo === "aluno");
+
+    if (alunos.length === 0) {
+        lista.style.display = "none";
+        return;
+    }
+
+    alunos.forEach(item => {
+        const li = document.createElement('li');
+        li.className = "list-group-item";
+        li.textContent = `${item.nome} — Matrícula ${item.matricula}`;
+        li.onclick = () => selecionarAluno(item);
+        lista.appendChild(li);
+    });
+
+    lista.style.display = "block";
+});
+
+
+function selecionarAluno(aluno) {
+
+    document.getElementById('alunoCard').style.display = "block";
+
+    document.getElementById('alunoNome').textContent = aluno.nome;
+    document.getElementById('alunoMatricula').textContent = aluno.matricula;
+    document.getElementById('alunoCPF').textContent = aluno.cpf || '---';
+    document.getElementById('alunoTurma').textContent = aluno.turma || '---';
+    document.getElementById('alunoStatus').textContent = aluno.ativo ? "Ativo" : "Inativo";
+
+    document.getElementById('btnComprovante').href = `/alunos/${aluno.id}/comprovante/`;
+    document.getElementById('btnFicha').href = `/aluno/ficha/${aluno.id}/`;
+
+    document.getElementById('sugestoesAluno').style.display = "none";
+}
+</script>
+
+</body>
+</html>

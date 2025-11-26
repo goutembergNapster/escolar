@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8"/>
+    <title>Comprovante de Matrícula — {{ aluno.nome }}</title>
+
+    <style>
+        @page { size: A4; margin: 18mm; }
+
+        body {
+            font-family: "DejaVu Serif", serif;
+            color: #000;
+            font-size: 12pt;
+            line-height: 1.35;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .school-name {
+            font-size: 16pt;
+            font-weight: 700;
+            color: #c06f1f;
+            text-transform: uppercase;
+        }
+
+        .school-sub {
+            font-size: 10pt;
+            margin-top: 3px;
+        }
+
+        .box {
+            border: 1px solid #fab982;
+            border-left: 4px solid #c06f1f;
+            padding: 12px;
+            margin-top: 15px;
+            background: #fffdf9;
+        }
+
+        .field {
+            margin-bottom: 8px;
+        }
+
+        .titulo {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14pt;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .footer {
+            margin-top: 45px;
+            text-align: center;
+            font-size: 11pt;
+        }
+
+        .sign-line {
+            border-top: 1px solid #000;
+            width: 220px;
+            margin: 50px auto 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <div class="school-name">{{ aluno.escola.nome|default:"ESCOLA PEQUENO APRENDIZ" }}</div>
+    <div class="school-sub">
+        {% if aluno.escola %}
+            {{ aluno.escola.endereco }}{% if aluno.escola.numero %}, {{ aluno.escola.numero }}{% endif %}
+            — {{ aluno.escola.bairro }} — {{ aluno.escola.cidade }}/{{ aluno.escola.estado }}<br>
+            CNPJ: {{ aluno.escola.cnpj }} • E-mail: {{ aluno.escola.email }}
+        {% else %}
+            Endereço: ________ — CNPJ: ________
+        {% endif %}
+    </div>
+</div>
+
+<div class="titulo">Comprovante de Matrícula</div>
+
+<div class="box">
+    <div class="field"><strong>Aluno:</strong> {{ aluno.nome }}</div>
+    <div class="field"><strong>Matrícula:</strong> {{ aluno.matricula }}</div>
+    <div class="field"><strong>CPF:</strong> {{ aluno.cpf|default:"---" }}</div>
+
+    <div class="field">
+        <strong>Turma(s):</strong>
+        {% if aluno.turmas.all %}
+            {% for t in aluno.turmas.all %}
+                {{ t.nome }} ({{ t.turno }}){% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        {% else %}
+            ---
+        {% endif %}
+    </div>
+
+    <div class="field"><strong>Data da Matrícula:</strong> {{ aluno.data_ingresso|date:"d/m/Y"|default:"---" }}</div>
+</div>
+
+<div class="footer">
+    {{ aluno.escola.cidade|default:"Camocim de São Félix" }} — {{ aluno.escola.estado|default:"PE" }}<br>
+    {{ hoje }}
+    <br><br>
+    <div class="sign-line"></div>
+    Assinatura da Secretaria Escolar
+</div>
+
+</body>
+</html>

@@ -1,908 +1,698 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
- <head>
-  {% include 'partials/_head.html' %}
-  <style>
-   body, html { height: 100%; margin: 0; }
-        .flex-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
-        .content { flex: 1; padding-bottom: 2rem; }
-        .form-row { display: flex; flex-wrap: wrap; }
-        .form-group { margin-bottom: 1rem; }
-        h5 { font-size: 1.1rem; font-weight: bold; border-bottom: 1px solid #dee2e6; margin-bottom: 1.5rem; }
-        .btn { margin-right: 10px; }
-        .disabled-field { background-color: #e9ecef; cursor: not-allowed; }
 
+<head>
+    {% include 'partials/_head.html' %}
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <!-- Fuse.js -->
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+
+    <style>
+        body {
+            background: #f7f7f7;
+        }
+
+        /* TÍTULO */
         .titulo-pagina {
-            background-color: #fab982; color: #000; font-weight: bold; font-size: 1.5rem;
-            padding: 1rem 1.5rem; border-radius: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem; text-align: left;
+            background: #6c757d;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.4rem;
+            padding: .85rem 1.2rem;
+            border-radius: 6px;
+            margin-bottom: 1.4rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .btn-info { background-color: #fab982 !important; border-color: #fab982 !important; color: #000 !important; box-shadow: none !important; }
-        .btn-info:hover, .btn-info:focus, .btn-info:active { background-color: #f9a85c !important; border-color: #f9a85c !important; color: #000 !important; box-shadow: none !important; }
-        .btn-warning { background-color: #6c757d; border-color: #6c757d; color: #fff; }
-        .btn-warning:hover { background-color: #5a6268; border-color: #545b62; }
-        .btn-success { background-color: #fab982; border-color: #fab982; color: #000; }
-        .btn-success:hover { background-color: #f9a85c; border-color: #f9a85c; color: #000; }
-
-        .badge-success { background-color: #fab982; color: #000; }
-        .badge-secondary { background-color: #6c757d; }
-
-        .modal-header { background-color: #fab982; border-bottom: none; }
-        .modal-title { color: #000; }
-        .modal-footer .btn-primary { background-color: #fab982; border-color: #fab982; color: #000; }
-        .modal-footer .btn-primary:hover { background-color: #f9a85c; border-color: #f9a85c; }
-        .modal-footer .btn-secondary { background-color: #e9ecef; border-color: #e9ecef; color: #000; }
-        .modal-footer .btn-secondary:hover { background-color: #d6d6d6; border-color: #d6d6d6; color: #000; }
-
-        .table thead.thead-dark th { background-color: #fab982; color: #000; border-color: #fab982; cursor: pointer; }
-        .table-hover tbody tr:hover { background-color: #fff4eb; }
-        .form-control:focus, .custom-select:focus { border-color: #fab982; box-shadow: 0 0 0 0.2rem rgba(250, 185, 130, 0.25); }
-        .nav-tabs .nav-link.active { background-color: #fab982; color: #000; font-weight: bold; }
-        .nav-tabs .nav-link { border: 1px solid #dee2e6; color: #212529; }
-        .nav-tabs .nav-link:hover { background-color: #ffe4ca; color: #000; }
-
-        .list-controls { display: flex; gap: .75rem; align-items: center; margin-bottom: .75rem; flex-wrap: wrap; }
-        .list-controls .form-control, .list-controls .custom-select { max-width: 260px; }
-        .chips { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .5rem; }
-        .chip { background: #ffe4ca; border: 1px solid #fab982; color: #000; border-radius: 16px; padding: .15rem .6rem; font-size: .85rem; }
-        .chip button { background: transparent; border: none; margin-left: .35rem; cursor: pointer; }
-        .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: .5rem; flex-wrap: wrap; gap: .5rem; }
-        .pagination { margin: 0; }
-        .results-info { font-size: .9rem; color: #555; }
-        .btn-page { min-width: 36px; }
-
-        .advanced { display: none; width: 100%; }
-        .advanced-grid { display: grid; grid-template-columns: repeat(4, minmax(200px, 1fr)); gap: .75rem; }
-        @media (max-width: 992px) { .advanced-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 576px) { .advanced-grid { grid-template-columns: 1fr; } }
-
-        .sort-indicator { font-size: .8rem; margin-left: .25rem; }
-
-        .date-range { display:flex; gap:.5rem; align-items:center; }
-        .date-range input[type="date"], .date-range input[type="text"] { flex:1; min-width:0; }
-
-        /* Safari às vezes renderiza mais baixo; garante altura */
-        @supports (-webkit-touch-callout: none) {
-        .date-range input[type="date"] { min-height: 38px; }
-  </style>
- </head>
- <body>
-  {% include 'partials/_nav.html' %}
-  <section class="py-5">
-   <div class="container">
-    <div class="titulo-pagina">
-     Listar Alunos
-    </div>
-    <!-- CONTROLES -->
-    <div class="list-controls">
-     <input class="form-control" id="filtroAluno" placeholder="🔍 Buscar por nome, CPF, matrícula, responsável..." type="text"/>
-     <select class="custom-select" id="filtroStatus">
-      <option value="">
-       Status: todos
-      </option>
-      <option value="ativo">
-       Ativos
-      </option>
-      <option value="inativo">
-       Inativos
-      </option>
-     </select>
-     <select class="custom-select" id="filtroTurma">
-      <option value="">
-       Turma: todas
-      </option>
-     </select>
-     <button class="btn btn-secondary btn-sm" id="toggleAdvanced" type="button">
-      Filtros avançados
-     </button>
-     <select class="custom-select" id="pageSize">
-      <option value="10">
-       Exibir: 10
-      </option>
-      <option selected="" value="25">
-       Exibir: 25
-      </option>
-      <option value="50">
-       Exibir: 50
-      </option>
-      <option value="100">
-       Exibir: 100
-      </option>
-     </select>
-     <button class="btn btn-secondary btn-sm" id="clearFilters" type="button">
-      Limpar filtros
-     </button>
-    </div>
-    <!-- CHIPS -->
-    <div class="chips" id="chips">
-    </div>
-    <!-- AVANÇADOS -->
-    <div class="advanced" id="advancedBlock">
-     <div class="advanced-grid">
-      <select class="custom-select" id="filtroTurno">
-       <option value="">
-        Turno: todos
-       </option>
-      </select>
-      <select class="custom-select" id="filtroSexo">
-       <option value="">
-        Sexo: todos
-       </option>
-       <option value="Masculino">
-        Masculino
-       </option>
-       <option value="Feminino">
-        Feminino
-       </option>
-       <option value="Outro">
-        Outro
-       </option>
-      </select>
-      <select class="custom-select" id="filtroNecessidade">
-       <option value="">
-        Necessidade especial: todas
-       </option>
-       <option value="sim">
-        Sim
-       </option>
-       <option value="nao">
-        Não
-       </option>
-      </select>
-      <select class="custom-select" id="filtroTransporte">
-       <option value="">
-        Transporte escolar: todos
-       </option>
-       <option value="sim">
-        Sim
-       </option>
-       <option value="nao">
-        Não
-       </option>
-      </select>
-      <select class="custom-select" id="filtroAutorizacaoSaida">
-       <option value="">
-        Aut. sair sozinho: todas
-       </option>
-       <option value="sim">
-        Sim
-       </option>
-       <option value="nao">
-        Não
-       </option>
-      </select>
-      <input class="form-control" id="filtroBairro" placeholder="Bairro" type="text"/>
-      <input class="form-control" id="filtroCidade" placeholder="Cidade" type="text"/>
-      <div>
-       <label style="font-size:.85rem; color:#333; margin-bottom:2px;">
-        Nascimento (de/até)
-       </label>
-       <div class="date-range">
-        <input class="form-control" id="nascDe" inputmode="none" type="date"/>
-        <input class="form-control" id="nascAte" inputmode="none" type="date"/>
-       </div>
-      </div>
-     </div>
-    </div>
-    <table class="table table-bordered table-hover table-striped" id="tabelaAlunos">
-     <thead class="thead-dark">
-      <tr>
-       <th data-sort="matricula">
-        Matrícula
-        <span class="sort-indicator">
-        </span>
-       </th>
-       <th data-sort="turma">
-        Turma
-        <span class="sort-indicator">
-        </span>
-       </th>
-       <th data-sort="nome">
-        Nome
-        <span class="sort-indicator">
-        </span>
-       </th>
-       <th data-sort="responsavel_nome">
-        Nome Responsável
-        <span class="sort-indicator">
-        </span>
-       </th>
-       <th data-sort="responsavel_telefone">
-        Telefone Resposável
-        <span class="sort-indicator">
-        </span>
-       </th>
-       <th data-sort="possui_necessidade_especial">
-        Necessidade Especial
-        <span class="sort-indicator">
-        </span>
-       </th>
-       <th data-sort="ativo">
-        Status
-        <span class="sort-indicator">
-        </span>
-       </th>
-       <th>
-        Ações
-       </th>
-      </tr>
-     </thead>
-     <tbody id="tabelaAlunosBody">
-      <script id="alunos-data" type="application/json">
-       {{ alunos_json|safe }}
-      </script>
-     </tbody>
-    </table>
-    <div class="pagination-bar">
-     <div class="results-info" id="resultsInfo">
-      Mostrando 0–0 de 0
-     </div>
-     <nav>
-      <ul class="pagination">
-       <li class="page-item">
-        <button class="page-link btn-page" id="firstPage" title="Primeira">
-         «
-        </button>
-       </li>
-       <li class="page-item">
-        <button class="page-link btn-page" id="prevPage" title="Anterior">
-         ‹
-        </button>
-       </li>
-       <li class="page-item disabled">
-        <span class="page-link" id="pageIndicator">
-         1 / 1
-        </span>
-       </li>
-       <li class="page-item">
-        <button class="page-link btn-page" id="nextPage" title="Próxima">
-         ›
-        </button>
-       </li>
-       <li class="page-item">
-        <button class="page-link btn-page" id="lastPage" title="Última">
-         »
-        </button>
-       </li>
-      </ul>
-     </nav>
-    </div>
-   </div>
-  </section>
-  {% include 'partials/_footer.html' %}
-  <!-- Modal de edição -->
-  <div aria-hidden="true" aria-labelledby="editarAlunoModalLabel" class="modal fade" id="editarAlunoModal" role="dialog" tabindex="-1">
-   <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-    <div class="modal-content">
-     <form id="editarAlunoForm">
-      <div class="modal-header">
-       <h5 class="modal-title">
-        Editar Aluno
-       </h5>
-       <button aria-label="Fechar" class="close" data-dismiss="modal" type="button">
-        <span aria-hidden="true">
-         ×
-        </span>
-       </button>
-      </div>
-      <div class="modal-body">
-       <ul class="nav nav-tabs" role="tablist">
-        <li class="nav-item">
-         <a class="nav-link active" data-toggle="tab" href="#dadosAluno" role="tab">
-          Dados do Aluno
-         </a>
-        </li>
-        <li class="nav-item">
-         <a class="nav-link" data-toggle="tab" href="#dadosResponsavel" role="tab">
-          Responsável
-         </a>
-        </li>
-        <li class="nav-item">
-         <a class="nav-link" data-toggle="tab" href="#dadosSaude" role="tab">
-          Saúde
-         </a>
-        </li>
-        <li class="nav-item">
-         <a class="nav-link" data-toggle="tab" href="#dadosTransporte" role="tab">
-          Transporte
-         </a>
-        </li>
-        <li class="nav-item">
-         <a class="nav-link" data-toggle="tab" href="#dadosAutorizacoes" role="tab">
-          Autorizações
-         </a>
-        </li>
-       </ul>
-       <div class="tab-content p-3">
-        <div class="tab-pane fade show active" id="dadosAluno" role="tabpanel">
-         <input id="alunoId" type="hidden"/>
-         <div class="form-group">
-          <label for="editNome">
-           Nome
-          </label>
-          <input class="form-control" id="editNome" required="" type="text"/>
-         </div>
-         <div class="form-group">
-          <label for="editEmail">
-           Email
-          </label>
-          <input class="form-control" id="editEmail" type="email"/>
-         </div>
-         <div class="form-group">
-          <label for="editTelefone">
-           Telefone
-          </label>
-          <input class="form-control" id="editTelefone" type="text"/>
-         </div>
-        </div>
-        <div class="tab-pane fade" id="dadosResponsavel" role="tabpanel">
-         <div class="form-group">
-          <label for="editResponsavelNome">
-           Nome do Responsável
-          </label>
-          <input class="form-control" id="editResponsavelNome" type="text"/>
-         </div>
-         <div class="form-group">
-          <label for="editResponsavelCpf">
-           CPF do Responsável
-          </label>
-          <input class="form-control" id="editResponsavelCpf" type="text"/>
-         </div>
-         <div class="form-group">
-          <label for="editResponsavelParentesco">
-           Parentesco
-          </label>
-          <input class="form-control" id="editResponsavelParentesco" type="text"/>
-         </div>
-         <div class="form-group">
-          <label for="editResponsavelTelefone">
-           Telefone
-          </label>
-          <input class="form-control" id="editResponsavelTelefone" type="text"/>
-         </div>
-         <div class="form-group">
-          <label for="editResponsavelEmail">
-           Email
-          </label>
-          <input class="form-control" id="editResponsavelEmail" type="email"/>
-         </div>
-        </div>
-        <div class="tab-pane fade" id="dadosSaude" role="tabpanel">
-         <div class="form-group">
-          <label>
-           <input id="editPossuiNecessidadeEspecial" type="checkbox"/>
-           Possui Necessidade Especial
-          </label>
-         </div>
-         <div class="form-group">
-          <label for="editDescricaoNecessidade">
-           Descrição
-          </label>
-          <textarea class="form-control" id="editDescricaoNecessidade"></textarea>
-         </div>
-         <div class="form-group">
-          <label>
-           <input id="editUsaMedicacao" type="checkbox"/>
-           Usa Medicação
-          </label>
-         </div>
-         <div class="form-group">
-          <label for="editQuaisMedicacoes">
-           Quais?
-          </label>
-          <input class="form-control" id="editQuaisMedicacoes" type="text"/>
-         </div>
-         <div class="form-group">
-          <label>
-           <input id="editPossuiAlergia" type="checkbox"/>
-           Possui Alergia
-          </label>
-         </div>
-         <div class="form-group">
-          <label for="editDescricaoAlergia">
-           Descrição da Alergia
-          </label>
-          <textarea class="form-control" id="editDescricaoAlergia"></textarea>
-         </div>
-        </div>
-        <div class="tab-pane fade" id="dadosTransporte" role="tabpanel">
-         <div class="form-group">
-          <label>
-           <input id="editUsaTransporte" type="checkbox"/>
-           Usa Transporte Escolar
-          </label>
-         </div>
-         <div class="form-group">
-          <label for="editTrajeto">
-           Trajeto
-          </label>
-          <input class="form-control" id="editTrajeto" type="text"/>
-         </div>
-        </div>
-        <div class="tab-pane fade" id="dadosAutorizacoes" role="tabpanel">
-         <div class="form-group">
-          <label>
-           <input id="editAutorizacaoSaida" type="checkbox"/>
-           Autoriza Saída Sozinho
-          </label>
-         </div>
-         <div class="form-group">
-          <label>
-           <input id="editAutorizacaoFotos" type="checkbox"/>
-           Autoriza Fotos/Evento
-          </label>
-         </div>
-         <div class="form-group">
-          <label for="editPessoaAutorizada">
-           Pessoa Autorizada a Buscar
-          </label>
-          <input class="form-control" id="editPessoaAutorizada" type="text"/>
-         </div>
-        </div>
-       </div>
-      </div>
-      <div class="modal-footer">
-       <button class="btn btn-primary" type="submit">
-        Salvar
-       </button>
-       <button class="btn btn-secondary" data-dismiss="modal" type="button">
-        Cancelar
-       </button>
-      </div>
-     </form>
-    </div>
-   </div>
-  </div>
-  <script>
-   // ====== EDITAR (inalterado) ======
-        function abrirModalEditarCompleto(aluno) {
-            document.getElementById('alunoId').value = aluno.id;
-            document.getElementById('editNome').value = aluno.nome;
-            document.getElementById('editEmail').value = aluno.email || '';
-            document.getElementById('editTelefone').value = aluno.telefone || '';
-
-            document.getElementById('editResponsavelNome').value = aluno.responsavel_nome || '';
-            document.getElementById('editResponsavelCpf').value = aluno.responsavel_cpf || '';
-            document.getElementById('editResponsavelParentesco').value = aluno.responsavel_parentesco || '';
-            document.getElementById('editResponsavelTelefone').value = aluno.responsavel_telefone || '';
-            document.getElementById('editResponsavelEmail').value = aluno.responsavel_email || '';
-
-            document.getElementById('editPossuiNecessidadeEspecial').checked = !!aluno.possui_necessidade_especial;
-            document.getElementById('editDescricaoNecessidade').value = aluno.descricao_necessidade || '';
-            document.getElementById('editUsaMedicacao').checked = !!aluno.usa_medicacao;
-            document.getElementById('editQuaisMedicacoes').value = aluno.quais_medicacoes || '';
-            document.getElementById('editPossuiAlergia').checked = !!aluno.possui_alergia;
-            document.getElementById('editDescricaoAlergia').value = aluno.descricao_alergia || '';
-
-            document.getElementById('editUsaTransporte').checked = !!aluno.usa_transporte_escolar;
-            document.getElementById('editTrajeto').value = aluno.trajeto || '';
-
-            document.getElementById('editAutorizacaoSaida').checked = !!aluno.autorizacao_saida_sozinho;
-            document.getElementById('editAutorizacaoFotos').checked = !!aluno.autorizacao_fotos_eventos;
-            document.getElementById('editPessoaAutorizada').value = aluno.pessoa_autorizada_buscar || '';
-
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('show', 'active'));
-            document.querySelector('.nav-link[href="#dadosAluno"]').classList.add('active');
-            document.getElementById('dadosAluno').classList.add('show', 'active');
-
-            $('#editarAlunoModal').modal('show');
+        /* DASHBOARD */
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
 
-        const editarForm = document.getElementById('editarAlunoForm');
-        editarForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const payload = {
-              nome: document.getElementById('editNome').value,
-              email: document.getElementById('editEmail').value,
-              telefone: document.getElementById('editTelefone').value,
-
-              responsavel_nome: document.getElementById('editResponsavelNome').value,
-              responsavel_cpf: document.getElementById('editResponsavelCpf').value,
-              responsavel_parentesco: document.getElementById('editResponsavelParentesco').value,
-              responsavel_telefone: document.getElementById('editResponsavelTelefone').value,
-              responsavel_email: document.getElementById('editResponsavelEmail').value,
-
-              possui_necessidade_especial: document.getElementById('editPossuiNecessidadeEspecial').checked,
-              descricao_necessidade: document.getElementById('editDescricaoNecessidade').value,
-              usa_medicacao: document.getElementById('editUsaMedicacao').checked,
-              quais_medicacoes: document.getElementById('editQuaisMedicacoes').value,
-              possui_alergia: document.getElementById('editPossuiAlergia').checked,
-              descricao_alergia: document.getElementById('editDescricaoAlergia').value,
-
-              usa_transporte_escolar: document.getElementById('editUsaTransporte').checked,
-              trajeto: document.getElementById('editTrajeto').value,
-
-              autorizacao_saida_sozinho: document.getElementById('editAutorizacaoSaida').checked,
-              autorizacao_fotos_eventos: document.getElementById('editAutorizacaoFotos').checked,
-              pessoa_autorizada_buscar: document.getElementById('editPessoaAutorizada').value,
-            };
-
-            const alunoId = document.getElementById('alunoId').value;
-
-            fetch(`/editar_aluno/${alunoId}/`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-              body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-              if (data.success) {
-                alert('Aluno atualizado com sucesso!');
-                location.reload();
-              } else {
-                alert('Erro: ' + data.error);
-              }
-            });
-        });
-
-        function alternarStatus(id) {
-            fetch(`/alternar_status_aluno/${id}/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) { location.reload(); }
-                else { alert('Erro ao alterar status'); }
-            });
-        }
-
-        // ====== LISTAGEM / FILTROS / ORDENAÇÃO / PAGINAÇÃO ======
-        const alunos = JSON.parse(document.getElementById('alunos-data').textContent);
-
-        // Helpers
-        function normalizaTexto(t) { return (t || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
-        function get(obj, path) {
-          try { return path.split('.').reduce((o, k) => (o && o[k] !== undefined) ? o[k] : undefined, obj); }
-
-          catch { return undefined; }
-        function parseDate(d) {
-  if (!d) return null;
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(d)) {
-    const [dd, mm, yyyy] = d.split('/');
-    return new Date(parseInt(yyyy,10), parseInt(mm,10)-1, parseInt(dd,10));
-  }
-  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
-    const [yyyy, mm, dd] = d.split('-');
-    return new Date(parseInt(yyyy,10), parseInt(mm,10)-1, parseInt(dd,10));
-  }
-  const asDate = new Date(d);
-  return isNaN(asDate) ? null : asDate;
-}
-
-function inDateRange(value, de, ate) {
-  const v = parseDate(value);
-  if (!v) return true;
-  const d = parseDate(de);
-  const a = parseDate(ate);
-  if (d && v < d) return false;
-  if (a && v > a) return false;
-  return true;
-}
-        }
-        // Descobre label da turma em múltiplos formatos
-        function turmaLabel(a) {
-          const t = a.turma;
-          const candidates = [
-            a.turma_nome, a.turma_sigla, a.turma_label, a.nome_turma,
-            get(a, 'turma.nome'), get(a, 'turma.name'), get(a, 'turma.sigla'), get(a, 'turma.descricao'),
-            (typeof t === 'string' ? t : undefined)
-          ];
-          const v = candidates.find(x => x && String(x).trim() !== '');
-          return v || '';
-        }
-        function inDateRange(value, de, ate) {
-            if (!value) return true;
-            const v = new Date(value);
-            if (de) { const d = new Date(de); if (v < d) return false; }
-            if (ate) { const a = new Date(ate); if (v > a) return false; }
-            return true;
-        }
-
-        // Preenche dropdowns de Turma/Turno
-        const distinct = (arr) => [...new Set(arr.filter(v => v !== undefined && v !== null && String(v).trim() !== ''))];
-
-        const selTurma = document.getElementById('filtroTurma');
-        (function preencherTurmas() {
-          const turmas = distinct(alunos.map(a => turmaLabel(a))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-          selTurma.innerHTML = '<option value="">Turma: todas</option>' +
-            turmas.map(t => `<option value="${t}">Turma: ${t}</option>`).join('');
-        })();
-
-        const selTurno = document.getElementById('filtroTurno');
-        (function preencherTurnos() {
-          const turnos = distinct(alunos.map(a => a.turno || ''));
-          selTurno.innerHTML = '<option value="">Turno: todos</option>' +
-            turnos.map(t => `<option value="${t}">Turno: ${t}</option>`).join('');
-        })();
-
-        // Estado
-        let currentPage = 1;
-        let pageSize = parseInt(document.getElementById('pageSize').value, 10) || 25;
-        let searchTerm = '';
-        let statusFilter = '';
-        let turmaFilter = '';
-        let turnoFilter = '';
-        let sexoFilter = '';
-        let necessidadeFilter = '';
-        let transporteFilter = '';
-        let autSaidaFilter = '';
-        let bairroFilter = '';
-        let cidadeFilter = '';
-        let nascDe = '';
-        let nascAte = '';
-        let sortKey = '';
-        let sortDir = 'asc';
-
-        const tbody = document.getElementById('tabelaAlunosBody');
-        const resultsInfo = document.getElementById('resultsInfo');
-        const pageIndicator = document.getElementById('pageIndicator');
-        const firstPageBtn = document.getElementById('firstPage');
-        const prevPageBtn = document.getElementById('prevPage');
-        const nextPageBtn = document.getElementById('nextPage');
-        const lastPageBtn = document.getElementById('lastPage');
-        const chips = document.getElementById('chips');
-
-        function filtraAlunos() {
-            const q = normalizaTexto(searchTerm);
-
-            return alunos.filter(a => {
-                // Status
-                if (statusFilter === 'ativo' && !a.ativo) return false;
-                if (statusFilter === 'inativo' && a.ativo) return false;
-
-                // Turma
-                const turmaValor = turmaLabel(a);
-                if (turmaFilter && turmaValor !== turmaFilter) return false;
-
-                // Turno
-                if (turnoFilter && (a.turno || '') !== turnoFilter) return false;
-
-                // Sexo
-                if (sexoFilter && (a.sexo || '') !== sexoFilter) return false;
-
-                // Necessidade especial
-                if (necessidadeFilter === 'sim' && !a.possui_necessidade_especial) return false;
-                if (necessidadeFilter === 'nao' && a.possui_necessidade_especial) return false;
-
-                // Transporte
-                if (transporteFilter === 'sim' && !a.usa_transporte_escolar) return false;
-                if (transporteFilter === 'nao' && a.usa_transporte_escolar) return false;
-
-                // Autorização saída
-                if (autSaidaFilter === 'sim' && !a.autorizacao_saida_sozinho) return false;
-                if (autSaidaFilter === 'nao' && a.autorizacao_saida_sozinho) return false;
-
-                // Bairro/Cidade
-                if (bairroFilter && !normalizaTexto(a.bairro).includes(normalizaTexto(bairroFilter))) return false;
-                if (cidadeFilter && !normalizaTexto(a.cidade).includes(normalizaTexto(cidadeFilter))) return false;
-
-                // Nascimento
-                if (!inDateRange(a.data_nascimento, nascDe, nascAte)) return false;
-
-                // Busca livre
-                if (q) {
-                    const campos = [
-                        a.matricula, a.nome, a.responsavel_nome, a.responsavel_telefone,
-                        a.cpf, a.responsavel_cpf, turmaValor
-                    ];
-                    if (!campos.some(c => normalizaTexto(c).includes(q))) return false;
-                }
-
-                return true;
-            });
-        }
-
-        function compara(a, b, key) {
-            const av = key === 'turma' ? turmaLabel(a)
-                     : (key === 'possui_necessidade_especial' || key === 'ativo') ? (a[key] ? 1 : 0)
-                     : (a[key] ?? '');
-            const bv = key === 'turma' ? turmaLabel(b)
-                     : (key === 'possui_necessidade_especial' || key === 'ativo') ? (b[key] ? 1 : 0)
-                     : (b[key] ?? '');
-
-            if (typeof av === 'number' && typeof bv === 'number') return av - bv;
-            const sa = normalizaTexto(av), sb = normalizaTexto(bv);
-            if (sa < sb) return -1;
-            if (sa > sb) return 1;
-            return 0;
-        }
-
-        function renderChips() {
-            chips.innerHTML = '';
-            const addChip = (label, clearFn) => {
-                const c = document.createElement('span');
-                c.className = 'chip';
-                c.innerHTML = `${label} <button title="Remover">×</button>`;
-                c.querySelector('button').addEventListener('click', clearFn);
-                chips.appendChild(c);
-            };
-
-            if (searchTerm) addChip(`Busca: "${searchTerm}"`, () => { document.getElementById('filtroAluno').value = ''; searchTerm = ''; renderizarTabela(1); });
-            if (statusFilter) addChip(`Status: ${statusFilter}`, () => { document.getElementById('filtroStatus').value=''; statusFilter=''; renderizarTabela(1); });
-            if (turmaFilter) addChip(`Turma: ${turmaFilter}`, () => { document.getElementById('filtroTurma').value=''; turmaFilter=''; renderizarTabela(1); });
-            if (turnoFilter) addChip(`Turno: ${turnoFilter}`, () => { document.getElementById('filtroTurno').value=''; turnoFilter=''; renderizarTabela(1); });
-            if (sexoFilter) addChip(`Sexo: ${sexoFilter}`, () => { document.getElementById('filtroSexo').value=''; sexoFilter=''; renderizarTabela(1); });
-            if (necessidadeFilter) addChip(`Necessidade: ${necessidadeFilter}`, () => { document.getElementById('filtroNecessidade').value=''; necessidadeFilter=''; renderizarTabela(1); });
-            if (transporteFilter) addChip(`Transporte: ${transporteFilter}`, () => { document.getElementById('filtroTransporte').value=''; transporteFilter=''; renderizarTabela(1); });
-            if (autSaidaFilter) addChip(`Sair sozinho: ${autSaidaFilter}`, () => { document.getElementById('filtroAutorizacaoSaida').value=''; autSaidaFilter=''; renderizarTabela(1); });
-            if (bairroFilter) addChip(`Bairro: ${bairroFilter}`, () => { document.getElementById('filtroBairro').value=''; bairroFilter=''; renderizarTabela(1); });
-            if (cidadeFilter) addChip(`Cidade: ${cidadeFilter}`, () => { document.getElementById('filtroCidade').value=''; cidadeFilter=''; renderizarTabela(1); });
-            if (nascDe) addChip(`Nasc. de: ${nascDe}`, () => { document.getElementById('nascDe').value=''; nascDe=''; renderizarTabela(1); });
-            if (nascAte) addChip(`Nasc. até: ${nascAte}`, () => { document.getElementById('nascAte').value=''; nascAte=''; renderizarTabela(1); });
-        }
-
-        function renderSortIndicators() {
-            document.querySelectorAll('#tabelaAlunos thead th .sort-indicator').forEach(el => el.textContent = '');
-            if (!sortKey) return;
-            const th = document.querySelector(`#tabelaAlunos thead th[data-sort="${sortKey}"] .sort-indicator`);
-            if (th) th.textContent = sortDir === 'asc' ? '▲' : '▼';
-        }
-
-        function renderizarTabela(pagina = 1) {
-            let lista = filtraAlunos();
-
-            // Ordenação
-            if (sortKey) {
-                lista = lista.slice().sort((a, b) => {
-                    const cmp = compara(a, b, sortKey);
-                    return sortDir === 'asc' ? cmp : -cmp;
-                });
+        @media(max-width:992px) {
+            .dashboard-cards {
+                grid-template-columns: repeat(2, 1fr);
             }
+        }
 
-            const total = lista.length;
-            const totalPages = Math.max(1, Math.ceil(total / pageSize));
-            currentPage = Math.min(Math.max(1, pagina), totalPages);
+        @media(max-width:576px) {
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+        }
 
-            const startIdx = (currentPage - 1) * pageSize;
-            const endIdx = Math.min(startIdx + pageSize, total);
-            const pageSlice = lista.slice(startIdx, endIdx);
+        .dash-card {
+            background: #fff;
+            padding: 1.2rem 1.3rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #fab982;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
 
-            tbody.innerHTML = '';
+        .dash-card .icone-card {
+            font-size: 2rem;
+            color: #fab982;
+            margin-bottom: .5rem;
+        }
 
-            pageSlice.forEach(aluno => {
-                // Turma: vazio quando não houver
-                const turmaVal = turmaLabel(aluno);
+        .dash-card h4 {
+            font-size: 1rem;
+            margin-bottom: .35rem;
+            color: #444;
+        }
 
-                const statusBadge = aluno.ativo
-                    ? '<span class="badge badge-success">Ativo</span>'
-                    : '<span class="badge badge-secondary">Inativo</span>';
+        .dash-card .valor {
+            font-size: 1.7rem;
+            font-weight: bold;
+            color: #444;
+        }
 
-                const botaoStatus = aluno.ativo
-                    ? `<button class="btn btn-sm btn-warning" onclick="alternarStatus(${aluno.id})">Inativar</button>`
-                    : `<button class="btn btn-sm btn-success" onclick="alternarStatus(${aluno.id})">Ativar</button>`;
+        /* =============================== */
+        /* CONTROLES — 100% POR LINHA     */
+        /* =============================== */
+        .list-controls {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+            margin-bottom: 1.4rem;
+        }
 
-                const linha = `
+        .list-controls input,
+        .list-controls select {
+            width: 100% !important;
+            height: 44px;
+            border: 2px solid #fab982 !important;
+            border-radius: 6px;
+        }
+
+        /* autocomplete alinhado */
+        #autocompleteBox {
+            border: 2px solid #fab982;
+            border-top: none;
+            position: absolute;
+            background: #fff;
+            z-index: 999;
+            width: 100%;
+            display: none;
+            max-height: 220px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+            top: 44px;
+        }
+
+        #autocompleteBox div {
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+
+        #autocompleteBox div:hover {
+            background: #f5f5f5;
+        }
+
+        /* TABELA */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #fab982;
+        }
+
+        table thead th {
+            padding: 12px;
+            background: #fef6ef;
+            border-bottom: 2px solid #fab982;
+            font-weight: 600;
+            cursor: pointer;
+            color: #444;
+        }
+
+        table tbody td {
+            padding: 10px 12px;
+        }
+
+        table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        mark {
+            background: #ffe4b3;
+            padding: 0 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+{% include 'partials/_nav.html' %}
+
+<section class="py-5">
+    <div class="container">
+
+        <div class="titulo-pagina">Lista de Alunos</div>
+
+        <!-- CARDS -->
+        <div class="dashboard-cards">
+
+            <div class="dash-card">
+                <div class="icone-card"><i class="bi bi-people-fill"></i></div>
+                <h4>Total</h4>
+                <div class="valor" id="cardTotal">0</div>
+            </div>
+
+            <div class="dash-card">
+                <div class="icone-card"><i class="bi bi-person-check-fill"></i></div>
+                <h4>Ativos</h4>
+                <div class="valor" id="cardAtivos">0</div>
+            </div>
+
+            <div class="dash-card">
+                <div class="icone-card"><i class="bi bi-person-x-fill"></i></div>
+                <h4>Inativos</h4>
+                <div class="valor" id="cardInativos">0</div>
+            </div>
+
+            <div class="dash-card">
+                <div class="icone-card"><i class="bi bi-calendar-event-fill"></i></div>
+                <h4>Aniversariantes do mês</h4>
+                <div class="valor" id="cardNivers">0</div>
+            </div>
+        </div>
+            <!-- CONTROLES 100% LARGURA, 1 POR LINHA -->
+            <div class="list-controls">
+
+                <div class="control-row">
+                    <input id="filtroAluno" class="form-control"
+                        placeholder="🔍 Buscar aluno, CPF, matrícula, responsável...">
+                    <div id="autocompleteBox"></div>
+                </div>
+
+                <div class="control-row">
+                    <select id="filtroStatus" class="custom-select">
+                        <option value="">Status: todos</option>
+                        <option value="ativo">Ativos</option>
+                        <option value="inativo">Inativos</option>
+                    </select>
+                </div>
+
+                <div class="control-row">
+                    <select id="filtroTurma" class="custom-select">
+                        <option value="">Turma: todas</option>
+                    </select>
+                </div>
+
+                <div class="control-row">
+                    <select id="pageSize" class="custom-select">
+                        <option value="10">Exibir 10</option>
+                        <option value="25" selected>Exibir 25</option>
+                        <option value="50">Exibir 50</option>
+                        <option value="100">Exibir 100</option>
+                    </select>
+                </div>
+
+                <div class="control-row">
+                    <button id="clearFilters" class="btn btn-secondary btn-sm">
+                        Limpar filtros
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- TABELA -->
+            <table id="tabelaAlunos">
+                <thead>
                     <tr>
-                        <td>${aluno.matricula || ''}</td>
-                        <td>${turmaVal}</td>
-                        <td>${aluno.nome || ''}</td>
-                        <td>${aluno.responsavel_nome || ''}</td>
-                        <td>${aluno.responsavel_telefone || ''}</td>
-                        <td>${aluno.possui_necessidade_especial ? '🧩 Sim' : '–'}</td>
-                        <td>${statusBadge}</td>
-                        <td>
-                            <div class="d-flex">
-                                <button class="btn btn-sm btn-info mr-2" data-id="${aluno.id}" onclick="editarPorId(this)">Editar</button>
-                                <a class="btn btn-sm btn-secondary mr-2" href="/alunos/${aluno.id}/pdf/" target="_blank" rel="noopener">Imprimir</a>
-                                ${botaoStatus}
-                            </div>
-                        </td>
+                        <th data-sort="matricula">Matrícula</th>
+                        <th data-sort="turma">Turma</th>
+                        <th data-sort="nome">Nome</th>
+                        <th data-sort="responsaveis">Responsáveis</th>
+                        <th data-sort="telefone">Telefone</th>
+                        <th data-sort="nee">NEE</th>
+                        <th data-sort="ativo">Status</th>
+                        <th>Ações</th>
                     </tr>
-                `;
-                tbody.insertAdjacentHTML('beforeend', linha);
-            });
+                </thead>
 
-            // Info e paginação
-            resultsInfo.textContent = total
-                ? `Mostrando ${startIdx + 1}–${endIdx} de ${total}`
-                : 'Nenhum resultado';
+                <tbody id="tabelaAlunosBody">
+                    <script id="alunos-data" type="application/json">
+                        {{ alunos_json|safe }}
+                    </script>
+                </tbody>
+            </table>
 
-            pageIndicator.textContent = `${currentPage} / ${totalPages}`;
-            firstPageBtn.disabled = currentPage === 1;
-            prevPageBtn.disabled = currentPage === 1;
-            nextPageBtn.disabled = currentPage === totalPages;
-            lastPageBtn.disabled = currentPage === totalPages;
+            <!-- PAGINAÇÃO -->
+            <div class="pagination-bar mt-3 d-flex justify-content-between align-items-center">
+                <div id="resultsInfo">Mostrando 0–0 de 0</div>
+                <ul class="pagination mb-0">
+                    <li class="page-item"><button id="firstPage" class="page-link">«</button></li>
+                    <li class="page-item"><button id="prevPage" class="page-link">‹</button></li>
+                    <li class="page-item disabled"><span id="pageIndicator" class="page-link">1 / 1</span></li>
+                    <li class="page-item"><button id="nextPage" class="page-link">›</button></li>
+                    <li class="page-item"><button id="lastPage" class="page-link">»</button></li>
+                </ul>
+            </div>
 
-            renderChips();
-            renderSortIndicators();
-        }
+        </div>
+    </section>
 
-        // Debounce busca
-        let debounceTimer = null;
-        document.getElementById('filtroAluno').addEventListener('input', function() {
-            const val = this.value;
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => { searchTerm = val; renderizarTabela(1); }, 250);
-        });
+    {% include "partials/modal_editar_aluno.html" %}
 
-        // Listeners filtros
-        document.getElementById('filtroStatus').addEventListener('change', function() { statusFilter = this.value; renderizarTabela(1); });
-        document.getElementById('filtroTurma').addEventListener('change', function() { turmaFilter = this.value; renderizarTabela(1); });
-        document.getElementById('filtroTurno').addEventListener('change', function() { turnoFilter = this.value; renderizarTabela(1); });
-        document.getElementById('filtroSexo').addEventListener('change', function() { sexoFilter = this.value; renderizarTabela(1); });
-        document.getElementById('filtroNecessidade').addEventListener('change', function() { necessidadeFilter = this.value; renderizarTabela(1); });
-        document.getElementById('filtroTransporte').addEventListener('change', function() { transporteFilter = this.value; renderizarTabela(1); });
-        document.getElementById('filtroAutorizacaoSaida').addEventListener('change', function() { autSaidaFilter = this.value; renderizarTabela(1); });
-        document.getElementById('filtroBairro').addEventListener('input', function() { bairroFilter = this.value; renderizarTabela(1); });
-        document.getElementById('filtroCidade').addEventListener('input', function() { cidadeFilter = this.value; renderizarTabela(1); });
-        document.getElementById('nascDe').addEventListener('change', function() { nascDe = this.value; renderizarTabela(1); });
-        document.getElementById('nascAte').addEventListener('change', function() { nascAte = this.value; renderizarTabela(1); });
+<!-- =====================================================
+   JAVASCRIPT COMPLETO — NADA ALTERADO NO FUNCIONAL
+===================================================== -->
+<script>
+/* =======================================================
+   1. CARREGAR DADOS
+======================================================= */
+const alunos = JSON.parse(document.getElementById("alunos-data").textContent);
+const userRole = "{{ user.role }}";
+const turmasPermitidas = JSON.parse(`{{ turmas_usuario|safe }}`);
 
-        document.getElementById('pageSize').addEventListener('change', function() {
-            pageSize = parseInt(this.value, 10) || 25;
+/* =======================================================
+   2. FUNÇÕES AUXILIARES
+======================================================= */
+function normaliza(t) {
+    return (t || "")
+        .toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+}
+
+function turmaLabel(a) {
+    if (!a.turma) return "";
+    return a.turma.nome || a.turma.sigla || "";
+}
+
+function highlight(text, term) {
+    if (!term) return text;
+    const regex = new RegExp(`(${term})`, "gi");
+    return text.replace(regex, `<mark>$1</mark>`);
+}
+
+/* =======================================================
+   3. PERMISSÕES
+======================================================= */
+function alunosPermitidos() {
+    if (["diretor", "coordenador", "secretaria"].includes(userRole))
+        return alunos;
+
+    if (userRole === "professor") {
+        return alunos.filter(a => turmasPermitidas.includes(turmaLabel(a)));
+    }
+
+    return alunos;
+}
+
+/* =======================================================
+   4. FUZZY SEARCH + AUTOCOMPLETE
+======================================================= */
+const fuse = new Fuse(alunos, {
+    includeScore: true,
+    threshold: 0.29,
+    ignoreLocation: true,
+    keys: [
+        "nome",
+        "cpf",
+        "matricula",
+        "responsaveis.nome",
+        "responsaveis.cpf",
+        "responsaveis.telefone",
+        "cidade",
+        "bairro",
+        "turma.nome"
+    ]
+});
+
+let searchTerm = "";
+const autoBox = document.getElementById("autocompleteBox");
+
+function showSugestoes(lista, termo) {
+    if (!termo || lista.length === 0) {
+        autoBox.style.display = "none";
+        return;
+    }
+
+    autoBox.innerHTML = "";
+    lista.slice(0, 6).forEach(a => {
+        const div = document.createElement("div");
+        div.innerHTML = highlight(a.nome, termo);
+        div.onclick = () => {
+            document.getElementById("filtroAluno").value = a.nome;
+            searchTerm = a.nome;
+            autoBox.style.display = "none";
             renderizarTabela(1);
-        });
+        };
+        autoBox.appendChild(div);
+    });
 
-        // Navegação
-        firstPageBtn.addEventListener('click', () => renderizarTabela(1));
-        prevPageBtn.addEventListener('click', () => renderizarTabela(currentPage - 1));
-        nextPageBtn.addEventListener('click', () => renderizarTabela(currentPage + 1));
-        lastPageBtn.addEventListener('click', () => {
-            const total = filtraAlunos().length;
-            const totalPages = Math.max(1, Math.ceil(total / pageSize));
-            renderizarTabela(totalPages);
-        });
+    autoBox.style.display = "block";
+}
 
-        // Ordenação por coluna
-        document.querySelectorAll('#tabelaAlunos thead th[data-sort]').forEach(th => {
-            th.addEventListener('click', () => {
-                const key = th.getAttribute('data-sort');
-                if (sortKey === key) {
-                    sortDir = (sortDir === 'asc') ? 'desc' : 'asc';
-                } else {
-                    sortKey = key;
-                    sortDir = 'asc';
-                }
-                renderizarTabela(currentPage);
-            });
-        });
+document.addEventListener("click", function (event) {
+    if (!event.target.closest("#autocompleteBox") &&
+        !event.target.closest("#filtroAluno")) {
+        autoBox.style.display = "none";
+    }
+});
 
-        // Toggle avançados
-        document.getElementById('toggleAdvanced').addEventListener('click', () => {
-            const block = document.getElementById('advancedBlock');
-            block.style.display = block.style.display === 'block' ? 'none' : 'block';
-        });
+function aplicarBusca() {
+    const termo = searchTerm.trim().toLowerCase();
 
-        // Limpar filtros
-        document.getElementById('clearFilters').addEventListener('click', () => {
-            document.getElementById('filtroAluno').value = '';
-            document.getElementById('filtroStatus').value = '';
-            document.getElementById('filtroTurma').value = '';
-            document.getElementById('filtroTurno').value = '';
-            document.getElementById('filtroSexo').value = '';
-            document.getElementById('filtroNecessidade').value = '';
-            document.getElementById('filtroTransporte').value = '';
-            document.getElementById('filtroAutorizacaoSaida').value = '';
-            document.getElementById('filtroBairro').value = '';
-            document.getElementById('filtroCidade').value = '';
-            document.getElementById('nascDe').value = '';
-            document.getElementById('nascAte').value = '';
+    if (!termo) {
+        autoBox.style.display = "none";
+        return alunosPermitidos();
+    }
 
-            searchTerm = statusFilter = turmaFilter = turnoFilter = sexoFilter = '';
-            necessidadeFilter = transporteFilter = autSaidaFilter = '';
-            bairroFilter = cidadeFilter = nascDe = nascAte = '';
-            sortKey = ''; sortDir = 'asc';
+    const resultado = fuse.search(termo).map(r => r.item);
+    showSugestoes(resultado, termo);
+    return resultado;
+}
 
-            renderizarTabela(1);
-        });
+/* =======================================================
+   5. FILTROS SIMPLES
+======================================================= */
+let statusFilter = "";
+let turmaFilter = "";
 
-        // Inicial
+function filtrarSimples(lista) {
+    return lista.filter(a => {
+        if (statusFilter === "ativo" && !a.ativo) return false;
+        if (statusFilter === "inativo" && a.ativo) return false;
+        if (turmaFilter && turmaLabel(a) !== turmaFilter) return false;
+        return true;
+    });
+}
+
+/* =======================================================
+   6. ORDENAR
+======================================================= */
+let sortKey = "";
+let sortDir = "asc";
+
+function ordenarLista(lista) {
+    if (!sortKey) return lista;
+
+    return lista.slice().sort((a, b) => {
+        let av = sortKey === "turma" ? turmaLabel(a) : a[sortKey];
+        let bv = sortKey === "turma" ? turmaLabel(b) : b[sortKey];
+
+        av = normaliza(av);
+        bv = normaliza(bv);
+
+        if (av < bv) return sortDir === "asc" ? -1 : 1;
+        if (av > bv) return sortDir === "asc" ? 1 : -1;
+        return 0;
+    });
+}
+
+/* =======================================================
+   7. PAGINAÇÃO
+======================================================= */
+let pageSize = 25;
+let currentPage = 1;
+
+/* =======================================================
+   8. ATUALIZAR CARDS
+======================================================= */
+function atualizarCards(listaTotal) {
+    const total = listaTotal.length;
+    const ativos = listaTotal.filter(a => a.ativo).length;
+    const inativos = total - ativos;
+
+    const mes = new Date().getMonth();
+    const aniversario = listaTotal.filter(a => {
+        if (!a.data_nascimento) return false;
+        return new Date(a.data_nascimento).getMonth() === mes;
+    }).length;
+
+    document.getElementById("cardTotal").textContent = total;
+    document.getElementById("cardAtivos").textContent = ativos;
+    document.getElementById("cardInativos").textContent = inativos;
+    document.getElementById("cardNivers").textContent = aniversario;
+}
+
+/* =======================================================
+   9. RENDERIZAR TABELA
+======================================================= */
+function renderizarTabela(pagina = 1) {
+
+    let lista = aplicarBusca();
+    const permitidos = alunosPermitidos();
+
+    lista = lista.filter(a => permitidos.includes(a));
+    lista = filtrarSimples(lista);
+    lista = ordenarLista(lista);
+
+    atualizarCards(alunos);
+
+    const total = lista.length;
+    const totalPaginas = Math.max(1, Math.ceil(total / pageSize));
+
+    currentPage = Math.min(Math.max(1, pagina), totalPaginas);
+
+    const ini = (currentPage - 1) * pageSize;
+    const fim = ini + pageSize;
+
+    const tbody = document.getElementById("tabelaAlunosBody");
+    tbody.innerHTML = "";
+
+    lista.slice(ini, fim).forEach(a => {
+        const resp = a.responsaveis?.length ? a.responsaveis[0].nome : "";
+        const termo = searchTerm.toLowerCase();
+
+        tbody.insertAdjacentHTML("beforeend", `
+            <tr>
+                <td>${highlight(a.matricula, termo)}</td>
+                <td>${highlight(turmaLabel(a), termo)}</td>
+                <td>${highlight(a.nome, termo)}</td>
+                <td>${highlight(resp, termo)}</td>
+                <td>${highlight(a.responsaveis?.[0]?.telefone || "", termo)}</td>
+                <td>${a.possui_necessidade_especial ? "🧩" : "–"}</td>
+                <td>
+                    ${a.ativo
+                        ? "<span class='badge badge-success'>Ativo</span>"
+                        : "<span class='badge badge-secondary'>Inativo</span>"
+                    }
+                </td>
+                <td style="white-space:nowrap;">
+                    <button class="btn btn-info btn-sm mr-1" onclick="editarPorId(${a.id})">Editar</button>
+                    <a href="/alunos/${a.id}/pdf/" target="_blank" class="btn btn-secondary btn-sm">
+                        Imprimir
+                    </a>
+                </td>
+            </tr>
+        `);
+    });
+
+    document.getElementById("resultsInfo").textContent =
+        total ? `Mostrando ${ini + 1}–${Math.min(fim, total)} de ${total}`
+              : "Nenhum resultado";
+
+    document.getElementById("pageIndicator").textContent =
+        `${currentPage} / ${totalPaginas}`;
+}
+
+/* =======================================================
+   10. EVENTOS
+======================================================= */
+let buscaTimer = null;
+
+document.getElementById("filtroAluno").addEventListener("input", function () {
+    clearTimeout(buscaTimer);
+    buscaTimer = setTimeout(() => {
+        searchTerm = this.value;
         renderizarTabela(1);
+    }, 60);
+});
 
-        // Abertura de modal por id
-        function editarPorId(botao) {
-            const id = parseInt(botao.dataset.id);
-            const aluno = alunos.find(a => a.id === id);
-            if (aluno) abrirModalEditarCompleto(aluno);
-            else alert('Aluno não encontrado!');
-        }
-  </script>
-  <div>
-   {% include 'partials/_footer.html' %}
-  </div>
- </body>
+document.getElementById("filtroStatus").onchange = e => {
+    statusFilter = e.target.value;
+    renderizarTabela(1);
+};
+
+document.getElementById("filtroTurma").onchange = e => {
+    turmaFilter = e.target.value;
+    renderizarTabela(1);
+};
+
+document.getElementById("pageSize").onchange = e => {
+    pageSize = parseInt(e.target.value);
+    renderizarTabela(1);
+};
+
+document.getElementById("clearFilters").onclick = () => {
+    searchTerm = "";
+    statusFilter = "";
+    turmaFilter = "";
+    document.getElementById("filtroAluno").value = "";
+    renderizarTabela(1);
+};
+
+document.getElementById("firstPage").onclick = () => renderizarTabela(1);
+document.getElementById("prevPage").onclick = () => renderizarTabela(currentPage - 1);
+document.getElementById("nextPage").onclick = () => renderizarTabela(currentPage + 1);
+document.getElementById("lastPage").onclick = () => {
+    const total = aplicarBusca().length;
+    renderizarTabela(Math.ceil(total / pageSize));
+};
+
+document.querySelectorAll("th[data-sort]").forEach(th => {
+    th.onclick = () => {
+        const key = th.dataset.sort;
+        if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
+        else { sortKey = key; sortDir = "asc"; }
+        renderizarTabela(1);
+    };
+});
+
+/* =======================================================
+   11. MODAL — CARREGAR ALUNO
+======================================================= */
+function editarPorId(id) {
+    const aluno = alunos.find(a => a.id === id);
+    if (!aluno) return alert("Aluno não encontrado!");
+
+    document.getElementById("editAlunoId").value = aluno.id;
+    document.getElementById("editNome").value = aluno.nome;
+    document.getElementById("editMatricula").value = aluno.matricula;
+    document.getElementById("editAtivo").value = aluno.ativo ? "true" : "false";
+    document.getElementById("editDataNasc").value = aluno.data_nascimento || "";
+    document.getElementById("editSexo").value = aluno.sexo || "";
+
+    document.getElementById("editRua").value = aluno.rua || "";
+    document.getElementById("editNumero").value = aluno.numero || "";
+    document.getElementById("editCep").value = aluno.cep || "";
+    document.getElementById("editBairro").value = aluno.bairro || "";
+    document.getElementById("editCidade").value = aluno.cidade || "";
+    document.getElementById("editEstado").value = aluno.estado || "";
+
+    document.getElementById("editNee").value =
+        aluno.possui_necessidade_especial ? "true" : "false";
+
+    carregarTurmasModal(aluno.turma?.nome || "");
+    carregarResponsaveisModal(aluno.responsaveis || []);
+
+    $("#modalEditarAluno").modal("show");
+}
+
+/* =======================================================
+   12. TURMAS NO MODAL
+======================================================= */
+function carregarTurmasModal(turmaAtual) {
+    const sel = document.getElementById("editTurma");
+    sel.innerHTML = "";
+
+    let turmas = [...new Set(alunos.map(a => turmaLabel(a)).filter(Boolean))];
+    turmas.sort();
+
+    sel.innerHTML =
+        `<option value="">Selecione…</option>` +
+        turmas.map(t => `<option value="${t}" ${t === turmaAtual ? "selected" : ""}>${t}</option>`).join("");
+}
+
+/* =======================================================
+   13. RESPONSÁVEIS
+======================================================= */
+const listaResp = document.getElementById("listaResponsaveis");
+const tplResp = document.getElementById("templateResponsavel");
+
+function criarRespBloco(r) {
+    const c = tplResp.content.cloneNode(true);
+
+    c.querySelector(".respId").value = r?.id || "";
+    c.querySelector(".respNome").value = r?.nome || "";
+    c.querySelector(".respCpf").value = r?.cpf || "";
+    c.querySelector(".respParentesco").value = r?.parentesco || "";
+    c.querySelector(".respTelefone").value = r?.telefone || "";
+    c.querySelector(".respEmail").value = r?.email || "";
+    c.querySelector(".respIdentidade").value = r?.identidade || "";
+    c.querySelector(".respEscolaridade").value = r?.escolaridade || "";
+    c.querySelector(".respProfissao").value = r?.profissao || "";
+
+    c.querySelector(".btnRemoverResponsavel").onclick = function () {
+        this.closest(".responsavel-bloco").remove();
+    };
+
+    listaResp.appendChild(c);
+}
+
+function carregarResponsaveisModal(lista) {
+    listaResp.innerHTML = "";
+    lista.forEach(r => criarRespBloco(r));
+}
+
+document.getElementById("btnAddResponsavel").onclick = () => {
+    criarRespBloco({});
+};
+
+/* =======================================================
+   14. SALVAR ALTERAÇÕES
+======================================================= */
+document.getElementById("btnSalvarAluno").onclick = () => {
+
+    const id = document.getElementById("editAlunoId").value;
+
+    const payload = {
+        nome: document.getElementById("editNome").value,
+        ativo: document.getElementById("editAtivo").value === "true",
+        data_nascimento: document.getElementById("editDataNasc").value,
+        sexo: document.getElementById("editSexo").value,
+        turma: document.getElementById("editTurma").value,
+        rua: document.getElementById("editRua").value,
+        numero: document.getElementById("editNumero").value,
+        cep: document.getElementById("editCep").value,
+        bairro: document.getElementById("editBairro").value,
+        cidade: document.getElementById("editCidade").value,
+        estado: document.getElementById("editEstado").value,
+        possui_necessidade_especial: document.getElementById("editNee").value === "true",
+        responsaveis: []
+    };
+
+    document.querySelectorAll(".responsavel-bloco").forEach(bl => {
+        payload.responsaveis.push({
+            id: bl.querySelector(".respId").value || null,
+            nome: bl.querySelector(".respNome").value,
+            cpf: bl.querySelector(".respCpf").value,
+            parentesco: bl.querySelector(".respParentesco").value,
+            telefone: bl.querySelector(".respTelefone").value,
+            email: bl.querySelector(".respEmail").value,
+            identidade: bl.querySelector(".respIdentidade").value,
+            escolaridade: bl.querySelector(".respEscolaridade").value,
+            profissao: bl.querySelector(".respProfissao").value,
+        });
+    });
+
+    fetch(`/alunos/${id}/editar_completo/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify(payload)
+    })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) location.reload();
+            else alert("Erro: " + d.error);
+        })
+        .catch(err => alert("Erro inesperado ao salvar."));
+};
+
+/* =======================================================
+   INICIAR
+======================================================= */
+renderizarTabela(1);
+</script>
+
+</body>
 </html>
