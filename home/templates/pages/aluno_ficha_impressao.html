@@ -154,7 +154,9 @@ Turno:
 declarando estar ciente das disposições do regimento interno e responsabilizando-me pela autenticidade dos documentos.
 </div>
 
+<!-- ========================= -->
 <!-- ALUNO -->
+<!-- ========================= -->
 <div class="box">
 <div class="box-title">Dados cadastrais do(a) aluno(a)</div>
 <table class="sheet">
@@ -210,7 +212,10 @@ declarando estar ciente das disposições do regimento interno e responsabilizan
 </table>
 </div>
 
+<!-- ========================= -->
 <!-- PAI -->
+<!-- ========================= -->
+{% if dados_pai %}
 <div class="box">
 <div class="box-title">Dados cadastrais do pai</div>
 <table class="sheet">
@@ -236,8 +241,12 @@ declarando estar ciente das disposições do regimento interno e responsabilizan
 </tr>
 </table>
 </div>
+{% endif %}
 
-<!-- MAE -->
+<!-- ========================= -->
+<!-- MÃE -->
+<!-- ========================= -->
+{% if dados_mae %}
 <div class="box">
 <div class="box-title">Dados cadastrais da mãe</div>
 <table class="sheet">
@@ -263,35 +272,42 @@ declarando estar ciente das disposições do regimento interno e responsabilizan
 </tr>
 </table>
 </div>
+{% endif %}
 
-<!-- RESPONSÁVEL -->
+<!-- ========================= -->
+<!-- RESPONSÁVEL (UNIFICADO E CORRETO) -->
+<!-- ========================= -->
+{% if dados_resp %}
 <div class="box">
 <div class="box-title">Dados cadastrais do responsável</div>
 <table class="sheet">
 <tr>
 <td class="w-60"><span class="label">Nome:</span>
-<span class="fieldline" style="min-width:240px">{{ dados_resp.nome|default:"" }}</span></td>
+<span class="fieldline" style="min-width:240px">{{ dados_resp.nome }}</span></td>
 <td class="w-40"><span class="label">Parentesco:</span>
-<span class="fieldline" style="min-width:120px">{{ dados_resp.parentesco|default:"" }}</span></td>
+<span class="fieldline" style="min-width:120px">{{ dados_resp.parentesco }}</span></td>
 </tr>
 
 <tr>
 <td><span class="label">CPF:</span>
-<span class="fieldline" style="min-width:130px">{{ dados_resp.cpf|default:"" }}</span></td>
+<span class="fieldline" style="min-width:130px">{{ dados_resp.cpf }}</span></td>
 <td><span class="label">Identidade:</span>
-<span class="fieldline" style="min-width:130px">{{ dados_resp.identidade|default:"" }}</span></td>
+<span class="fieldline" style="min-width:130px">{{ dados_resp.identidade }}</span></td>
 </tr>
 
 <tr>
 <td><span class="label">Fone:</span>
-<span class="fieldline" style="min-width:170px">{{ dados_resp.telefone|default:"" }}</span></td>
+<span class="fieldline" style="min-width:170px">{{ dados_resp.telefone }}</span></td>
 <td><span class="label">E-mail:</span>
-<span class="fieldline" style="min-width:170px">{{ dados_resp.email|default:"" }}</span></td>
+<span class="fieldline" style="min-width:170px">{{ dados_resp.email }}</span></td>
 </tr>
 </table>
 </div>
+{% endif %}
 
-<!-- OPÇÕES -->
+<!-- ========================= -->
+<!-- SITUAÇÃO -->
+<!-- ========================= -->
 <div class="box">
 <div class="box-title">Situação/Opções</div>
 <div style="display:flex; flex-wrap:wrap; gap:8px 20px;">
@@ -313,7 +329,7 @@ declarando estar ciente das disposições do regimento interno e responsabilizan
 <span class="fieldline" style="min-width:100px">{{ aluno.data_ingresso|date:"d/m/Y"|default_if_none:"" }}</span></div>
 
 <div class="opt">Bolsa Família?
-Sim ( <span class="cb">{% if aluno.bolsa_familia %}X{% endif %}</span> )  
+Sim ( <span class="cb">{% if aluno.bolsa_familia %}X{% endif %}</span> )
 Não ( <span class="cb">{% if aluno.bolsa_familia is not None and not aluno.bolsa_familia %}X{% endif %}</span> )</div>
 
 <div class="opt">Transporte escolar:
@@ -336,7 +352,9 @@ Descrição:
 </div>
 </div>
 
+<!-- ========================= -->
 <!-- INFORMAÇÕES COMPLEMENTARES -->
+<!-- ========================= -->
 <div class="box">
 <div class="box-title">Informações complementares</div>
 <table class="sheet">
@@ -390,7 +408,9 @@ Não ( <span class="cb">{% if autoriz and not autoriz.autorizacao_saida_sozinho 
 </table>
 </div>
 
+<!-- ========================= -->
 <!-- RODAPÉ -->
+<!-- ========================= -->
 <div style="margin-top:12px;">
 {% if aluno.escola %}
 {{ aluno.escola.cidade }} — {{ aluno.escola.estado }},

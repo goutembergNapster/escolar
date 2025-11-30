@@ -70,7 +70,7 @@
   {% include 'partials/_nav.html' %}
   <section class="content-wrapper" style="margin-top: 15px;">
    <div class="header-bar">
-    Cadastrar Aluno
+    Matricular Aluno
    </div>
    <div class="tab-buttons" style="padding-top: 1 !important; margin-top: 0 !important;">
     <button data-tab="0" onclick="showTab(0)" type="button">
@@ -152,9 +152,6 @@
         </option>
         <option value="Feminino">
          Feminino
-        </option>
-        <option value="Outro">
-         Outro
         </option>
        </select>
       </div>
@@ -341,6 +338,7 @@
         </option>
         {% endfor %}
                             {% endif %}
+        
        </select>
       </div>
      </div>
@@ -518,7 +516,7 @@
        <label for="responsavel_parentesco">
         Parentesco
        </label>
-       <input id="responsavel_parentesco" placeholder="Pai, Mãe, ..." type="text"/>
+       <input id="responsavel_parentesco" placeholder="Tio, Avó, ..." type="text"/>
        <small class="field-error d-none" id="responsavel_parentesco_error">
        </small>
       </div>
@@ -841,6 +839,10 @@
      </div>
     </div>
     <div class="form-footer" style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn btn-secondary" type="button"
+        onclick="window.location.href='{% url 'cadastro_aluno' %}'">
+  Novo
+</button>
      <button class="btn btn-secondary" onclick="goBack()" type="button">
       Voltar
      </button>
@@ -913,21 +915,35 @@
           let d2 = (soma*10)%11; if (d2===10) d2=0; return d2===parseInt(cpf[10]);
         }
         function wireCPF(input, errorId){
-          if(!input) return;
-          input.addEventListener('input', ()=>{
-            input.value = maskCPF(input.value);
-            input.classList.remove('cpf-invalido');
-            if (errorId) clearFieldError(errorId);
-          });
-          input.addEventListener('blur', ()=>{
-            const v = input.value.trim();
-            const ok = v==='' ? true : cpfValido(v);
-            input.classList.toggle('cpf-invalido', !ok);
-            input.setCustomValidity(ok ? '' : 'CPF inválido');
-            if (!ok && errorId) showFieldError(errorId, 'CPF inválido.');
-            if (ok && errorId) clearFieldError(errorId);
-          });
-        }
+  if(!input) return;
+  
+  input.addEventListener('input', ()=>{
+    input.value = maskCPF(input.value);
+    input.classList.remove('cpf-invalido');
+    if (errorId) clearFieldError(errorId);
+
+    // SE CPF FOR LIMPO → remove validação pendente
+    if (onlyDigits(input.value).length === 0) {
+        input.setCustomValidity('');
+    }
+  });
+
+  input.addEventListener('blur', ()=>{
+    const v = input.value.trim();
+    if (!v) {
+        // CPF vazio é permitido → limpa tudo
+        input.setCustomValidity('');
+        if (errorId) clearFieldError(errorId);
+        return;
+    }
+
+    const ok = cpfValido(v);
+    input.classList.toggle('cpf-invalido', !ok);
+    input.setCustomValidity(ok ? '' : 'CPF inválido');
+    if (!ok && errorId) showFieldError(errorId, 'CPF inválido.');
+    if (ok && errorId) clearFieldError(errorId);
+  });
+}
 
         // ===== Validações de data =====
         function parseISODate(value){
@@ -1061,7 +1077,7 @@
                 }
                 required('nome','Nome');
                 required('data_nascimento','Data de nascimento');
-                required('cpf','CPF');
+                //required('cpf','CPF');
                 required('email','Email');
                 required('telefone','Telefone');
                 required('rua','Rua');
