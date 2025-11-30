@@ -226,15 +226,25 @@ class Responsavel(models.Model):
     parentesco = models.CharField(max_length=50, default='')
     telefone = models.CharField(max_length=20, default='')
     email = models.EmailField(default='')
-    tipo = models.CharField(max_length=10, null=True, blank=True, choices=[
+
+    TIPO_CHOICES = [
+        ('pai', 'Pai'),
+        ('mae', 'Mãe'),
+        ('responsavel', 'Responsável'),
+    ]
+
+    tipo = models.CharField(
+    max_length=12,
+    choices=[
         ('pai','Pai'),
         ('mae','Mãe'),
-        ('outro','Outro'),
-    ])
+        ('responsavel','Responsável'),
+    ],
+    null=True, blank=True
+)
     identidade = models.CharField(max_length=30, null=True, blank=True)
     escolaridade = models.CharField(max_length=50, null=True, blank=True)
     profissao = models.CharField(max_length=60, null=True, blank=True)
-
 
 
 # ================================================

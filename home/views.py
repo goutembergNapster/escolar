@@ -447,7 +447,7 @@ def salvar_aluno(request):
     except Exception:
         return HttpResponseBadRequest("JSON inválido")
 
-    obrig = ['nome','data_nascimento','cpf','email','telefone','rua','numero','bairro','cidade','estado']
+    obrig = ['nome','data_nascimento','email','telefone','rua','numero','bairro','cidade','estado']
     for c in obrig:
         if not data.get(c):
             return JsonResponse({'status':'erro','mensagem': f'O campo "{c}" é obrigatório.'}, status=400)
@@ -1011,7 +1011,7 @@ def listar_alunos(request):
             # TURMA
             "turma": {
                 "nome": a.turma_principal.nome if a.turma_principal else "",
-                "sigla": a.turma_principal.sigla if a.turma_principal else "",
+                "sigla": (a.turma_principal.nome[:3].upper() if a.turma_principal else ""),
             },
 
             # RESPONSÁVEIS
@@ -2109,76 +2109,56 @@ def aluno_requerimento_pdf(request, pk):
         else get_object_or_404(qs, pk=pk)
     )
 
-    # -------- Helpers locais para identificar pai/mãe --------
-    def _casefold(s):
+    # ======= Helpers =======
+    def _case(s):
         return (s or "").strip().casefold()
 
-    def _is_pai(resp):
-        return _casefold(getattr(resp, "tipo", "")) == "pai" or _casefold(getattr(resp, "parentesco", "")) == "pai"
+    def is_pai(r):
+        return _case(r.tipo) == "pai" or _case(r.parentesco) == "pai"
 
-    def _is_mae(resp):
-        t = _casefold(getattr(resp, "tipo", ""))
-        p = _casefold(getattr(resp, "parentesco", ""))
-        return t in ("mae", "mãe") or p in ("mae", "mãe")
+    def is_mae(r):
+        return _case(r.tipo) in ("mae", "mãe") or _case(r.parentesco) in ("mae", "mãe")
 
-    # -------- Carrega todos os responsáveis do aluno --------
-    try:
-        # caminho “normal”: FK Responsavel.aluno -> reverse responsavel_set
-        todos_resp = list(aluno.responsavel_set.all().order_by("id"))
-    except Exception:
-        # fallback seguro
-        todos_resp = list(Responsavel.objects.filter(aluno=aluno).order_by("id"))
+    # ======= Carrega responsáveis =======
+    todos = list(Responsavel.objects.filter(aluno=aluno).order_by("id"))
 
-    pai = next((r for r in todos_resp if _is_pai(r)), None)
-    mae = next((r for r in todos_resp if _is_mae(r)), None)
+    pai = next((r for r in todos if is_pai(r)), None)
+    mae = next((r for r in todos if is_mae(r)), None)
 
-    # Evita usar o mesmo registro nos dois campos
-    if pai and mae and pai.pk == mae.pk:
-        mae = next((r for r in todos_resp if r.pk != pai.pk and _is_mae(r)), None)
+    # ======= Responsável (não pai/mãe) =======
+    resp = next(
+        (r for r in todos if r not in (pai, mae)),
+        None
+    )
 
-    # Fallbacks quando a marcação não veio correta
-    if not pai and not mae and len(todos_resp) >= 2:
-        pai, mae = todos_resp[0], todos_resp[1]
-    elif pai and not mae and len(todos_resp) >= 2:
-        mae = next((r for r in todos_resp if r.pk != pai.pk), None)
+    # ======= Relacionamentos =======
+    saude = Saude.objects.filter(aluno=aluno).first()
+    transporte = TransporteEscolar.objects.filter(aluno=aluno).first()
+    autoriz = Autorizacoes.objects.filter(aluno=aluno).first()
 
-    # -------- Outras relações --------
-    saude = Saude.objects.filter(aluno=aluno).order_by("id").first()
-    transporte = TransporteEscolar.objects.filter(aluno=aluno).order_by("id").first()
-    autoriz = Autorizacoes.objects.filter(aluno=aluno).order_by("id").first()
-
-    # -------- Blindagens esperadas pelo template --------
-    if not hasattr(aluno, "resultado_ano"):
-        setattr(aluno, "resultado_ano", None)
-    if saude and not hasattr(saude, "restricoes_alimentares"):
-        setattr(saude, "restricoes_alimentares", "")
-
+    # ======= Contexto =======
     ctx = {
         "aluno": aluno,
-        "dados_pai": {
-            "nome": getattr(pai, "nome", "") or "",
-            "cpf": getattr(pai, "cpf", "") or "",
-            "identidade": getattr(pai, "identidade", "") or "",
-            "escolaridade": getattr(pai, "escolaridade", "") or "",
-            "profissao": getattr(pai, "profissao", "") or "",
-            "telefone": getattr(pai, "telefone", "") or "",
-            "email": getattr(pai, "email", "") or "",
-        },
-        "dados_mae": {
-            "nome": getattr(mae, "nome", "") or "",
-            "cpf": getattr(mae, "cpf", "") or "",
-            "identidade": getattr(mae, "identidade", "") or "",
-            "escolaridade": getattr(mae, "escolaridade", "") or "",
-            "profissao": getattr(mae, "profissao", "") or "",
-            "telefone": getattr(mae, "telefone", "") or "",
-            "email": getattr(mae, "email", "") or "",
-        },
+
+        # pai
+        "dados_pai": pai,
+
+        # mae
+        "dados_mae": mae,
+
+        # responsável
+        "dados_resp": resp,
+
+        # extras
         "saude": saude,
         "transporte": transporte,
         "autoriz": autoriz,
         "hoje_extenso": _data_por_extenso(localdate()),
     }
+
+
     return render(request, "pages/aluno_ficha_impressao.html", ctx)
+
 
 
 def create_admin_temp(request):
@@ -2215,9 +2195,81 @@ def comprovante_matricula_pdf(request, pk):
     return render(request, "pages/comprovante_matricula.html", {"aluno": aluno})
 
 
+# def ficha_cadastral_pdf(request, pk):
+#     aluno = get_object_or_404(Aluno, pk=pk, escola=request.user.escola)
+
+#     # Pai
+#     dados_pai = Responsavel.objects.filter(
+#         aluno=aluno,
+#         tipo__iexact="pai"
+#     ).first()
+
+#     # Mãe
+#     dados_mae = Responsavel.objects.filter(
+#         aluno=aluno,
+#         tipo__iexact="mae"
+#     ).first()
+
+#     # Responsável (tudo que NÃO é pai e NÃO é mãe)
+#     dados_resp = Responsavel.objects.filter(
+#         aluno=aluno
+#     ).exclude(
+#         tipo__in=["pai", "mae"]
+#     ).first()
+
+#     saude = getattr(aluno, "saude", None)
+#     transporte = getattr(aluno, "transporte", None)
+#     autoriz = getattr(aluno, "autorizacoes", None)
+
+#     hoje_extenso = datetime.now().strftime("%d de %B de %Y")
+
+#     context = {
+#         "aluno": aluno,
+#         "dados_pai": dados_pai,
+#         "dados_mae": dados_mae,
+#         "dados_resp": dados_resp,
+#         "saude": saude,
+#         "transporte": transporte,
+#         "autoriz": autoriz,
+#         "hoje_extenso": hoje_extenso,
+#     }
+
+#     return render(request, "pages/aluno_ficha_impressao.html", context)
+
 def ficha_cadastral_pdf(request, pk):
     aluno = get_object_or_404(Aluno, pk=pk, escola=request.user.escola)
-    return render(request, "pages/aluno_ficha_impressao.html", {"aluno": aluno})
+
+    dados_pai = Responsavel.objects.filter(aluno=aluno, tipo__iexact="pai").first()
+    dados_mae = Responsavel.objects.filter(aluno=aluno, tipo__iexact="mae").first()
+    dados_resp = Responsavel.objects.filter(aluno=aluno).exclude(tipo__in=["pai", "mae"]).first()
+
+    print("===== DEBUG VIEW =====")
+    print("Aluno:", aluno.id, aluno.nome)
+    print("Responsáveis:", list(Responsavel.objects.filter(aluno=aluno).values("id","nome","tipo","parentesco")))
+    print("dados_pai:", dados_pai)
+    print("dados_mae:", dados_mae)
+    print("dados_resp:", dados_resp)
+    print("======================")
+
+    saude = getattr(aluno, "saude", None)
+    transporte = getattr(aluno, "transporte", None)
+    autoriz = getattr(aluno, "autorizacoes", None)
+
+    hoje_extenso = datetime.now().strftime("%d de %B de %Y")
+
+    context = {
+        "aluno": aluno,
+        "dados_pai": dados_pai,
+        "dados_mae": dados_mae,
+        "dados_resp": dados_resp,
+        "saude": saude,
+        "transporte": transporte,
+        "autoriz": autoriz,
+        "hoje_extenso": hoje_extenso,
+    }
+
+    return render(request, "pages/aluno_ficha_impressao.html", context)
+
 
 def pagina_nome_turma(request):
     return render(request, "pages/nome_turma.html")
@@ -2238,16 +2290,27 @@ def listar_nomes_turma(request):
 
 def editar_nome_turma(request):
     data = json.loads(request.body)
-    id = data.get("id")
+
+    try:
+        id = int(data.get("id"))
+    except:
+        return JsonResponse({"success": False, "error": "ID inválido."})
+
     nome = data.get("nome")
 
-    obj = NomeTurma.objects.filter(id=id, escola=request.user.escola).first()
+    obj = NomeTurma.objects.filter(
+        id=id,
+        escola=request.user.escola
+    ).first()
+
     if not obj:
-        return JsonResponse({"success": False})
+        return JsonResponse({"success": False, "error": "Registro não encontrado."})
 
     obj.nome = nome
     obj.save()
+
     return JsonResponse({"success": True})
+
 
 def excluir_nome_turma(request):
     data = json.loads(request.body)
