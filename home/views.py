@@ -447,7 +447,7 @@ def salvar_aluno(request):
     except Exception:
         return HttpResponseBadRequest("JSON inválido")
 
-    obrig = ['nome','data_nascimento','email','telefone','rua','numero','bairro','cidade','estado']
+    obrig = ['nome','data_nascimento','rua','numero','bairro','cidade','estado']
     for c in obrig:
         if not data.get(c):
             return JsonResponse({'status':'erro','mensagem': f'O campo "{c}" é obrigatório.'}, status=400)
