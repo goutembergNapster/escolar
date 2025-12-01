@@ -8,6 +8,7 @@ import re
 import locale
 from datetime import date, datetime
 from io import BytesIO
+from babel.dates import format_date
 
 # ---- Django Core ----
 from django.conf import settings
@@ -2071,6 +2072,7 @@ def aluno_requerimento_pdf(request, pk):
         if hasattr(Aluno, "escola_id")
         else get_object_or_404(qs, pk=pk)
     )
+    hoje_extenso = format_date(date.today(), "d 'de' MMMM 'de' y", locale="pt_BR")
 
     # ======= Helpers =======
     def _case(s):
@@ -2116,7 +2118,7 @@ def aluno_requerimento_pdf(request, pk):
         "saude": saude,
         "transporte": transporte,
         "autoriz": autoriz,
-        "hoje_extenso": _data_por_extenso(localdate()),
+        "hoje_extenso": hoje_extenso,
     }
 
 

@@ -7,118 +7,113 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
 <style>
-@page { size: A4; margin: 10mm 12mm 12mm 12mm; }
+/* ======== CONFIGURAÇÃO DE PÁGINA ======== */
+@page { size: A4; margin: 6mm 10mm; }
 
 body {
     font-family: "DejaVu Serif", Georgia, serif;
-    font-size: 11pt;
-    line-height: 1.25;
-    margin: 0;
-    padding: 0;
+    font-size: 10.8pt;
+    line-height: 1.22;
+    margin: 0; padding: 0;
     color: #000;
 }
 
-/* Tela */
+/* Ocultar botões na impressão */
 .only-screen { display:flex; gap:.5rem; margin:10px 0; }
 @media print { .only-screen { display:none!important; } }
 
-/* Marca d'água */
-.watermark {
-    position: fixed;
-    opacity: 0.07;
-    top: 26%;
-    left: 50%;
-    width: 65%;
-    transform: translate(-50%, -26%);
-    z-index: -1;
-}
-
-/* Cabeçalho */
+/* ======== LAYOUT DO CABEÇALHO ======== */
 .header {
     display: grid;
-    grid-template-columns: 1fr 105px;
+    grid-template-columns: 1fr 95px;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .school-name {
-    font-size: 13pt;
+    font-size: 12.6pt;
     font-weight: 700;
     text-transform: uppercase;
     text-align: center;
     color: #c06f1f;
 }
+
 .school-sub {
-    font-size: 9pt;
+    font-size: 8.6pt;
     text-align: center;
-    margin-top: 2px;
+    margin-top: 1px;
 }
+
 .foto-box {
     border: 1px solid #444;
-    width: 105px;
-    height: 130px;
+    width: 95px;
+    height: 118px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 9pt;
+    font-size: 8.5pt;
 }
-.line { border-top:1px solid #000; margin:6px 0 10px; }
 
-/* Blocos */
+.line { border-top:1px solid #000; margin:5px 0 8px; }
+
+/* ======== BLOCOS ======== */
 .box {
     border: 1px solid #fab982;
-    padding: 8px 10px;
-    margin-top: 8px;
+    padding: 6px 8px;
+    margin-top: 5px;
     border-left: 4px solid #c06f1f;
     background: #fffdf9;
 }
+
 .box-title {
     font-weight:700;
-    font-size:10.5pt;
+    font-size:10pt;
     text-transform:uppercase;
     color:#c06f1f;
-    margin-bottom:4px;
+    margin-bottom:3px;
 }
 
-/* Campos */
+/* ======== CAMPOS ======== */
 .fieldline {
     border-bottom:1px solid #000;
     display:inline-block;
-    min-width:110px;
-    padding:0 1px 1px 1px;
+    padding:0 1px;
+    min-width: 60px;
 }
-.label { margin-right:5px; }
 
-/* Tabela */
+.label { margin-right:4px; }
+
+/* ======== TABELAS ======== */
 table.sheet { width:100%; border-collapse:collapse; }
-table.sheet td { padding:3px 3px; vertical-align:top; }
+table.sheet td { padding:2px 3px; vertical-align:top; }
 
 .w-30{width:30%} .w-40{width:40%} .w-50{width:50%} .w-60{width:60%}
 
 /* Opções */
-.opt { margin-right:12px; white-space:nowrap; }
+.opt { margin-right:10px; white-space:nowrap; font-size:10pt; }
 .cb { font-weight:bold; }
 
 /* Assinaturas */
 .signrow {
     display:flex;
     justify-content:space-between;
-    margin-top:28px;
+    margin-top:14px;
 }
-.sign { text-align:center; width:45%; }
-.sign-line { border-top:1px solid #000; margin:28px 0 3px; }
+.sign { text-align:center; width:45%; font-size:10pt; }
+.sign-line { border-top:1px solid #000; margin:14px 0 3px; }
 </style>
 </head>
 
 <body>
-
-{% comment %} <img class="watermark" src="{% static 'images/marcadagua.png' %}" /> {% endcomment %}
 
 <div class="only-screen">
 <button onclick="window.print()">🖨️ Imprimir</button>
 <a href="javascript:history.back()">← Voltar</a>
 </div>
 
+<!-- ========================= -->
+<!-- CABEÇALHO -->
+<!-- ========================= -->
 <div class="header">
     <div>
         <div class="school-name">{{ aluno.escola.nome|default:"ESCOLA PEQUENO APRENDIZ" }}</div>
@@ -138,20 +133,22 @@ table.sheet td { padding:3px 3px; vertical-align:top; }
 
 <div class="line"></div>
 
-<div style="text-align:center; font-weight:bold; font-size:12.5pt; text-transform:uppercase;">
+<!-- TÍTULO -->
+<div style="text-align:center; font-weight:bold; font-size:12pt; text-transform:uppercase; margin-bottom:6px;">
 REQUERIMENTO DE MATRÍCULA
 </div>
 
-<div class="req-text" style="margin:8px 0 10px;">
+<!-- TEXTO INICIAL -->
+<div class="req-text" style="margin:4px 0 6px;">
 Requeiro a matrícula do(a) aluno(a)
-<span class="fieldline" style="min-width:240px">{{ aluno.nome }}</span>
+<span class="fieldline" style="min-width:220px">{{ aluno.nome }}</span>
 no Ensino:
-<span class="fieldline" style="min-width:120px">Fundamental</span>,
+<span class="fieldline" style="min-width:110px">Fundamental</span>,
 Série/Ano:
-<span class="fieldline" style="min-width:100px">{{ aluno.serie_ano|default_if_none:"" }}</span>,
+<span class="fieldline" style="min-width:80px">{{ aluno.serie_ano|default_if_none:"" }}</span>,
 Turno:
-<span class="fieldline" style="min-width:80px">{{ aluno.turno_aluno|default_if_none:"" }}</span>,
-declarando estar ciente das disposições do regimento interno e responsabilizando-me pela autenticidade dos documentos.
+<span class="fieldline" style="min-width:70px">{{ aluno.turno_aluno|default_if_none:"" }}</span>,
+declarando estar ciente do regimento interno e responsabilizando-me pela autenticidade dos documentos.
 </div>
 
 <!-- ========================= -->
@@ -162,28 +159,28 @@ declarando estar ciente das disposições do regimento interno e responsabilizan
 <table class="sheet">
 <tr>
 <td class="w-60"><span class="label">Nome:</span>
-<span class="fieldline" style="min-width:240px">{{ aluno.nome }}</span></td>
+<span class="fieldline" style="min-width:220px">{{ aluno.nome }}</span></td>
 <td class="w-40"><span class="label">Fator RH:</span>
-<span class="fieldline" style="min-width:100px">{{ aluno.tipo_sanguineo|default:"" }}</span></td>
+<span class="fieldline" style="min-width:90px">{{ aluno.tipo_sanguineo|default:"" }}</span></td>
 </tr>
 
 <tr>
 <td><span class="label">CPF:</span>
-<span class="fieldline" style="min-width:130px">{{ aluno.cpf|default:"" }}</span></td>
+<span class="fieldline" style="min-width:120px">{{ aluno.cpf|default:"" }}</span></td>
 <td><span class="label">RG:</span>
-<span class="fieldline" style="min-width:130px">{{ aluno.rg|default:"" }}</span></td>
+<span class="fieldline" style="min-width:120px">{{ aluno.rg|default:"" }}</span></td>
 </tr>
 
 <tr>
 <td><span class="label">Data nasc.:</span>
-<span class="fieldline" style="min-width:120px">{{ aluno.data_nascimento|date:"d/m/Y" }}</span></td>
+<span class="fieldline" style="min-width:100px">{{ aluno.data_nascimento|date:"d/m/Y" }}</span></td>
 <td><span class="label">Naturalidade:</span>
-<span class="fieldline" style="min-width:150px">{{ aluno.naturalidade|default:"" }}</span></td>
+<span class="fieldline" style="min-width:130px">{{ aluno.naturalidade|default:"" }}</span></td>
 </tr>
 
 <tr>
 <td colspan="2"><span class="label">Endereço:</span>
-<span class="fieldline" style="min-width:300px">
+<span class="fieldline" style="min-width:260px">
 {{ aluno.rua }}{% if aluno.numero %}, {{ aluno.numero }}{% endif %}
 — {{ aluno.bairro }} — {{ aluno.cidade }}/{{ aluno.estado }}
 {% if aluno.cep %} • CEP: {{ aluno.cep }}{% endif %}
@@ -192,16 +189,16 @@ declarando estar ciente das disposições do regimento interno e responsabilizan
 
 <tr>
 <td><span class="label">E-mail:</span>
-<span class="fieldline" style="min-width:220px">{{ aluno.email|default:"" }}</span></td>
+<span class="fieldline" style="min-width:200px">{{ aluno.email|default:"" }}</span></td>
 <td><span class="label">Telefone:</span>
-<span class="fieldline" style="min-width:140px">{{ aluno.telefone|default:"" }}</span></td>
+<span class="fieldline" style="min-width:130px">{{ aluno.telefone|default:"" }}</span></td>
 </tr>
 
 <tr>
 <td><span class="label">Matrícula:</span>
-<span class="fieldline" style="min-width:150px">{{ aluno.matricula }}</span></td>
+<span class="fieldline" style="min-width:130px">{{ aluno.matricula }}</span></td>
 <td><span class="label">Turma/Turno:</span>
-<span class="fieldline" style="min-width:160px">
+<span class="fieldline" style="min-width:150px">
 {% if aluno.turmas.all %}
 {% for t in aluno.turmas.all %}
 {{ t.nome }} ({{ t.turno }}){% if not forloop.last %} • {% endif %}
@@ -213,37 +210,6 @@ declarando estar ciente das disposições do regimento interno e responsabilizan
 </div>
 
 <!-- ========================= -->
-<!-- PAI -->
-<!-- ========================= -->
-{% if dados_pai %}
-<div class="box">
-<div class="box-title">Dados cadastrais do pai</div>
-<table class="sheet">
-<tr>
-<td class="w-60"><span class="label">Nome:</span>
-<span class="fieldline" style="min-width:240px">{{ dados_pai.nome }}</span></td>
-<td class="w-40"><span class="label">Identidade:</span>
-<span class="fieldline" style="min-width:120px">{{ dados_pai.identidade }}</span></td>
-</tr>
-
-<tr>
-<td><span class="label">CPF:</span>
-<span class="fieldline" style="min-width:130px">{{ dados_pai.cpf }}</span></td>
-<td><span class="label">Escolaridade:</span>
-<span class="fieldline" style="min-width:130px">{{ dados_pai.escolaridade }}</span></td>
-</tr>
-
-<tr>
-<td><span class="label">Fone:</span>
-<span class="fieldline" style="min-width:170px">{{ dados_pai.telefone }}</span></td>
-<td><span class="label">E-mail:</span>
-<span class="fieldline" style="min-width:170px">{{ dados_pai.email }}</span></td>
-</tr>
-</table>
-</div>
-{% endif %}
-
-<!-- ========================= -->
 <!-- MÃE -->
 <!-- ========================= -->
 {% if dados_mae %}
@@ -252,30 +218,61 @@ declarando estar ciente das disposições do regimento interno e responsabilizan
 <table class="sheet">
 <tr>
 <td class="w-60"><span class="label">Nome:</span>
-<span class="fieldline" style="min-width:240px">{{ dados_mae.nome }}</span></td>
+<span class="fieldline" style="min-width:220px">{{ dados_mae.nome }}</span></td>
 <td class="w-40"><span class="label">Identidade:</span>
-<span class="fieldline" style="min-width:120px">{{ dados_mae.identidade }}</span></td>
+<span class="fieldline" style="min-width:110px">{{ dados_mae.identidade }}</span></td>
 </tr>
 
 <tr>
 <td><span class="label">CPF:</span>
-<span class="fieldline" style="min-width:130px">{{ dados_mae.cpf }}</span></td>
+<span class="fieldline" style="min-width:120px">{{ dados_mae.cpf }}</span></td>
 <td><span class="label">Escolaridade:</span>
-<span class="fieldline" style="min-width:130px">{{ dados_mae.escolaridade }}</span></td>
+<span class="fieldline" style="min-width:120px">{{ dados_mae.escolaridade }}</span></td>
 </tr>
 
 <tr>
 <td><span class="label">Fone:</span>
-<span class="fieldline" style="min-width:170px">{{ dados_mae.telefone }}</span></td>
+<span class="fieldline" style="min-width:150px">{{ dados_mae.telefone }}</span></td>
 <td><span class="label">E-mail:</span>
-<span class="fieldline" style="min-width:170px">{{ dados_mae.email }}</span></td>
+<span class="fieldline" style="min-width:150px">{{ dados_mae.email }}</span></td>
 </tr>
 </table>
 </div>
 {% endif %}
 
 <!-- ========================= -->
-<!-- RESPONSÁVEL (UNIFICADO E CORRETO) -->
+<!-- PAI -->
+<!-- ========================= -->
+{% if dados_pai %}
+<div class="box">
+<div class="box-title">Dados cadastrais do pai</div>
+<table class="sheet">
+<tr>
+<td class="w-60"><span class="label">Nome:</span>
+<span class="fieldline" style="min-width:220px">{{ dados_pai.nome }}</span></td>
+<td class="w-40"><span class="label">Identidade:</span>
+<span class="fieldline" style="min-width:110px">{{ dados_pai.identidade }}</span></td>
+</tr>
+
+<tr>
+<td><span class="label">CPF:</span>
+<span class="fieldline" style="min-width:120px">{{ dados_pai.cpf }}</span></td>
+<td><span class="label">Escolaridade:</span>
+<span class="fieldline" style="min-width:120px">{{ dados_pai.escolaridade }}</span></td>
+</tr>
+
+<tr>
+<td><span class="label">Fone:</span>
+<span class="fieldline" style="min-width:150px">{{ dados_pai.telefone }}</span></td>
+<td><span class="label">E-mail:</span>
+<span class="fieldline" style="min-width:150px">{{ dados_pai.email }}</span></td>
+</tr>
+</table>
+</div>
+{% endif %}
+
+<!-- ========================= -->
+<!-- RESPONSÁVEL -->
 <!-- ========================= -->
 {% if dados_resp %}
 <div class="box">
@@ -283,23 +280,23 @@ declarando estar ciente das disposições do regimento interno e responsabilizan
 <table class="sheet">
 <tr>
 <td class="w-60"><span class="label">Nome:</span>
-<span class="fieldline" style="min-width:240px">{{ dados_resp.nome }}</span></td>
+<span class="fieldline" style="min-width:220px">{{ dados_resp.nome }}</span></td>
 <td class="w-40"><span class="label">Parentesco:</span>
-<span class="fieldline" style="min-width:120px">{{ dados_resp.parentesco }}</span></td>
+<span class="fieldline" style="min-width:110px">{{ dados_resp.parentesco }}</span></td>
 </tr>
 
 <tr>
 <td><span class="label">CPF:</span>
-<span class="fieldline" style="min-width:130px">{{ dados_resp.cpf }}</span></td>
+<span class="fieldline" style="min-width:120px">{{ dados_resp.cpf }}</span></td>
 <td><span class="label">Identidade:</span>
-<span class="fieldline" style="min-width:130px">{{ dados_resp.identidade }}</span></td>
+<span class="fieldline" style="min-width:110px">{{ dados_resp.identidade }}</span></td>
 </tr>
 
 <tr>
 <td><span class="label">Fone:</span>
-<span class="fieldline" style="min-width:170px">{{ dados_resp.telefone }}</span></td>
+<span class="fieldline" style="min-width:150px">{{ dados_resp.telefone }}</span></td>
 <td><span class="label">E-mail:</span>
-<span class="fieldline" style="min-width:170px">{{ dados_resp.email }}</span></td>
+<span class="fieldline" style="min-width:150px">{{ dados_resp.email }}</span></td>
 </tr>
 </table>
 </div>
@@ -310,23 +307,26 @@ declarando estar ciente das disposições do regimento interno e responsabilizan
 <!-- ========================= -->
 <div class="box">
 <div class="box-title">Situação/Opções</div>
-<div style="display:flex; flex-wrap:wrap; gap:8px 20px;">
+
+<div style="display:flex; flex-wrap:wrap; gap:6px 14px; font-size:10pt;">
 
 <div class="opt">( <span class="cb">{% if aluno.situacao_matricula == 'transferencia' or aluno.forma_acesso == 'transferencia' %}X{% endif %}</span> ) Transferência</div>
+
 <div class="opt">( <span class="cb">{% if aluno.situacao_matricula == 'matricula' or aluno.forma_acesso == 'matricula' or not aluno.forma_acesso %}X{% endif %}</span> ) Matrícula</div>
+
 <div class="opt">( <span class="cb">{% if aluno.situacao_matricula == 'rematricula' or aluno.forma_acesso == 'rematricula' %}X{% endif %}</span> ) Rematrícula</div>
 
 <div class="opt">Nível/Modalidade:
-<span class="fieldline" style="min-width:160px">Fundamental</span></div>
+<span class="fieldline" style="min-width:130px">Fundamental</span></div>
 
 <div class="opt">Série/Ano:
-<span class="fieldline" style="min-width:100px">{{ aluno.serie_ano|default_if_none:"" }}</span></div>
+<span class="fieldline" style="min-width:80px">{{ aluno.serie_ano|default_if_none:"" }}</span></div>
 
 <div class="opt">Turno:
-<span class="fieldline" style="min-width:80px">{{ aluno.turno_aluno|default_if_none:"" }}</span></div>
+<span class="fieldline" style="min-width:70px">{{ aluno.turno_aluno|default_if_none:"" }}</span></div>
 
-<div class="opt">Data de ingresso:
-<span class="fieldline" style="min-width:100px">{{ aluno.data_ingresso|date:"d/m/Y"|default_if_none:"" }}</span></div>
+<div class="opt">Data ingresso:
+<span class="fieldline" style="min-width:80px">{{ aluno.data_ingresso|date:"d/m/Y"|default_if_none:"" }}</span></div>
 
 <div class="opt">Bolsa Família?
 Sim ( <span class="cb">{% if aluno.bolsa_familia %}X{% endif %}</span> )
@@ -336,7 +336,7 @@ Não ( <span class="cb">{% if aluno.bolsa_familia is not None and not aluno.bols
 Sim ( <span class="cb">{% if transporte and transporte.usa_transporte_escolar %}X{% endif %}</span> )
 Não ( <span class="cb">{% if transporte and not transporte.usa_transporte_escolar %}X{% endif %}</span> )</div>
 
-<div class="opt">Dispensa Ensino Religioso:
+<div class="opt">Ensino Religioso:
 Sim ( <span class="cb">{% if aluno.dispensa_ensino_religioso %}X{% endif %}</span> )
 Não ( <span class="cb">{% if not aluno.dispensa_ensino_religioso %}X{% endif %}</span> )</div>
 
@@ -346,18 +346,19 @@ Não ( <span class="cb">{% if saude and not saude.possui_necessidade_especial %}
 
 <div class="opt" style="white-space:normal;">
 Descrição:
-<span class="fieldline" style="min-width:300px">{% if saude %}{{ saude.descricao_necessidade|default:"" }}{% endif %}</span>
+<span class="fieldline" style="min-width:260px">{% if saude %}{{ saude.descricao_necessidade|default:"" }}{% endif %}</span>
 </div>
 
 </div>
 </div>
 
 <!-- ========================= -->
-<!-- INFORMAÇÕES COMPLEMENTARES -->
+<!-- COMPLEMENTARES -->
 <!-- ========================= -->
 <div class="box">
 <div class="box-title">Informações complementares</div>
 <table class="sheet">
+
 <tr>
 <td class="w-60">
 Usa medicação?
@@ -365,8 +366,7 @@ Sim ( <span class="cb">{% if saude and saude.usa_medicacao %}X{% endif %}</span>
 Não ( <span class="cb">{% if saude and not saude.usa_medicacao %}X{% endif %}</span> )
 </td>
 <td class="w-40">Quais?
-<span class="fieldline" style="min-width:180px">{% if saude %}{{ saude.quais_medicacoes|default:"" }}{% endif %}</span>
-</td>
+<span class="fieldline" style="min-width:150px">{% if saude %}{{ saude.quais_medicacoes|default:"" }}{% endif %}</span></td>
 </tr>
 
 <tr>
@@ -375,7 +375,12 @@ Sim ( <span class="cb">{% if saude and saude.possui_alergia %}X{% endif %}</span
 Não ( <span class="cb">{% if saude and not saude.possui_alergia %}X{% endif %}</span> )
 </td>
 <td>Qual?
-<span class="fieldline" style="min-width:180px">{% if saude %}{{ saude.descricao_alergia|default:"" }}{% endif %}</span>
+<span class="fieldline" style="min-width:150px">{% if saude %}{{ saude.descricao_alergia|default:"" }}{% endif %}</span></td>
+</tr>
+
+<tr>
+<td colspan="2">Restrições alimentares:
+<span class="fieldline" style="min-width:250px">{% if saude and saude.restricoes_alimentares %}{{ saude.restricoes_alimentares }}{% endif %}</span>
 </td>
 </tr>
 
@@ -385,13 +390,7 @@ Sim ( <span class="cb">{% if transporte and transporte.usa_transporte_escolar %}
 Não ( <span class="cb">{% if transporte and not transporte.usa_transporte_escolar %}X{% endif %}</span> )
 </td>
 <td>Trajeto:
-<span class="fieldline" style="min-width:180px">{% if transporte %}{{ transporte.trajeto|default:"" }}{% endif %}</span>
-</td>
-</tr>
-
-<tr>
-<td colspan="2">Restrições alimentares:
-<span class="fieldline" style="min-width:300px">{% if saude %}{{ saude.restricoes_alimentares|default:"" }}{% endif %}</span>
+<span class="fieldline" style="min-width:150px">{% if transporte %}{{ transporte.trajeto|default:"" }}{% endif %}</span>
 </td>
 </tr>
 
@@ -401,8 +400,7 @@ Sim ( <span class="cb">{% if autoriz and autoriz.autorizacao_saida_sozinho %}X{%
 Não ( <span class="cb">{% if autoriz and not autoriz.autorizacao_saida_sozinho %}X{% endif %}</span> )
 </td>
 <td>Pessoa autorizada:
-<span class="fieldline" style="min-width:180px">{% if autoriz %}{{ autoriz.pessoa_autorizada_buscar|default:"" }}{% endif %}</span>
-</td>
+<span class="fieldline" style="min-width:150px">{% if autoriz %}{{ autoriz.pessoa_autorizada_buscar|default:"" }}{% endif %}</span></td>
 </tr>
 
 </table>
@@ -411,17 +409,18 @@ Não ( <span class="cb">{% if autoriz and not autoriz.autorizacao_saida_sozinho 
 <!-- ========================= -->
 <!-- RODAPÉ -->
 <!-- ========================= -->
-<div style="margin-top:12px;">
+<div style="margin-top:10px;">
 {% if aluno.escola %}
 {{ aluno.escola.cidade }} — {{ aluno.escola.estado }},
 {% else %}
 Camocim de São Félix — PE,
 {% endif %}
-{{ hoje_extenso|title }}
+{{ hoje_extenso }}
 </div>
 
+<!-- Assinaturas -->
 <div class="signrow">
-<div class="sign"><div class="sign-line"></div>Assinatura do Pai ou Responsável</div>
+<div class="sign"><div class="sign-line"></div>Assinatura do(a) Pai/Mãe ou Responsável</div>
 <div class="sign"><div class="sign-line"></div>Diretor(a)</div>
 </div>
 
