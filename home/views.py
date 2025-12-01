@@ -442,32 +442,52 @@ def salvar_aluno(request):
     if request.method != "POST":
         return JsonResponse({'mensagem': 'Método não permitido'}, status=405)
 
+    # --------------------------------------------------------------
+    # 1) Ler JSON
+    # --------------------------------------------------------------
     try:
         data = json.loads(request.body or "{}")
     except Exception:
         return HttpResponseBadRequest("JSON inválido")
 
+    # --------------------------------------------------------------
+    # 2) Validar campos obrigatórios ANTES de criar aluno
+    # --------------------------------------------------------------
     obrig = ['nome','data_nascimento','rua','numero','bairro','cidade','estado']
     for c in obrig:
         if not data.get(c):
-            return JsonResponse({'status':'erro','mensagem': f'O campo "{c}" é obrigatório.'}, status=400)
+            return JsonResponse({'status':'erro','mensagem': f'O campo \"{c}\" é obrigatório.'}, status=400)
 
-    # matrícula
+    # --------------------------------------------------------------
+    # 3) Gerar matrícula se não vier
+    # --------------------------------------------------------------
     if not data.get('matricula'):
         ano = datetime.now().year
-        ultimo = (Aluno.objects
-                  .filter(matricula__startswith=f"ALU{ano}")
-                  .annotate(numero_final=Cast(Substr('matricula', -4, 4), IntegerField()))
-                  .order_by('-numero_final')
-                  .first())
+        ultimo = (
+            Aluno.objects
+            .filter(matricula__startswith=f"ALU{ano}")
+            .annotate(numero_final=Cast(Substr('matricula', -4, 4), IntegerField()))
+            .order_by('-numero_final')
+            .first()
+        )
         prox = (ultimo.numero_final if ultimo else 0) + 1
         data['matricula'] = f"ALU{ano}{prox:04d}"
 
+    # --------------------------------------------------------------
+    # 4) Agora sim: iniciar transação
+    # --------------------------------------------------------------
     try:
         with transaction.atomic():
-            # parse datas
-            dn = datetime.strptime(data.get('data_nascimento'), "%Y-%m-%d").date()
 
+            # Datas
+            dn = datetime.strptime(data.get('data_nascimento'), "%Y-%m-%d").date()
+            data_ingresso = None
+            if data.get('data_ingresso'):
+                data_ingresso = datetime.strptime(data['data_ingresso'], "%Y-%m-%d").date()
+
+            # ----------------------------------------------------------
+            # 4.1) Criar aluno
+            # ----------------------------------------------------------
             aluno = Aluno.objects.create(
                 matricula=data['matricula'],
                 nome=data.get('nome',''),
@@ -490,162 +510,95 @@ def salvar_aluno(request):
                 telefone=data.get('telefone',''),
                 escola=request.user.escola,
 
-                # novos
-                data_ingresso=datetime.strptime(data['data_ingresso'], "%Y-%m-%d").date() if data.get('data_ingresso') else None,
-                cor_raca=data.get('cor_raca','') or None,
-                responsavel_financeiro=data.get('responsavel_financeiro','') or None,
-                situacao_familiar=data.get('situacao_familiar','') or None,
-                forma_acesso=data.get('forma_acesso','') or None,
+                # extras
+                data_ingresso=data_ingresso,
+                cor_raca=data.get('cor_raca') or None,
+                responsavel_financeiro=data.get('responsavel_financeiro') or None,
+                situacao_familiar=data.get('situacao_familiar') or None,
+                forma_acesso=data.get('forma_acesso') or None,
                 dispensa_ensino_religioso=to_bool(data.get('dispensa_ensino_religioso')),
-
                 situacao_matricula=data.get('situacao_matricula') or None,
                 bolsa_familia=to_bool(data.get('bolsa_familia')),
                 serie_ano=data.get('serie_ano',''),
                 turno_aluno=data.get('turno_aluno','') or data.get('turno',''),
             )
 
-            # turma principal (opcional) + sincronizar série/turno se vier vazios
+            # ----------------------------------------------------------
+            # 4.2) Turma principal (opcional)
+            # ----------------------------------------------------------
             turma_id = data.get('turma_principal') or data.get('turma_id')
             if turma_id:
                 turma = Turma.objects.filter(id=turma_id, escola=request.user.escola).first()
                 if turma:
                     aluno.turma_principal = turma
                     aluno.save(update_fields=['turma_principal'])
-                    # se existir M2M
-                    if hasattr(aluno, 'turmas'):
-                        aluno.turmas.add(turma)
-                    if not aluno.turno_aluno and getattr(turma, 'turno', ''):
+                    aluno.turmas.add(turma)
+
+                    if not aluno.turno_aluno and turma.turno:
                         aluno.turno_aluno = turma.turno
-                    if not aluno.serie_ano and getattr(turma, 'nome', ''):
+                    if not aluno.serie_ano and turma.nome:
                         aluno.serie_ano = turma.nome
                     aluno.save(update_fields=['turno_aluno','serie_ano'])
 
-            # ===== Responsáveis =====  (BLOCO AJUSTADO)
-            def _casefold(s):
-                return (s or "").strip().casefold()
+            # ----------------------------------------------------------
+            # 4.3) Criar RESPONSÁVEIS (multi-responsáveis)
+            # ----------------------------------------------------------
+            def add_responsavel(payload):
+                """Função segura pra evitar duplicação."""
+                if any(payload.values()):
+                    Responsavel.objects.create(aluno=aluno, **payload)
 
-            def _eh_mae(texto):
-                t = _casefold(texto)
-                return t in ("mae", "mãe")
-
-            def _eh_pai(texto):
-                return _casefold(texto) == "pai"
-
-            allows_multiple = True
-            try:
-                rel_field = Responsavel._meta.get_field('aluno')
-                if getattr(rel_field, 'unique', False):
-                    allows_multiple = False
-            except Exception:
-                allows_multiple = True  # fallback seguro
-
-            if allows_multiple:
-                # 2.1) Responsável genérico — se o parentesco vier “mãe” ou “pai”, salva com o tipo correspondente
-                if data.get('responsavel_nome'):
-                    parentesco_raw = (data.get('responsavel_parentesco') or '').strip()
-                    tipo_resp = None
-                    if _eh_mae(parentesco_raw):
-                        tipo_resp = 'mae'
-                        parentesco_raw = 'Mãe'
-                    elif _eh_pai(parentesco_raw):
-                        tipo_resp = 'pai'
-                        parentesco_raw = 'Pai'
-
-                    campos_gen = dict(
-                        aluno=aluno,
-                        nome=data.get('responsavel_nome',''),
-                        cpf=data.get('responsavel_cpf',''),
-                        parentesco=parentesco_raw,
-                        telefone=data.get('responsavel_telefone',''),
-                        email=data.get('responsavel_email',''),
-                    )
-                    if 'tipo' in [f.name for f in Responsavel._meta.fields] and tipo_resp:
-                        campos_gen['tipo'] = tipo_resp
-                    Responsavel.objects.create(**campos_gen)
-
-                # 2.2) Pai
-                if any(data.get(k) for k in ['pai_nome','pai_cpf','pai_identidade','pai_escolaridade','pai_profissao','pai_telefone','pai_email']):
-                    campos_pai = dict(
-                        aluno=aluno,
-                        nome=data.get('pai_nome',''),
-                        cpf=data.get('pai_cpf',''),
-                        identidade=data.get('pai_identidade',''),
-                        escolaridade=data.get('pai_escolaridade',''),
-                        profissao=data.get('pai_profissao',''),
-                        telefone=data.get('pai_telefone',''),
-                        email=data.get('pai_email',''),
-                        parentesco='Pai'
-                    )
-                    if 'tipo' in [f.name for f in Responsavel._meta.fields]:
-                        campos_pai['tipo'] = 'pai'
-                    Responsavel.objects.create(**campos_pai)
-
-                # 2.3) Mãe
-                if any(data.get(k) for k in ['mae_nome','mae_cpf','mae_identidade','mae_escolaridade','mae_profissao','mae_telefone','mae_email']):
-                    campos_mae = dict(
-                        aluno=aluno,
-                        nome=data.get('mae_nome',''),
-                        cpf=data.get('mae_cpf',''),
-                        identidade=data.get('mae_identidade',''),
-                        escolaridade=data.get('mae_escolaridade',''),
-                        profissao=data.get('mae_profissao',''),
-                        telefone=data.get('mae_telefone',''),
-                        email=data.get('mae_email',''),
-                        parentesco='Mãe'
-                    )
-                    if 'tipo' in [f.name for f in Responsavel._meta.fields]:
-                        campos_mae['tipo'] = 'mae'
-                    Responsavel.objects.create(**campos_mae)
-
-            else:
-                # OneToOne: prioridade pai → mãe → genérico
-                payload, tipo = {}, None
-
-                if any(data.get(k) for k in ['pai_nome','pai_cpf','pai_identidade','pai_escolaridade','pai_profissao','pai_telefone','pai_email']):
-                    payload = {
-                        'nome': data.get('pai_nome',''),
-                        'cpf': data.get('pai_cpf',''),
-                        'identidade': data.get('pai_identidade',''),
-                        'escolaridade': data.get('pai_escolaridade',''),
-                        'profissao': data.get('pai_profissao',''),
-                        'telefone': data.get('pai_telefone',''),
-                        'email': data.get('pai_email',''),
-                        'parentesco': 'Pai'
-                    }
-                    tipo = 'pai'
-
-                elif any(data.get(k) for k in ['mae_nome','mae_cpf','mae_identidade','mae_escolaridade','mae_profissao','mae_telefone','mae_email']):
-                    payload = {
-                        'nome': data.get('mae_nome',''),
-                        'cpf': data.get('mae_cpf',''),
-                        'identidade': data.get('mae_identidade',''),
-                        'escolaridade': data.get('mae_escolaridade',''),
-                        'profissao': data.get('mae_profissao',''),
-                        'telefone': data.get('mae_telefone',''),
-                        'email': data.get('mae_email',''),
-                        'parentesco': 'Mãe'
-                    }
+            # Genérico
+            if data.get('responsavel_nome'):
+                parentesco_raw = (data.get('responsavel_parentesco') or '').strip()
+                tipo = None
+                if parentesco_raw.lower() in ('mae','mãe'):
                     tipo = 'mae'
+                    parentesco_raw = 'Mãe'
+                elif parentesco_raw.lower() == 'pai':
+                    tipo = 'pai'
+                    parentesco_raw = 'Pai'
 
-                elif data.get('responsavel_nome'):
-                    parentesco_raw = (data.get('responsavel_parentesco') or '').strip()
-                    if _eh_mae(parentesco_raw): tipo = 'mae'
-                    elif _eh_pai(parentesco_raw): tipo = 'pai'
-                    payload = {
-                        'nome': data.get('responsavel_nome',''),
-                        'cpf': data.get('responsavel_cpf',''),
-                        'parentesco': parentesco_raw,
-                        'telefone': data.get('responsavel_telefone',''),
-                        'email': data.get('responsavel_email',''),
-                    }
+                add_responsavel({
+                    'nome': data.get('responsavel_nome',''),
+                    'cpf': data.get('responsavel_cpf',''),
+                    'parentesco': parentesco_raw,
+                    'telefone': data.get('responsavel_telefone',''),
+                    'email': data.get('responsavel_email',''),
+                    'tipo': tipo
+                })
 
-                if payload:
-                    defaults = dict(payload)
-                    if 'tipo' in [f.name for f in Responsavel._meta.fields] and tipo:
-                        defaults['tipo'] = tipo
-                    Responsavel.objects.update_or_create(aluno=aluno, defaults=defaults)
+            # Pai
+            if any(data.get(k) for k in ['pai_nome','pai_cpf','pai_identidade','pai_escolaridade','pai_profissao','pai_telefone','pai_email']):
+                add_responsavel({
+                    'nome': data.get('pai_nome',''),
+                    'cpf': data.get('pai_cpf',''),
+                    'identidade': data.get('pai_identidade',''),
+                    'escolaridade': data.get('pai_escolaridade',''),
+                    'profissao': data.get('pai_profissao',''),
+                    'telefone': data.get('pai_telefone',''),
+                    'email': data.get('pai_email',''),
+                    'parentesco': 'Pai',
+                    'tipo': 'pai'
+                })
 
-            # Saúde
+            # Mãe
+            if any(data.get(k) for k in ['mae_nome','mae_cpf','mae_identidade','mae_escolaridade','mae_profissao','mae_telefone','mae_email']):
+                add_responsavel({
+                    'nome': data.get('mae_nome',''),
+                    'cpf': data.get('mae_cpf',''),
+                    'identidade': data.get('mae_identidade',''),
+                    'escolaridade': data.get('mae_escolaridade',''),
+                    'profissao': data.get('mae_profissao',''),
+                    'telefone': data.get('mae_telefone',''),
+                    'email': data.get('mae_email',''),
+                    'parentesco': 'Mãe',
+                    'tipo': 'mae'
+                })
+
+            # ----------------------------------------------------------
+            # 4.4) SAÚDE
+            # ----------------------------------------------------------
             Saude.objects.create(
                 aluno=aluno,
                 possui_necessidade_especial=to_bool(data.get('possui_necessidade_especial')),
@@ -656,7 +609,9 @@ def salvar_aluno(request):
                 descricao_alergia=data.get('descricao_alergia',''),
             )
 
-            # Transporte (agora não é obrigatório — se vier vazio não cria)
+            # ----------------------------------------------------------
+            # 4.5) TRANSPORTE (opcional)
+            # ----------------------------------------------------------
             usa_transporte = data.get('utiliza_transporte') or data.get('usa_transporte_escolar')
             if usa_transporte is not None or data.get('trajeto'):
                 TransporteEscolar.objects.create(
@@ -665,20 +620,28 @@ def salvar_aluno(request):
                     trajeto=data.get('trajeto',''),
                 )
 
-            # Autorizações
+            # ----------------------------------------------------------
+            # 4.6) AUTORIZAÇÕES
+            # ----------------------------------------------------------
             Autorizacoes.objects.create(
                 aluno=aluno,
                 autorizacao_saida_sozinho=to_bool(data.get('autorizacao_saida_sozinho')),
                 autorizacao_fotos_eventos=to_bool(data.get('autorizacao_fotos_eventos')),
                 pessoa_autorizada_buscar=data.get('pessoa_autorizada_buscar',''),
+                usa_transporte_publico=to_bool(data.get('usa_transporte_publico')),
             )
 
-        # ok
-        return JsonResponse({'status':'sucesso', 'aluno_id': aluno.id, 'matricula': aluno.matricula})
+        # ----------------------------------------------------------
+        # 5) Sucesso
+        # ----------------------------------------------------------
+        return JsonResponse({
+            'status':'sucesso',
+            'aluno_id': aluno.id,
+            'matricula': aluno.matricula
+        })
 
     except Exception as e:
         return JsonResponse({'status':'erro','mensagem': str(e)}, status=400)
-
 
     
 @login_required
