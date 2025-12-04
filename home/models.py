@@ -277,7 +277,7 @@ class Autorizacoes(models.Model):
     aluno = models.OneToOneField(Aluno, on_delete=models.CASCADE)
     autorizacao_saida_sozinho = models.BooleanField(default=False)
     autorizacao_fotos_eventos = models.BooleanField(default=False)
-    pessoa_autorizada_buscar = models.CharField(max_length=255, blank=True, null=True, default='')
+    pessoa_autorizada_buscar = models.TextField(blank=True, null=True, default='')
     usa_transporte_publico = models.BooleanField(default=False)
 
 
